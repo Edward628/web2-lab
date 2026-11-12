@@ -107,8 +107,9 @@ Add each command here once it exists, and run it once before you write it down.
   Until then, ask before you create a top-level folder.
 
 ## 5. Release
-No remote, branches or deploy yet (Q-005). Work stays local until the user says otherwise.
-The default branch is `main`.
+- Code lives on GitHub: `https://github.com/Edward628/web2-lab` (public), remote `origin`.
+- The default branch is `main`. Push only with the user's go.
+- How labs are handed in, and any deploy or tag: not decided yet (Q-005).
 
 ## 6. Definition of done
 - Tests pass, once a test command exists (Q-002).

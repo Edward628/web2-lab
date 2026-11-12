@@ -52,10 +52,12 @@
 
 ## Q-005 · How is lab work handed in or deployed (git remote, hosting, branches, tags)?
 - **Status:** open
-- **Blocks:** AGENTS.md section 5; any push, tag or deploy
+- **Blocks:** how a lab is handed in; any tag or deploy
 - **Who answers:** the user (course requirements)
 - **Proposed answer:**
-- **Answer:**
+- **Answer:** partial, 2026-11-12 (user): the code lives on GitHub,
+  `https://github.com/Edward628/web2-lab` (public), remote `origin`, branch `main`.
+  Still open: how labs are handed in, and whether anything is deployed or tagged.
 - **Recorded as:**
 
 ## Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?

@@ -31,7 +31,8 @@ None yet.
 <!-- names only, never values -->
 
 ## Build, deploy, runtime
-Not decided (Q-001, Q-005). See AGENTS.md sections 2 and 5.
+Source on GitHub (`origin`, branch `main`). Build and runtime: not decided (Q-001).
+Hand-in and deploy: not decided (Q-005). See AGENTS.md sections 2 and 5.
 
 ## Boundaries
 None yet.
