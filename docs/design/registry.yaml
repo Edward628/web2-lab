@@ -15,7 +15,7 @@ designs:
     kind: screen
     name: Lista flag-urilor
     app: dashboard
-    status: draft   # approved 2026-11-18; back to draft after removing the Kill switch button and fixing touch targets (Q-011)
+    status: approved   # re-confirmed by the user, 2026-11-18 (after Q-011 fixes)
     mock: docs/design/mocks/DS-web2-flags.html
   - id: DS-web2-flag-detail
     kind: screen
