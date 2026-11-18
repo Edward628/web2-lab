@@ -15,7 +15,7 @@ designs:
     kind: screen
     name: Lista flag-urilor
     app: dashboard
-    status: approved   # confirmed by the user, 2026-11-18
+    status: approved   # re-confirmed by the user, 2026-11-18 (after Q-011 fixes)
     mock: docs/design/mocks/DS-web2-flags.html
   - id: DS-web2-flag-detail
     kind: screen

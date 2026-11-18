@@ -61,7 +61,8 @@ Buget: 15–20 de ore (fișa estimează ~40). Data predării: necunoscută (Q-00
 ## Partea umană (obligatorie, o face studentul)
 - Integrarea SDK-ului în cele 2 aplicații reale.
 - Experimentul real, minim 7 zile → `EXPERIMENT.md`.
-- Interviul de DX cu colegul → `INTERVIEW.md`; minim 2 schimbări în SDK → `DECISIONS.md`.
+- Interviul de DX cu colegul → `INTERVIEW.md`; minim 2 schimbări în SDK → `DECISIONS.md` la rădăcină
+  (scris de student; nu e ledger-ul agenților din `docs/agents/`, Q-019).
 
 ## Mockup
 `flagship/` este un mockup de idee, fără server (backend simulat în `localStorage`).
