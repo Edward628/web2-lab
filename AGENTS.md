@@ -83,7 +83,7 @@ The repo started empty on 2026-11-12. Stack, layout and hand-in flow are open
 questions (`docs/agents/OPEN-QUESTIONS.md`).
 
 ## 2. Stack and commands
-Stack: not decided yet (Q-001).
+Stack: Node.js (JavaScript), Express, PostgreSQL, Docker Compose; tests with `node --test` (D-002).
 
 ```bash
 # Ledger check (works today)
