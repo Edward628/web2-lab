@@ -77,10 +77,9 @@ without new evidence. A rejected proposal is added there with the reason.
 <!-- graffino-agentic:end -->
 
 ## 1. What this repo is
-Lab work for a Web 2 web development course.
-It will hold a web UI (pages, styles, scripts).
-The repo started empty on 2026-11-12. Stack, layout and hand-in flow are open
-questions (`docs/agents/OPEN-QUESTIONS.md`).
+The Web 2 course project: a feature flags and A/B testing service with a JavaScript
+SDK (see `README.md`). The whole repo is this one project. The repo started empty on
+2026-11-12. Hand-in and hosting are still open (`docs/agents/OPEN-QUESTIONS.md`).
 
 ## 2. Stack and commands
 Stack: Node.js (JavaScript), Express, PostgreSQL, Docker Compose; tests with `node --test` (D-002).
@@ -100,7 +99,12 @@ Add each command here once it exists, and run it once before you write it down.
 - `docs/agents/` — the knowledge ledger (decisions, patterns, contracts, questions).
 - `docs/design/` — design guardrails, the DS- registry, mocks and screenshots.
 - `.claude/` — the `/plan` and `/build` skills and the planner and builder agents.
-- Lab code: layout not decided yet (Q-004).
+- `server/` — Express API, SSE and event ingest; serves `dashboard/`. Tests in `server/test`.
+- `dashboard/` — the admin dashboard, static HTML + JavaScript.
+- `sdk/` — the browser SDK package (`npm pack`). Tests in `sdk/test`.
+- `p1/` — the parking app (P1), static HTML + JavaScript.
+- One `docker-compose.yml` at the root (Q-004). These folders don't exist until the
+  first build creates them.
 
 ## 4. Rules for this repo
 - Lab structure, naming and tooling follow the answers to the open questions.

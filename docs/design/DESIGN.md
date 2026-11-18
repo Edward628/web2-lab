@@ -153,6 +153,8 @@ switcher (user, 2026-11-18).
 | `shadow` | none | flat style |
 | `focus-ring` | 2 px `color-accent`, 2 px offset | keyboard focus |
 | `duration-fast` | 150 ms (0 with `prefers-reduced-motion`) | hover, toggle |
+| `layout-max` | 1100 px | max content width (user, 2026-11-18) |
+| `control-h` | 36 px desktop, 44 px mobile | min height of buttons, inputs, switches (touch target ≥ 44 px) |
 
 ### Breakpoints / window sizes
 | Name | Min | Max |
