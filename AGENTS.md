@@ -89,7 +89,8 @@ Stack: Node.js (JavaScript), Express, PostgreSQL, Docker Compose; tests with `no
 python3 docs/agents/tools/ledger-lint.py          # --fix rebuilds the indexes
 
 # install / run / build: not set yet (Q-001)
-# test / lint:           not set yet (Q-002)
+(cd sdk && npm test)                              # SDK unit tests (node --test)
+# lint:                  not set yet (Q-002)
 # screenshot:            not set yet (Q-003)
 ```
 

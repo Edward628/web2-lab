@@ -58,9 +58,10 @@
 
 ## D-004 · Evaluarea: reguli, apoi intervale pe un singur bucket (MurmurHash3); comutatorul e kill switch-ul
 - **Status:** approved
-- **Rule:** Bucket = MurmurHash3 pe 32 de biți (scris în repo, fără dependență, același cod în
-  SDK și pe server) din `flag_key` și `user_id`, modulo 100; formula exactă se fixează cu
-  vectorii de referință. Un flag oprit servește valoarea implicită. Un flag pornit verifică
+- **Rule:** Bucket = `murmur3_32(utf8(flag_key + ":" + user_id), seed 0) % 100`, un întreg
+  0..99 (MurmurHash3 x86 pe 32 de biți, scris în repo, fără dependență, același cod în SDK și
+  pe server; vectorii de referință din `sdk/test` fixează formula). `flag_key` sau `user_id`
+  care nu sunt string aruncă `TypeError`. Un flag oprit servește valoarea implicită. Un flag pornit verifică
   întâi regulile de targetare, în ordine (operatori `equals` și `in`, pe atributele
   utilizatorului), apoi intervalele: fiecare variantă are un interval din [0, 100); la un flag
   boolean, rollout N% = intervalul 0–N e pornit, deci creșterea rollout-ului păstrează
@@ -68,7 +69,7 @@
   acționează pe mediul selectat, cere confirmare în prod și scrie în jurnalul de audit.
 - **Why:** un singur control și un singur bucket sunt cel mai puțin de construit și de testat;
   hash-ul trebuie să ruleze sincron și identic în browser și în Node.
-- **Evidence:** user, 2026-11-18; Q-011, Q-013, Q-014, Q-021.
+- **Evidence:** user, 2026-11-18; Q-011, Q-013, Q-014, Q-021. Formula și bucket-ul întreg: plan „bucketing determinist”, aprobat 2026-11-18.
 - **Confirmed:** 2026-11-18
 
 ## D-005 · Evenimente: un batch cu expuneri, conversii și numărul de evaluări
