@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-flags · Lista flag-urilor (mock, approved)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:400 15px/24px var(--font-sans); }
+code, .mono { font-family:var(--font-mono); font-size:13px; line-height:20px; }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.sm { font-size:13px; line-height:20px; }
+.muted { color:var(--color-text-muted); }
+
+/* Bara de control a mock-ului (nu face parte din ecran) */
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font-size:13px; line-height:20px; color:var(--color-text-muted); }
+
+header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-divider); }
+.brand { font-weight:600; }
+nav { display:flex; gap:var(--space-1); flex-wrap:wrap; }
+nav a { color:var(--color-text-muted); text-decoration:none; padding:var(--space-2) var(--space-3); border-radius:var(--radius-sm); }
+nav a[aria-current="page"] { color:var(--color-text); background:var(--color-surface); font-weight:600; }
+nav a:hover { color:var(--color-text); }
+
+main { max-width:1100px; margin:0 auto; padding:var(--space-6); }
+.titlebar { display:flex; flex-wrap:wrap; gap:var(--space-4); align-items:center; justify-content:space-between; margin-bottom:var(--space-4); }
+h1 { font-size:24px; line-height:32px; font-weight:600; margin:0; }
+h2 { font-size:18px; line-height:28px; font-weight:600; margin:0 0 var(--space-2); }
+
+.btn { font:inherit; min-height:36px; padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm); cursor:pointer;
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);
+  transition:background var(--duration-fast); white-space:nowrap; }
+th:first-child { width:42%; }
+.btn:hover { background:var(--color-surface); }
+.btn-primary { background:var(--color-accent); color:var(--color-on-accent); border-color:var(--color-accent); font-weight:600; }
+.btn-primary:hover { background:var(--color-accent-hover); border-color:var(--color-accent-hover); }
+.btn-danger { color:var(--color-danger); border-color:var(--color-danger); }
+
+.toolbar { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; margin-bottom:var(--space-4); }
+.seg { display:inline-flex; border:1px solid var(--color-border); border-radius:var(--radius-sm); overflow:hidden; }
+.seg button { font:inherit; border:0; background:var(--color-bg); color:var(--color-text); padding:var(--space-1) var(--space-4); min-height:36px; cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--color-accent); color:var(--color-on-accent); font-weight:600; }
+input[type="search"], select { font:inherit; min-height:36px; padding:var(--space-1) var(--space-3); color:var(--color-text);
+  background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); }
+input[type="search"] { flex:1; min-width:180px; }
+
+.card { background:var(--color-bg); border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden; }
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font-size:13px; line-height:20px; font-weight:600; color:var(--color-text-muted);
+  background:var(--color-surface); padding:var(--space-2) var(--space-4); }
+td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-divider); vertical-align:top; }
+.flagname { font-weight:600; overflow-wrap:anywhere; }
+.flagname a { color:var(--color-text); text-decoration:none; }
+.flagname a:hover { color:var(--color-accent); text-decoration:underline; }
+.desc { overflow-wrap:anywhere; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.tags { display:flex; flex-wrap:wrap; gap:var(--space-1); margin-top:var(--space-1); }
+.tag { font-size:13px; line-height:20px; padding:0 var(--space-2); border-radius:var(--radius-sm);
+  border:1px solid var(--color-divider); color:var(--color-text-muted); white-space:nowrap; }
+.tag.warn { color:var(--color-warning); border-color:var(--color-warning); }
+.tag.ok { color:var(--color-success); border-color:var(--color-success); }
+.actions { display:flex; gap:var(--space-2); justify-content:flex-end; align-items:center; }
+
+/* Toggle: role="switch", starea e spusă și în text */
+.switch { display:inline-flex; align-items:center; gap:var(--space-2); font:inherit; background:none; border:0; color:var(--color-text);
+  cursor:pointer; min-height:36px; padding:0; }
+.track { width:36px; height:20px; border-radius:10px; border:1px solid var(--color-border); background:var(--color-surface);
+  position:relative; transition:background var(--duration-fast); flex:none; }
+.track::after { content:""; position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
+  background:var(--color-text-muted); transition:left var(--duration-fast); }
+.switch[aria-checked="true"] .track { background:var(--color-success); border-color:var(--color-success); }
+.switch[aria-checked="true"] .track::after { left:18px; background:var(--color-bg); }
+
+.notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4); border-radius:var(--radius-sm);
+  border:1px solid var(--color-divider); background:var(--color-surface); margin-bottom:var(--space-4); }
+.notice.success { border-color:var(--color-success); }
+.notice.error { border-color:var(--color-danger); }
+.notice .icon { font-weight:600; }
+.notice.success .icon { color:var(--color-success); }
+.notice.error .icon { color:var(--color-danger); }
+
+.empty { text-align:center; padding:var(--space-8) var(--space-6); }
+.skeleton td div { height:12px; border-radius:var(--radius-sm); background:var(--color-surface); margin:var(--space-1) 0; }
+
+.confirm { border:1px solid var(--color-danger); border-radius:var(--radius-md); padding:var(--space-4); margin-bottom:var(--space-4); }
+.confirm .row { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-3); }
+
+.state { display:none; }
+body[data-state="list"] .s-list, body[data-state="one"] .s-one, body[data-state="empty"] .s-empty,
+body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[data-state="success"] .s-success,
+body[data-state="confirm"] .s-confirm { display:block; }
+body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display:block; }
+
+/* Mobil: tabelul devine carduri */
+@media (max-width:767px) {
+  header, main { padding-left:var(--space-4); padding-right:var(--space-4); }
+  thead { display:none; }
+  table, tbody, tr, td { display:block; width:100%; }
+  tr { border-top:1px solid var(--color-divider); padding:var(--space-2) 0; }
+  td { border:0; padding:var(--space-1) var(--space-4); }
+  td[data-label]::before { content:attr(data-label) " · "; color:var(--color-text-muted); font-size:13px; }
+  .actions { justify-content:flex-start; }
+}
+</style>
+</head>
+<body data-state="list">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-flags · approved (2026-11-18)</strong>
+  <label>Stare:
+    <select id="state">
+      <option value="list">Listă (multe flag-uri, text lung)</option>
+      <option value="one">Un singur flag</option>
+      <option value="empty">Gol</option>
+      <option value="loading">Încărcare</option>
+      <option value="error">Eroare</option>
+      <option value="success">Succes (după kill switch)</option>
+      <option value="confirm">Confirmare kill switch</option>
+    </select>
+  </label>
+  <label>Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<header>
+  <span class="brand">Flag-uri</span>
+  <nav aria-label="Principal">
+    <a href="#" aria-current="page">Flag-uri</a>
+    <a href="#">Experimente</a>
+    <a href="#">Jurnal de audit</a>
+    <a href="#">Proiect și medii</a>
+  </nav>
+  <span class="sm muted" style="margin-left:auto">admin</span>
+</header>
+
+<main>
+  <div class="titlebar">
+    <div>
+      <h1>Flag-uri</h1>
+      <div class="sm muted">Proiect: ParkingLot</div>
+    </div>
+    <button class="btn btn-primary" type="button">Creează flag</button>
+  </div>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Mediu">
+      <button type="button" aria-pressed="false">dev</button>
+      <button type="button" aria-pressed="true">prod</button>
+    </div>
+    <input type="search" placeholder="Caută după cheie sau etichetă" aria-label="Caută flag-uri">
+    <select aria-label="Filtrează după stare">
+      <option>Active</option><option>Arhivate</option><option>Toate</option>
+    </select>
+  </div>
+
+  <!-- Succes -->
+  <div class="state s-success">
+    <div class="notice success" role="status">
+      <span class="icon" aria-hidden="true">✓</span>
+      <div><strong>Flag oprit.</strong> <code>new-checkout</code> e oprit în prod. Aplicațiile primesc configurația v48 în câteva secunde.
+        <button class="btn" type="button" style="margin-left:var(--space-2)">Anulează</button></div>
+    </div>
+  </div>
+
+  <!-- Confirmare kill switch -->
+  <div class="state s-confirm">
+    <div class="confirm" role="alertdialog" aria-labelledby="kt" aria-describedby="kd">
+      <h2 id="kt">Oprești <code>new-checkout</code> în prod?</h2>
+      <p id="kd" style="margin:0">Toți utilizatorii primesc imediat valoarea implicită (<code>false</code>). Schimbarea apare în jurnalul de audit și poate fi anulată.</p>
+      <div class="row">
+        <button class="btn btn-danger" type="button">Oprește flag-ul</button>
+        <button class="btn" type="button">Renunță</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Eroare -->
+  <div class="state s-error">
+    <div class="notice error" role="alert">
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Nu am putut încărca flag-urile.</strong> Serverul nu răspunde. Verifică conexiunea și încearcă din nou.
+        <div style="margin-top:var(--space-2)"><button class="btn" type="button">Încearcă din nou</button></div></div>
+    </div>
+  </div>
+
+  <!-- Gol -->
+  <div class="state s-empty">
+    <div class="card empty">
+      <h2>Niciun flag în prod</h2>
+      <p class="muted" style="margin:0 0 var(--space-4)">Un flag pornește sau oprește o funcție fără redeploy. Aici vei vedea starea, regulile și rollout-ul fiecărui flag.</p>
+      <button class="btn btn-primary" type="button">Creează primul flag</button>
+    </div>
+  </div>
+
+  <!-- Încărcare -->
+  <div class="state s-loading" aria-busy="true">
+    <div class="card">
+      <table class="skeleton" aria-label="Se încarcă flag-urile">
+        <thead><tr><th>Flag</th><th>Tip</th><th>Targetare</th><th>Stare</th><th><span class="sr">Acțiuni</span></th></tr></thead>
+        <tbody>
+          <tr><td><div style="width:60%"></div><div style="width:85%"></div></td><td><div style="width:70%"></div></td><td><div style="width:50%"></div></td><td><div style="width:40%"></div></td><td><div></div></td></tr>
+          <tr><td><div style="width:45%"></div><div style="width:75%"></div></td><td><div style="width:70%"></div></td><td><div style="width:60%"></div></td><td><div style="width:40%"></div></td><td><div></div></td></tr>
+          <tr><td><div style="width:55%"></div><div style="width:65%"></div></td><td><div style="width:70%"></div></td><td><div style="width:45%"></div></td><td><div style="width:40%"></div></td><td><div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Un singur flag -->
+  <div class="state s-one">
+    <div class="card">
+      <table>
+        <thead><tr><th>Flag</th><th>Tip</th><th>Targetare</th><th>Stare</th><th><span class="sr">Acțiuni</span></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>new-checkout</code></a></div><div class="desc sm muted">Checkout nou, într-un singur pas.</div></td>
+            <td data-label="Tip">boolean</td>
+            <td data-label="Targetare">1 regulă · rollout 10%</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
+            <td><div class="actions"><button class="btn btn-danger" type="button">Kill switch</button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Listă -->
+  <div class="state s-list">
+    <div class="card">
+      <table>
+        <thead><tr><th>Flag</th><th>Tip</th><th>Targetare</th><th>Stare</th><th><span class="sr">Acțiuni</span></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>new-checkout</code></a></div>
+              <div class="desc sm muted">Checkout nou, într-un singur pas.</div>
+              <div class="tags"><span class="tag">checkout</span></div></td>
+            <td data-label="Tip">boolean</td>
+            <td data-label="Targetare">1 regulă · rollout 10%</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
+            <td><div class="actions"><button class="btn btn-danger" type="button">Kill switch</button></div></td>
+          </tr>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>reserve-button-color</code></a></div>
+              <div class="desc sm muted">Culoarea butonului „Rezervă locul”: albastru (control) față de verde.</div>
+              <div class="tags"><span class="tag">experiment</span><span class="tag">p1</span></div></td>
+            <td data-label="Tip">multivariat · 2 variante</td>
+            <td data-label="Targetare">alocare 50 / 50</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
+            <td><div class="actions"><a class="btn" href="#" style="text-decoration:none">Rezultate</a><button class="btn btn-danger" type="button">Kill switch</button></div></td>
+          </tr>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>dark-mode</code></a></div>
+              <div class="desc sm muted">Tema întunecată în aplicația P1.</div>
+              <div class="tags"><span class="tag warn">⚠ Stale · neevaluat de 34 de zile</span></div></td>
+            <td data-label="Tip">boolean</td>
+            <td data-label="Targetare">fără reguli</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="false" type="button"><span class="track"></span>Oprit</button></td>
+            <td><div class="actions"><button class="btn" type="button">Arhivează</button></div></td>
+          </tr>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>old-banner</code></a></div>
+              <div class="desc sm muted">Bannerul vechi de pe pagina principală.</div>
+              <div class="tags"><span class="tag warn">⚠ 100% pornit de 45 de zile · poate fi arhivat</span></div></td>
+            <td data-label="Tip">boolean</td>
+            <td data-label="Targetare">rollout 100%</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
+            <td><div class="actions"><button class="btn btn-danger" type="button">Kill switch</button></div></td>
+          </tr>
+          <tr>
+            <td><div class="flagname"><a href="#"><code>parking-spot-recommendation-based-on-previous-reservations-and-time-of-day</code></a></div>
+              <div class="desc sm muted">Recomandă un loc de parcare pe baza rezervărilor anterioare ale utilizatorului și a orei din zi, cu o descriere suficient de lungă încât să fie tăiată după două rânduri în listă și afișată complet în detaliul flag-ului.</div>
+              <div class="tags"><span class="tag">p1</span><span class="tag">recomandări</span><span class="tag">beta</span></div></td>
+            <td data-label="Tip">boolean</td>
+            <td data-label="Targetare">2 reguli · rollout 30%</td>
+            <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
+            <td><div class="actions"><button class="btn btn-danger" type="button">Kill switch</button></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sm muted">5 flag-uri active în prod · configurația v47</p>
+  </div>
+</main>
+
+<style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
+<script>
+document.getElementById('state').onchange = e => document.body.dataset.state = e.target.value;
+// Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+document.querySelectorAll('.switch').forEach(s => s.onclick = () => {
+  const on = s.getAttribute('aria-checked') !== 'true';
+  s.setAttribute('aria-checked', on); s.lastChild.textContent = on ? 'Pornit' : 'Oprit';
+});
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () =>
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)));
+</script>
+</body>
+</html>
