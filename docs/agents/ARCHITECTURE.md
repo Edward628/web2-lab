@@ -6,17 +6,18 @@
 <!-- graffino-agentic:end -->
 
 ## Overview
-No code yet (the repo started empty on 2026-11-12). It will hold the labs of a
-Web 2 course: a web UI run in the browser. Fill this page in with the first
-structural change.
+A feature flags and A/B testing service with a browser SDK (README.md). Planned parts
+(D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. Only `sdk/` exists so far, with the
+deterministic bucketing.
 
 ```text
-(no parts yet)
+sdk/src/bucket.js   murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 ```
 
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
+| SDK | `sdk/` | browser SDK; today only bucketing (D-004). ES modules, no dependencies; tests in `sdk/test` | nothing yet |
 
 ## Data flow
 None yet.
@@ -31,7 +32,7 @@ None yet.
 <!-- names only, never values -->
 
 ## Build, deploy, runtime
-Source on GitHub (`origin`, branch `main`). Build and runtime: not decided (Q-001).
+Source on GitHub (`origin`, branch `main`). Stack: D-002. SDK tests: `cd sdk && npm test`.
 Hand-in and deploy: not decided (Q-005). See AGENTS.md sections 2 and 5.
 
 ## Boundaries
