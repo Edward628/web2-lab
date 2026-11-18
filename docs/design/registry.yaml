@@ -2,4 +2,49 @@
 # Plans, commits, mocks and board files use the ID (tickets don't). kind: foundation | component | screen
 # status: draft (mock drawn) | approved (confirmed on the board) | implemented | deprecated (never delete an entry)
 # ID shape: DS-web2-<name>
-designs: []
+# An entry with `mock: none` is listed (list approved by the user on 2026-11-18) but not drawn yet.
+designs:
+  # Flag dashboard (admin)
+  - id: DS-web2-login
+    kind: screen
+    name: Autentificare
+    app: dashboard
+    status: draft
+    mock: none
+  - id: DS-web2-flags
+    kind: screen
+    name: Lista flag-urilor
+    app: dashboard
+    status: approved   # confirmed by the user, 2026-11-18
+    mock: docs/design/mocks/DS-web2-flags.html
+  - id: DS-web2-flag-detail
+    kind: screen
+    name: Detaliul unui flag
+    app: dashboard
+    status: draft
+    mock: none
+  - id: DS-web2-experiment
+    kind: screen
+    name: Rezultatele experimentului
+    app: dashboard
+    status: draft
+    mock: none
+  - id: DS-web2-audit
+    kind: screen
+    name: Jurnal de audit
+    app: dashboard
+    status: draft
+    mock: none
+  - id: DS-web2-settings
+    kind: screen
+    name: Proiect și medii
+    app: dashboard
+    status: draft
+    mock: none
+  # P1 (colegii de grupă)
+  - id: DS-web2-parking
+    kind: screen
+    name: Parcarea
+    app: p1
+    status: draft
+    mock: none

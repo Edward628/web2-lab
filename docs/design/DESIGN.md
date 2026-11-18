@@ -98,31 +98,67 @@ them; a ticket with UI has a design subtask instead (team addon).
 ## Source
 - Design board: none yet (published from `mocks/`, never pulled)
 - Figma: none
-- Token source in code: none yet (no CSS exists; see Q-006 in `docs/agents/OPEN-QUESTIONS.md`)
+- Token source in code: none yet (no CSS exists). The tables below were approved by the
+  user on 2026-11-18 (Q-006); the first stylesheet must use exactly these values.
 
 ## Tokens
-Empty until the first stylesheet exists. Fill each table from the real token source;
-never invent values.
+One set for both the flag dashboard and the P1 app. Style: sober and technical,
+indigo accent, system font. Contrast ratios were computed against `color-bg` (WCAG).
+The blue and green of the P1 button are experiment variant values, not tokens.
+Theme: both apps follow the system setting (`prefers-color-scheme`); there is no theme
+switcher (user, 2026-11-18).
 
 ### Color
 | Token | Light | Dark | Use |
 |---|---|---|---|
+| `color-bg` | `#FFFFFF` | `#0D1117` | page background |
+| `color-surface` | `#F6F7F9` | `#161B22` | cards, panels |
+| `color-text` | `#1F2328` | `#E6EDF3` | main text (15.8 / 16.0 : 1) |
+| `color-text-muted` | `#59636E` | `#9198A1` | secondary text (6.1 / 6.5 : 1) |
+| `color-border` | `#818B98` | `#6E7681` | input borders (3.5 / 4.1 : 1) |
+| `color-divider` | `#D0D7DE` | `#30363D` | decorative separators only |
+| `color-accent` | `#4F46E5` | `#818CF8` | primary buttons, links, focus (6.3 / 6.3 : 1) |
+| `color-accent-hover` | `#4338CA` | `#A5B4FC` | hover on accent |
+| `color-on-accent` | `#FFFFFF` | `#0D1117` | text on accent (6.3 / 6.3 : 1) |
+| `color-success` | `#1A7F37` | `#3FB950` | active, significant (5.1 / 7.5 : 1) |
+| `color-warning` | `#9A6700` | `#D29922` | stale, "not significant yet" (4.9 / 7.5 : 1) |
+| `color-danger` | `#CF222E` | `#F85149` | kill switch, errors (5.4 / 5.7 : 1) |
 
 ### Typography
 | Token | Family | Size / line height | Weight | Use |
 |---|---|---|---|---|
+| `font-sans` | `system-ui, "Segoe UI", sans-serif` | — | — | all text |
+| `font-mono` | `ui-monospace, Consolas, monospace` | — | — | flag keys, SDK keys, code |
+| `text-sm` | sans | 13 / 20 px | 400 | labels, secondary text |
+| `text-base` | sans | 15 / 24 px | 400 | body text |
+| `text-lg` | sans | 18 / 28 px | 600 | section headings |
+| `text-xl` | sans | 24 / 32 px | 600 | the screen's one primary heading |
+| `text-stat` | sans | 28 / 36 px | 600 | large numbers in results |
 
 ### Spacing
 | Token | Value |
 |---|---|
+| `space-1` | 4 px |
+| `space-2` | 8 px |
+| `space-3` | 12 px |
+| `space-4` | 16 px |
+| `space-6` | 24 px |
+| `space-8` | 32 px |
 
 ### Radius, shadow, motion
 | Token | Value | Use |
 |---|---|---|
+| `radius-sm` | 6 px | buttons, inputs, tags |
+| `radius-md` | 12 px | cards |
+| `shadow` | none | flat style |
+| `focus-ring` | 2 px `color-accent`, 2 px offset | keyboard focus |
+| `duration-fast` | 150 ms (0 with `prefers-reduced-motion`) | hover, toggle |
 
 ### Breakpoints / window sizes
 | Name | Min | Max |
 |---|---|---|
+| mobile | 360 px | 767 px |
+| desktop | 768 px | — |
 
 ## Hard-coded values found (to migrate)
 | path:line | Value | Should be |

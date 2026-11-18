@@ -72,8 +72,9 @@
 - **Blocks:** the token tables in docs/design/DESIGN.md; the first mock and the first styled screen
 - **Who answers:** the user (or the course brief)
 - **Proposed answer:**
-- **Answer:**
-- **Recorded as:**
+- **Answer:** partial, 2026-11-18 (user): tokens approved (one set for dashboard and P1;
+  sober, technical; indigo accent; system font). No design board yet.
+- **Recorded as:** docs/design/DESIGN.md → Tokens
 
 ## Q-007 · Care e a doua aplicație reală (proiectul colegului) și e colegul de acord?
 - **Status:** open
