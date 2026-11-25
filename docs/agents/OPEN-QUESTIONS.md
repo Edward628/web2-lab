@@ -107,6 +107,8 @@
   consistent), PostgreSQL + PostGIS, Docker Compose; hosting Render + Neon; are login
   (USER / ADMIN). Încă necunoscute: URL-ul live, ce funcție pune sub flag, ce `user_id`
   trimite (Q-027), cum include SDK-ul fără npm (Q-026).
+  Update 2026-11-25 (user): aplicația colegului nu e gata încă; integrarea în P07 se face
+  după ce o termină, iar până atunci studentul își construiește partea lui.
 - **Recorded as:**
 
 ## Q-026 · Cum include SDK-ul o aplicație fără npm (Thymeleaf, P07)?
