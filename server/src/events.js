@@ -1,18 +1,36 @@
 // Event ingest (C-003, D-005): a batch of exposures, conversions and evaluation
 // counts from the SDK, stored for the environment of the SDK key.
 
-const isString = (v) => typeof v === 'string';
 const isObject = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
+// Text PostgreSQL can store as is: no NUL (rejected by text and jsonb) and no lone
+// surrogate (pg would turn it into U+FFFD, so two different ids could become one).
+const isStorable = (s) => !s.includes('\u0000') && s.isWellFormed();
+const isText = (v, max) => typeof v === 'string' && v.length <= max && isStorable(v);
+const TEXT_MAX = 256; // userId, flagKey, metric: fits the btree index of exposures / conversions
+
+// Every string in a JSON value, keys included, is storable in jsonb.
+function isStorableJson(v) {
+  if (typeof v === 'string') return isStorable(v);
+  if (Array.isArray(v)) return v.every(isStorableJson);
+  if (isObject(v)) return Object.entries(v).every(([k, x]) => isStorable(k) && isStorableJson(x));
+  return true;
+}
+
 function isValidEvent(e) {
-  if (!isObject(e) || !isString(e.id) || e.id.length < 1 || e.id.length > 64) return false;
+  if (!isObject(e) || !isText(e.id, 64) || e.id.length < 1) return false;
   switch (e.type) {
     case 'exposure':
-      return isString(e.userId) && isString(e.flagKey) && Object.hasOwn(e, 'variant');
+      return (
+        isText(e.userId, TEXT_MAX) && isText(e.flagKey, TEXT_MAX) && Object.hasOwn(e, 'variant') && isStorableJson(e.variant)
+      );
     case 'conversion':
-      return isString(e.userId) && isString(e.metric);
+      return isText(e.userId, TEXT_MAX) && isText(e.metric, TEXT_MAX);
     case 'evaluations':
-      return isObject(e.counts) && Object.values(e.counts).every((n) => Number.isInteger(n) && n >= 1);
+      return (
+        isObject(e.counts) &&
+        Object.entries(e.counts).every(([k, n]) => isText(k, TEXT_MAX) && Number.isInteger(n) && n >= 1)
+      );
     default:
       return false;
   }
@@ -24,8 +42,10 @@ export function validateBatch(body) {
   return body.events.every(isValidEvent) ? body.events : null;
 }
 
-// → the environment id of an SDK key, or null when the key is unknown.
+// → the environment id of an SDK key, or null when the key is unknown (a key
+// PostgreSQL could not store cannot exist, so it is unknown without a query).
 export async function environmentOf(pool, sdkKey) {
+  if (!isStorable(sdkKey)) return null;
   const r = await pool.query('SELECT environment_id FROM sdk_keys WHERE key = $1', [sdkKey]);
   return r.rowCount === 0 ? null : r.rows[0].environment_id;
 }

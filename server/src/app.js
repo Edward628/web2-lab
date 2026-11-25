@@ -67,9 +67,11 @@ export function createApp({ pool }) {
     res.status(204).end();
   });
 
-  // express.json() errors: a body that is not JSON (400) or over 100 kB (413).
+  // express.json() errors: over 100 kB → 413; any other body it refuses (not JSON,
+  // an unsupported charset or Content-Encoding, which it reports as 415) → 400.
   app.use('/sdk/events', (err, req, res, next) => {
-    if (err.status === 400 || err.status === 413) return res.status(err.status).end();
+    if (err.status === 413) return res.status(413).end();
+    if (err.status >= 400 && err.status < 500) return res.status(400).end();
     next(err);
   });
 

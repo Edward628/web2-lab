@@ -20,6 +20,7 @@ const SETTINGS = {
 // → { dev, prod }: the SDK key of each environment.
 export async function seedParkingLot(pool) {
   const client = await pool.connect();
+  let released = false;
   try {
     await client.query('BEGIN');
     const existing = await client.query(
@@ -38,7 +39,18 @@ export async function seedParkingLot(pool) {
       return { dev: keys.dev, prod: keys.prod };
     }
 
-    const project = await client.query('INSERT INTO projects (name) VALUES ($1) RETURNING id', [PROJECT]);
+    // A seed running at the same time may have just created it: this insert waits for
+    // that one to commit, inserts nothing, and the next try returns its keys.
+    const project = await client.query(
+      'INSERT INTO projects (name) VALUES ($1) ON CONFLICT (name) DO NOTHING RETURNING id',
+      [PROJECT],
+    );
+    if (project.rowCount === 0) {
+      await client.query('ROLLBACK');
+      client.release();
+      released = true;
+      return seedParkingLot(pool);
+    }
     const projectId = project.rows[0].id;
     const flag = await client.query(
       `INSERT INTO flags (project_id, key, type) VALUES ($1, $2, 'multivariate') RETURNING id`,
@@ -79,6 +91,6 @@ export async function seedParkingLot(pool) {
     await client.query('ROLLBACK').catch(() => {});
     throw err;
   } finally {
-    client.release();
+    if (!released) client.release();
   }
 }

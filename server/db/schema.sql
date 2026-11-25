@@ -9,6 +9,10 @@ CREATE TABLE IF NOT EXISTS projects (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Unique names (review S5): the seed finds ParkingLot by name, and two seeds at the
+-- same time must not create it twice. An index, so it is added to an existing table too.
+CREATE UNIQUE INDEX IF NOT EXISTS projects_name_key ON projects (name);
+
 CREATE TABLE IF NOT EXISTS environments (
   id             serial PRIMARY KEY,
   project_id     integer NOT NULL REFERENCES projects (id),
