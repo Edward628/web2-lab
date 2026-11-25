@@ -101,3 +101,16 @@ test('a non-string flag key is unknown, before and after identify', () => {
   assert.equal(ff.isEnabled({ toString: () => '1' }), false);
   assert.equal(ff.getVariant('1'), true);
 });
+
+test('init with an invalid configuration throws TypeError', () => {
+  assert.throws(() => init({ sdkKey: 'k', config: { version: 1, flags: [] } }), TypeError);
+  assert.throws(() => init({ sdkKey: 'k', config: { version: '1', flags: {} } }), TypeError);
+  assert.throws(() => init({ sdkKey: 'k', config: null }), TypeError);
+});
+
+test('without a configuration every flag is unknown', () => {
+  const ff = init({ sdkKey: 'k' });
+  assert.equal(ff.isEnabled('new-checkout'), false);
+  ff.identify('user-1');
+  assert.equal(ff.getVariant('new-checkout'), null);
+});
