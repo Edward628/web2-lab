@@ -89,3 +89,15 @@ test('a flag key that is an inherited object property is still unknown', () => {
   assert.equal(ff.getVariant('constructor'), null);
   assert.equal(ff.isEnabled('hasOwnProperty'), false);
 });
+
+test('a non-string flag key is unknown, before and after identify', () => {
+  const flags = {
+    '1': { type: 'boolean', enabled: true, default: false, rules: [], variants: [{ value: true, from: 0, to: 100 }] },
+  };
+  const ff = init({ sdkKey: 'k', config: { version: 1, flags } });
+  assert.equal(ff.getVariant(1), null);
+  ff.identify('user-1');
+  assert.equal(ff.getVariant(1), null);
+  assert.equal(ff.isEnabled({ toString: () => '1' }), false);
+  assert.equal(ff.getVariant('1'), true);
+});
