@@ -79,10 +79,8 @@ body[data-variant="green"] .cta { background:var(--variant-green); }
 .notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4);
   border:1px solid var(--color-divider); border-radius:var(--radius-md); background:var(--color-surface); margin-bottom:var(--space-6); }
 .notice.success { border-color:var(--color-success); }
-.notice.error { border-color:var(--color-danger); }
 .notice .icon { font-weight:600; }
 .notice.success .icon { color:var(--color-success); }
-.notice.error .icon { color:var(--color-danger); }
 .notice p { margin:0; }
 .btn { font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm);
   border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text); cursor:pointer; margin-top:var(--space-2); }
@@ -93,15 +91,14 @@ footer { text-align:center; padding:var(--space-4); }
 
 .state { display:none; }
 body[data-state="list"] .s-list, body[data-state="one"] .s-one, body[data-state="empty"] .s-empty,
-body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[data-state="success"] .s-success,
+body[data-state="loading"] .s-loading, body[data-state="success"] .s-success,
 body[data-state="invalid"] .s-list, body[data-state="invalid"] .s-invalid { display:block; }
-body[data-state="error"] .s-list { display:block; }
 </style>
 </head>
 <body data-state="list" data-variant="blue">
 
 <div class="mockbar" role="region" aria-label="Controale mock">
-  <strong>Mock DS-web2-parking · approved (2026-11-25)</strong>
+  <strong>Mock DS-web2-parking · approved (2026-11-25, re-aprobat fără starea de eroare, Q-035)</strong>
   <label>Stare:
     <select id="state">
       <option value="list">Listă (multe locuri, text lung)</option>
@@ -109,7 +106,6 @@ body[data-state="error"] .s-list { display:block; }
       <option value="empty">Gol (niciun loc liber)</option>
       <option value="loading">Încărcare</option>
       <option value="invalid">Eroare de validare (niciun loc ales)</option>
-      <option value="error">Eroare (locul tocmai a fost ocupat)</option>
       <option value="success">Succes (rezervat)</option>
     </select>
   </label>
@@ -132,17 +128,8 @@ body[data-state="error"] .s-list { display:block; }
     <div class="notice success" role="status">
       <span class="icon" aria-hidden="true">✓</span>
       <div><p><strong>Locul A12 e rezervat.</strong></p>
-        <p class="muted">Etaj 1 · până la 15:40. Îl găsești în stânga rampei.</p>
+        <p class="muted">Etaj 1 · până la 15:40.</p>
         <button class="btn" type="button">Anulează rezervarea</button></div>
-    </div>
-  </div>
-
-  <!-- Eroare: locul s-a ocupat între timp -->
-  <div class="state s-error">
-    <div class="notice error" role="alert">
-      <span class="icon" aria-hidden="true">!</span>
-      <div><p><strong>Locul A12 tocmai a fost ocupat.</strong></p>
-        <p class="muted">Alege alt loc liber de mai jos.</p></div>
     </div>
   </div>
 
