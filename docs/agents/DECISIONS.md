@@ -55,7 +55,7 @@
 - **Why:** variabilă din fișa proiectului (formatul configurației și strategia de fallback);
   acoperă cerința „fără a amesteca două versiuni într-o evaluare”.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-25
 
 ## D-004 · Evaluarea: reguli, apoi intervale pe un singur bucket (MurmurHash3); comutatorul e kill switch-ul
 - **Status:** approved
@@ -119,16 +119,24 @@
 
 ## D-009 · API-ul SDK-ului: init întoarce un client; citirile nu aruncă
 - **Status:** approved
-- **Rule:** `init({ sdkKey, config })` întoarce un client `{ sdkKey, identify(userId,
-  attributes), isEnabled(flagKey), getVariant(flagKey) }`; starea stă în client, nu în modul.
-  Configurația (C-001) se dă la `init`; obținerea ei de la server (D-003) vine într-un plan
-  ulterior. `identify` cu un `userId` care nu e string aruncă `TypeError`. Citirile nu aruncă:
+- **Rule:** `init({ sdkKey, baseUrl, config? })` întoarce sincron un client `{ sdkKey,
+  identify(userId, attributes), isEnabled(flagKey), getVariant(flagKey), refresh() }`; starea
+  stă în client, nu în modul. Un `config` dat la `init` care nu trece validarea C-001 aruncă
+  `TypeError`; fără `config`, fiecare flag e necunoscut până la prima configurație validă.
+  `refresh()` cere configurația de la server (C-002, D-003) și întoarce un Promise cu
+  `'updated' | 'not-modified' | 'rejected' | 'error'`, fără să fie respins vreodată; o
+  configurație acceptată o înlocuiește pe cea veche dintr-o dată; la `'rejected'` sau
+  `'error'` rămâne ultima configurație validă. `identify` cu un `userId` care nu e string
+  aruncă `TypeError`. Citirile nu aruncă:
   un flag necunoscut (doar chei proprii ale `flags`) dă `isEnabled` → `false` și
   `getVariant` → `null`; înainte de `identify` un flag servește `default`; o regulă pe un
   atribut lipsă sau cu operator necunoscut nu se potrivește; `equals` e `===`.
   `isEnabled` = valoarea `=== true`; `getVariant` întoarce valoarea pentru orice tip de flag.
-  Evaluarea e funcția pură `evaluate(flagKey, flag, user)` din `sdk/src/evaluate.js`.
+  Evaluarea e funcția pură `evaluate(flagKey, flag, user)` din `sdk/src/evaluate.js`;
+  validarea e funcția pură `isValidConfig(config)` din `sdk/src/validate.js`.
 - **Why:** un client per `init` izolează testele și se mapează direct pe un viitor
-  `window.FF` (Q-026); o aplicație nu trebuie să cadă din cauza unui flag lipsă.
-- **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25.
+  `window.FF` (Q-026); o aplicație nu trebuie să cadă din cauza unui flag lipsă sau a unei
+  configurații stricate. SSE și polling-ul (planuri ulterioare) vor apela `refresh()`.
+- **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25; user,
+  plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25.
 - **Confirmed:** 2026-11-25
