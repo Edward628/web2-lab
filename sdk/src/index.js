@@ -1,10 +1,13 @@
-// The SDK client (D-009): init({ sdkKey, baseUrl, config? }) →
-// { identify, isEnabled, getVariant, refresh }.
+// The SDK client (D-011): init({ sdkKey, baseUrl, config? }) →
+// { identify, isEnabled, getVariant, refresh, track, flush }.
 // refresh() fetches the configuration (C-002) with If-None-Match (D-003); only a
 // configuration that passes C-001 replaces the current one, in one swap.
 // Reads never throw: an unknown flag gives false / null, no user yet gives default.
+// Each read of a known flag counts an evaluation; getVariant on an experiment flag
+// queues one exposure per user and flag when the value comes from a variant range.
 
-import { evaluate } from './evaluate.js';
+import { evaluateDetail } from './evaluate.js';
+import { createEventQueue } from './events.js';
 import { isValidConfig } from './validate.js';
 
 export function init({ sdkKey, baseUrl, config }) {
@@ -14,13 +17,24 @@ export function init({ sdkKey, baseUrl, config }) {
   let current = config ?? null;
   let etag = null;
   let user = null;
+  const events = createEventQueue({ sdkKey, baseUrl });
+  const exposed = new Set();
 
-  function value(flagKey) {
+  function value(flagKey, exposes) {
     const flags = current?.flags;
     if (typeof flagKey !== 'string' || !flags || !Object.hasOwn(flags, flagKey)) return null;
     const flag = flags[flagKey];
+    events.count(flagKey);
     if (user === null) return flag.default;
-    return evaluate(flagKey, flag, user);
+    const { value, fromVariant } = evaluateDetail(flagKey, flag, user);
+    if (exposes && fromVariant && flag.experiment === true) {
+      const key = JSON.stringify([user.userId, flagKey]);
+      if (!exposed.has(key)) {
+        exposed.add(key);
+        events.push({ type: 'exposure', userId: user.userId, flagKey, variant: value });
+      }
+    }
+    return value;
   }
 
   // → 'updated' | 'not-modified' | 'rejected' | 'error'; never rejects.
@@ -55,8 +69,17 @@ export function init({ sdkKey, baseUrl, config }) {
       }
       user = { userId, attributes };
     },
-    isEnabled: (flagKey) => value(flagKey) === true,
-    getVariant: (flagKey) => value(flagKey),
+    isEnabled: (flagKey) => value(flagKey, false) === true,
+    getVariant: (flagKey) => value(flagKey, true),
     refresh,
+    // Queues a conversion; ignored before identify (D-011).
+    track(metric) {
+      if (typeof metric !== 'string') {
+        throw new TypeError('track: metric must be a string');
+      }
+      if (user === null) return;
+      events.push({ type: 'conversion', userId: user.userId, metric });
+    },
+    flush: events.flush,
   };
 }

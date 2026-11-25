@@ -148,12 +148,33 @@
   - Id-urile de eveniment au 128 de biți aleatori (`crypto.getRandomValues`, 32 de cifre hex).
   - O conversie contează după ordinea de ingestie pe server (D-005, C-003), nu după ceasul
     browserului.
+  - O singură cerere e în curs o dată (Q-034); evenimentele ies din coadă doar când vine
+    răspunsul (șterse după id).
+  - Timer-ul de 5 s pornește când coada devine nevidă și repornește la 5 s după o trimitere
+    eșuată, fără backoff.
+  - La `pagehide` se trimite toată coada imediat, în cereri de cel mult 20, inclusiv
+    evenimentele cererii în curs (aceleași id-uri; serverul le ignoră pe cele văzute).
+  - `flush()` așteaptă cererea în curs, apoi trimite bucățile una după alta; rezultatul e
+    `'error'` dacă s-a oprit la o eroare, altfel `'dropped'` dacă o bucată a fost aruncată,
+    altfel `'sent'`; `'empty'` dacă nu era nimic de trimis.
+  - Numărătorile pleacă într-un eveniment `evaluations` adăugat la coadă doar când nu așteaptă
+    deja unul.
+  - `track(metric)` verifică tipul înainte de `identify`. Fără `baseUrl` nu se pune nimic în
+    coadă, iar `flush()` → `'empty'`.
+  - O cerere fără răspuns în 10 s (`AbortSignal.timeout(10_000)`) e `'error'`: evenimentele
+    rămân și se retrimit cu aceleași id-uri. Și după o trimitere eșuată de la `pagehide`
+    (pagina păstrată în back/forward cache) timer-ul de 5 s repornește.
+  - Un eveniment pe care `JSON.stringify` nu-l poate codifica (de exemplu o variantă `BigInt`
+    dintr-o configurație dată la `init`) se aruncă la punerea în coadă, ca să nu blocheze coada.
 - **Why:** D-005 cere expuneri, conversii și evaluări trimise în batch de SDK; `keepalive` și
   `pagehide` păstrează o conversie făcută chiar înainte de închiderea tab-ului;
   `randomUUID` există doar pe HTTPS sau localhost, iar hosting-ul P1 nu e decis (Q-005).
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (5 s / 20 de evenimente, experimentul marcat în configurație, ordinea de ingestie,
-  A1–A2, keepalive + pagehide).
+  A1–A2, keepalive + pagehide); user, plan „SDK part 2: exposures, track, flush, batching”,
+  2026-11-25 (o cerere în curs, timer, pagehide, rezultatul lui `flush()`, `evaluations`,
+  fără `baseUrl`); user, review-ul PR-ului #14, 2026-11-25 (timeout de 10 s, retrimiterea după
+  `pagehide`, evenimentele necodificabile).
 - **Confirmed:** 2026-11-25
 
 ## D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă

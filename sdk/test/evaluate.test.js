@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { evaluate } from '../src/evaluate.js';
+import { evaluate, evaluateDetail } from '../src/evaluate.js';
 
 // Buckets from the reference vectors in bucket.test.js (D-004):
 // new-checkout + user-1 = 31, new-checkout + user-2 = 89.
@@ -91,4 +91,21 @@ test('boolean rollout: 30% excludes bucket 31, 32% includes it', () => {
   });
   assert.equal(evaluate('new-checkout', rollout(30), user1), false);
   assert.equal(evaluate('new-checkout', rollout(32), user1), true);
+});
+
+// evaluateDetail tells whether the value came from a variant range (D-011: exposures).
+test('evaluateDetail: fromVariant is true only for a value from a variant range', () => {
+  const rule = { attribute: 'plan', operator: 'equals', value: 'beta', serve: 'green' };
+  const beta = { userId: 'user-1', attributes: { plan: 'beta' } };
+  assert.deepEqual(evaluateDetail('new-checkout', colors(), user1), { value: 'blue', fromVariant: true });
+  assert.deepEqual(evaluateDetail('new-checkout', { ...colors(), enabled: false }, user1), { value: 'blue', fromVariant: false });
+  assert.deepEqual(evaluateDetail('new-checkout', { ...colors(), rules: [rule] }, beta), { value: 'green', fromVariant: false });
+  const uncovered = { ...colors(), default: 'none', variants: [{ value: 'x', from: 0, to: 31 }] };
+  assert.deepEqual(evaluateDetail('new-checkout', uncovered, user1), { value: 'none', fromVariant: false });
+});
+
+test('evaluate returns the value evaluateDetail gives', () => {
+  for (const user of [user1, user2]) {
+    assert.equal(evaluate('new-checkout', colors(), user), evaluateDetail('new-checkout', colors(), user).value);
+  }
 });

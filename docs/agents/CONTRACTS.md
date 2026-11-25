@@ -105,7 +105,7 @@
   CORS: fiecare răspuns are `Access-Control-Allow-Origin: *`; preflight-ul `OPTIONS` → `204` cu
   `Access-Control-Allow-Methods: POST` și `Access-Control-Allow-Headers: Content-Type`.
 - **Provider:** `server/src/app.js`, `server/src/events.js`.
-- **Consumers:** `sdk/src/index.js` (D-011; în partea 2 a planului).
+- **Consumers:** `sdk/src/events.js` (coada, D-011), apelat din `sdk/src/index.js`.
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
   (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).

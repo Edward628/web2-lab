@@ -10,6 +10,7 @@
 - PATTERN-002 · Vectorii de referință vin dintr-o implementare independentă, nu din codul testat · candidate
 - PATTERN-003 · Testele noi se verifică pe stub-uri temporare, ca să pice din motivul corect · candidate
 - PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test` · candidate
+- PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate · candidate
 
 ---
 
@@ -51,3 +52,13 @@
   prin `createApp({ pool })` și ascultă pe un port aleator.
 - **Example:** `server/test/helpers.js`, `server/test/sdk-config.test.js`
 - **Confirmed:** 2026-11-25
+
+## PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate
+- **Status:** candidate
+- **How:** Testele unitare care depind de timp sau de ordinea cererilor înlocuiesc `fetch` cu
+  `t.mock.method(globalThis, 'fetch', …)` (cererile se rețin, răspunsul vine dintr-o funcție
+  sau dintr-un Promise rezolvat de test) și pornesc `t.mock.timers.enable({ apis: ['setTimeout'] })`.
+  Timpul avansează cu `t.mock.timers.tick(ms)`, iar `await new Promise((r) => setImmediate(r))`
+  lasă răspunsurile să se termine. Comportamentul cap la cap rămâne în testul round-trip pe
+  serverul real.
+- **Example:** `sdk/test/events.test.js`

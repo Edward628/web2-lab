@@ -1,9 +1,9 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { init } from '../../sdk/src/index.js';
-import { testPool, reset, seed, listen } from './helpers.js';
+import { testPool, reset, seed, listen, addExperiment } from './helpers.js';
 
-// Both sides of C-002: the real SDK refresh() against the real server.
+// Both sides of C-002 and C-003: the real SDK against the real server and PostgreSQL.
 const pool = testPool();
 let app;
 before(async () => {
@@ -29,4 +29,27 @@ test('the SDK gets the configuration, then 304 on the next refresh', async () =>
 test('an unknown key is an error for the SDK', async () => {
   const ff = init({ sdkKey: 'no-such-key', baseUrl: app.baseUrl });
   assert.equal(await ff.refresh(), 'error');
+});
+
+test('exposure, conversion and evaluations travel from the SDK to the database', async () => {
+  await addExperiment(pool, 2, 1, 'reserve_click'); // reserve-button-color in A dev
+  const ff = init({ sdkKey: 'key-a-dev', baseUrl: app.baseUrl });
+  assert.equal(await ff.refresh(), 'updated');
+  ff.identify('user-1');
+  assert.equal(ff.getVariant('reserve-button-color'), 'blue'); // bucket 40, from a variant range
+  ff.track('reserve_click');
+  assert.equal(await ff.flush(), 'sent');
+  const exposures = await pool.query('SELECT experiment_id, user_id, variant FROM exposures');
+  assert.deepEqual(exposures.rows, [{ experiment_id: 1, user_id: 'user-1', variant: 'blue' }]);
+  const conversions = await pool.query('SELECT experiment_id, user_id FROM conversions');
+  assert.deepEqual(conversions.rows, [{ experiment_id: 1, user_id: 'user-1' }]);
+  const evaluated = await pool.query('SELECT last_evaluated_at FROM flag_environments WHERE flag_id = 2 AND environment_id = 1');
+  assert.ok(evaluated.rows[0].last_evaluated_at instanceof Date);
+});
+
+test('events sent with an unknown key are dropped', async () => {
+  const ff = init({ sdkKey: 'no-such-key', baseUrl: app.baseUrl });
+  ff.identify('user-1');
+  ff.track('reserve_click');
+  assert.equal(await ff.flush(), 'dropped');
 });
