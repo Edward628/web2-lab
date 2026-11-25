@@ -84,8 +84,13 @@
     { "id": "…",                "type": "conversion",  "userId": "u", "metric": "reserve_click" },
     { "id": "…",                "type": "evaluations", "counts": { "<flag_key>": <întreg ≥ 1> } } ] }
   ```
-  Acceptat → `204`. Fără `key` (sau gol), corp care nu e JSON sau nu are forma de mai sus, sau
-  `events` gol → `400`, tot batch-ul respins, nimic salvat. Cheie necunoscută → `404`. Corp
+  `userId`, `flagKey`, `metric` și cheile din `counts` au cel mult 256 de caractere. Niciun
+  string din batch (inclusiv `variant` și cheile lui) nu conține NUL (`\u0000`) sau un surogat
+  singur, pe care PostgreSQL nu le poate păstra.
+  Acceptat → `204`. Fără `key` (sau gol), corp pe care parserul JSON îl refuză (nu e JSON,
+  charset sau `Content-Encoding` nesuportat), corp care nu are forma și limitele de mai sus,
+  sau `events` gol → `400`, fără corp, tot batch-ul respins, nimic salvat. Cheie necunoscută
+  (inclusiv una care conține NUL) → `404`. Corp
   peste 100 kB (limita implicită Express) → `413`. Eroare de bază de date → `500`, nimic
   salvat (o tranzacție per batch), deci SDK-ul poate retrimite.
   Ingestia, în ordinea din array, în mediul cheii: un `id` deja văzut în acest mediu se ignoră
@@ -102,7 +107,8 @@
 - **Provider:** `server/src/app.js`, `server/src/events.js`.
 - **Consumers:** `sdk/src/index.js` (D-011; în partea 2 a planului).
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
-  2026-11-25 (ordinea de ingestie, A3, A4).
+  2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
+  (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).
 - **Confirmed:** 2026-11-25
 
 ## Consumed

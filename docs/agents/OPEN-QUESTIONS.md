@@ -39,6 +39,10 @@
 - Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
 - Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
 - Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
+- Q-031 · Cum evită ingestia blocarea pe rândurile `flag_environments` la 1.000 de evenimente/s?
+- Q-032 · Acceptăm deadlock-urile între batch-uri care scriu aceleași chei în ordini diferite?
+- Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
+- Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
 
 ---
 
@@ -333,5 +337,54 @@
 - **Blocks:** o limită a cozii de evenimente în SDK (D-011); azi coada crește fără limită
 - **Who answers:** the user
 - **Proposed answer:**
+- **Answer:**
+- **Recorded as:**
+
+## Q-031 · Cum evită ingestia blocarea pe rândurile `flag_environments` la 1.000 de evenimente/s?
+- **Status:** open
+- **Blocks:** planul testului de încărcare (README → ingestie „cu un test de încărcare documentat”)
+- **Who answers:** the user, în planul testului de încărcare
+- **Proposed answer:** review-ul de performanță (P1): `UPDATE`-ul `evaluations`
+  (`server/src/events.js`) blochează aceleași câteva rânduri pentru toate batch-urile unui mediu,
+  până la `COMMIT`, după ~40 de interogări. Cu 10 conexiuni în pool și fără timeout-uri, cererile
+  (inclusiv `GET /sdk/config`) așteaptă fără limită. De măsurat întâi; apoi, de exemplu, un singur
+  `UPDATE` la sfârșitul tranzacției, cu cheile sortate, plus `connectionTimeoutMillis` și
+  `lock_timeout`.
+- **Answer:**
+- **Recorded as:**
+
+## Q-032 · Acceptăm deadlock-urile între batch-uri care scriu aceleași chei în ordini diferite?
+- **Status:** open
+- **Blocks:** planul testului de încărcare
+- **Who answers:** the user, în planul testului de încărcare
+- **Proposed answer:** review-ul de performanță (P2), plauzibil, nemăsurat: două tab-uri ale
+  aceluiași utilizator pot insera aceleași expuneri în ordine inversă (sau o expunere și
+  `UPDATE`-ul `evaluations`), deci PostgreSQL abandonează un batch cu `40P01` → `500`, iar SDK-ul
+  îl retrimite. Nu se pierd date. Opțiuni: scrierile sortate după cheie în tranzacție, sau
+  acceptat și documentat.
+- **Answer:**
+- **Recorded as:**
+
+## Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
+- **Status:** open
+- **Blocks:** planul testului de încărcare; mărimea bazei de date
+- **Who answers:** the user
+- **Proposed answer:** review-ul de performanță (P3): tabelul crește fără limită (~86 M rânduri
+  pe zi la 1.000 de evenimente/s), iar fiecare insert devine mai lent. O fereastră de păstrare
+  (de exemplu ștergerea id-urilor mai vechi decât cel mai lung interval de retrimitere al SDK-ului)
+  păstrează idempotența pentru retrimiteri.
+- **Answer:**
+- **Recorded as:**
+
+## Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
+- **Status:** open
+- **Blocks:** planul testului de încărcare; corectitudinea ratei de conversie (D-001, D-005)
+- **Who answers:** the user
+- **Proposed answer:** review-ul de performanță (P4): după C-003, o conversie fără expunere
+  salvată se ignoră, iar id-ul ei rămâne văzut. Când batch-urile se suprapun (trimitere la 20 de
+  evenimente sau la `pagehide` cât timp una e în curs) sau batch-ul cu expunerea e retrimis după
+  un `500`, conversia se pierde definitiv, deci rata e subestimată. Opțiuni: SDK-ul trimite un
+  singur batch o dată (D-011, partea 2); sau serverul păstrează conversiile timpurii și le numără
+  când sosește expunerea (schimbă C-003, PROPOSAL); sau acceptat și documentat.
 - **Answer:**
 - **Recorded as:**
