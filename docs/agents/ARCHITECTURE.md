@@ -7,17 +7,19 @@
 
 ## Overview
 A feature flags and A/B testing service with a browser SDK (README.md). Planned parts
-(D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. Only `sdk/` exists so far, with the
-deterministic bucketing.
+(D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. Only `sdk/` exists so far: the
+deterministic bucketing and the client that evaluates flags locally.
 
 ```text
-sdk/src/bucket.js   murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
+sdk/src/index.js     init({ sdkKey, config }) → { identify, isEnabled, getVariant } (D-009)
+sdk/src/evaluate.js  evaluate(flagKey, flag, user): rules, then variant ranges (D-004, C-001)
+sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 ```
 
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
-| SDK | `sdk/` | browser SDK; today only bucketing (D-004). ES modules, no dependencies; tests in `sdk/test` | nothing yet |
+| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation on a configuration passed to `init` (C-001, D-009); no network yet. ES modules, no dependencies; tests in `sdk/test` | nothing yet |
 
 ## Data flow
 None yet.

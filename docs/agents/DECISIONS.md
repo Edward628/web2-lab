@@ -15,6 +15,7 @@
 - D-006 · P1: o pagină cu locuri simulate, utilizator anonim
 - D-007 · Structura repo-ului, proiectele și publicarea SDK-ului
 - D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
+- D-009 · API-ul SDK-ului: init întoarce un client; citirile nu aruncă
 
 ---
 
@@ -115,3 +116,19 @@
   pentru un dashboard pus online.
 - **Evidence:** user, 2026-11-18; Q-018.
 - **Confirmed:** 2026-11-18
+
+## D-009 · API-ul SDK-ului: init întoarce un client; citirile nu aruncă
+- **Status:** approved
+- **Rule:** `init({ sdkKey, config })` întoarce un client `{ sdkKey, identify(userId,
+  attributes), isEnabled(flagKey), getVariant(flagKey) }`; starea stă în client, nu în modul.
+  Configurația (C-001) se dă la `init`; obținerea ei de la server (D-003) vine într-un plan
+  ulterior. `identify` cu un `userId` care nu e string aruncă `TypeError`. Citirile nu aruncă:
+  un flag necunoscut (doar chei proprii ale `flags`) dă `isEnabled` → `false` și
+  `getVariant` → `null`; înainte de `identify` un flag servește `default`; o regulă pe un
+  atribut lipsă sau cu operator necunoscut nu se potrivește; `equals` e `===`.
+  `isEnabled` = valoarea `=== true`; `getVariant` întoarce valoarea pentru orice tip de flag.
+  Evaluarea e funcția pură `evaluate(flagKey, flag, user)` din `sdk/src/evaluate.js`.
+- **Why:** un client per `init` izolează testele și se mapează direct pe un viitor
+  `window.FF` (Q-026); o aplicație nu trebuie să cadă din cauza unui flag lipsă.
+- **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25.
+- **Confirmed:** 2026-11-25

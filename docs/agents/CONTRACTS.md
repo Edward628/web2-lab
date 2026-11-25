@@ -9,11 +9,35 @@
 <!-- graffino-agentic:end -->
 
 ## Index
+- C-001 · Configurația unui mediu (JSON servit SDK-ului) · provided
 
 ---
 
 ## Provided
-None yet.
+
+### C-001 · Configurația unui mediu (JSON servit SDK-ului)
+- **Status:** approved
+- **Interface:** `{version, flags}` (D-003); `flags` e un obiect cheiat după `flag_key`:
+  ```json
+  { "version": 7,
+    "flags": {
+      "<flag_key>": {
+        "type": "boolean" | "multivariate",
+        "enabled": true,
+        "default": <valoare>,
+        "rules": [ { "attribute": "<nume>", "operator": "equals", "value": <v>, "serve": <valoare> },
+                   { "attribute": "<nume>", "operator": "in", "values": [<v>, ...], "serve": <valoare> } ],
+        "variants": [ { "value": <valoare>, "from": 0, "to": 50 } ] } } }
+  ```
+  Un flag oprit servește `default`. Regulile se evaluează în ordine; prima potrivită servește
+  `serve`. Apoi varianta cu `from ≤ bucket < to` (bucket D-004); un bucket neacoperit servește
+  `default`. Un flag boolean cu rollout N% = `variants: [{value: true, from: 0, to: N}]`,
+  `default: false`, deci o singură cale de evaluare pentru ambele tipuri.
+- **Provider:** `server/` (nu există încă); azi configurația se dă direct la `init` (D-009).
+- **Consumers:** `sdk/src/evaluate.js`, `sdk/src/index.js`; în viitor `dashboard/` (scrie
+  flag-urile pe care serverul le servește în această formă).
+- **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25.
+- **Confirmed:** 2026-11-25
 
 ## Consumed
 None yet.

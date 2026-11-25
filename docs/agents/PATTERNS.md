@@ -8,6 +8,7 @@
 ## Index
 - PATTERN-001 · Un mock are o bară de control cu toate stările și cu tema light / dark · candidate
 - PATTERN-002 · Vectorii de referință vin dintr-o implementare independentă, nu din codul testat · candidate
+- PATTERN-003 · Testele noi se verifică pe stub-uri temporare, ca să pice din motivul corect · candidate
 
 ---
 
@@ -27,3 +28,12 @@
   și spune de unde vin; implementarea independentă nu devine dependență.
 - **Example:** `sdk/test/bucket.test.js` (murmurhash3js-revisited 3.0.0)
 - **Confirmed:** 2026-11-25
+
+## PATTERN-003 · Testele noi se verifică pe stub-uri temporare, ca să pice din motivul corect
+- **Status:** candidate
+- **How:** Când testele scrise întâi importă un modul care nu există, eroarea e
+  `ERR_MODULE_NOT_FOUND` și ascunde dacă testele sunt corecte. Se creează temporar modulul cu
+  exporturile din plan, care aruncă `Error('not implemented')`, se rulează testele (fiecare
+  test nou pică cu „not implemented”, cele vechi trec), apoi stub-urile se șterg înainte de
+  commit-ul `test(...)`.
+- **Example:** commit `e74e46c` (`sdk/test/evaluate.test.js`, `sdk/test/client.test.js`)
