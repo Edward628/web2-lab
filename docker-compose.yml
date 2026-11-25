@@ -12,7 +12,8 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d web2"]
+      # -h: over TCP, so it fails while the first-start init server listens only on the socket
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U postgres -d web2"]
       interval: 2s
       timeout: 3s
       retries: 15
@@ -25,7 +26,8 @@ services:
       DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}@db:5432/web2
       PORT: "3000"
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"  # local only until hosting is decided (Q-005)
+    restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy

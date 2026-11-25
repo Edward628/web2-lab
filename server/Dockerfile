@@ -6,4 +6,5 @@ RUN npm ci --omit=dev
 COPY sdk/src /app/sdk/src
 COPY sdk/package.json /app/sdk/package.json
 COPY server/ ./
+USER node
 CMD ["node", "src/index.js"]
