@@ -17,7 +17,8 @@ export function testPool() {
 export async function reset(pool) {
   await migrate(pool);
   await pool.query(
-    'TRUNCATE projects, environments, sdk_keys, flags, flag_environments RESTART IDENTITY CASCADE',
+    `TRUNCATE projects, environments, sdk_keys, flags, flag_environments,
+              experiments, exposures, conversions, ingested_events RESTART IDENTITY CASCADE`,
   );
 }
 
@@ -56,6 +57,15 @@ export function addFlagEnvironment(pool, flagId, environmentId, { enabled, defau
      VALUES ($1, $2, $3, $4, $5, $6)`,
     [flagId, environmentId, enabled, JSON.stringify(def), JSON.stringify(rules), JSON.stringify(variants)],
   );
+}
+
+// An experiment on a flag in one environment, with its metric (C-003). Ids start at 1.
+export function addExperiment(pool, flagId, environmentId, metric) {
+  return pool.query('INSERT INTO experiments (flag_id, environment_id, metric) VALUES ($1, $2, $3)', [
+    flagId,
+    environmentId,
+    metric,
+  ]);
 }
 
 // Starts the app on a random port; returns its base URL and a close function.
