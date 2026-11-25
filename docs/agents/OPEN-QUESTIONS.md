@@ -16,6 +16,8 @@
 - Q-005 · How is lab work handed in or deployed (git remote, hosting, branches, tags)?
 - Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?
 - Q-007 · Care e a doua aplicație reală (proiectul colegului) și e colegul de acord?
+- Q-026 · Cum include SDK-ul o aplicație fără npm (Thymeleaf, P07)?
+- Q-027 · Ce `user_id` trimite P07 SDK-ului?
 - Q-008 · Care e data predării finale și a susținerii?
 - Q-009 · Acceptă profesorul scope-ul redus (15–20 h în loc de ~40 h)?
 - Q-010 · Poate P1 să fie o aplicație nouă, construită în acest proiect?
@@ -99,6 +101,30 @@
 - **Blocks:** integrarea SDK-ului în a doua aplicație; interviul de DX (INTERVIEW.md); cele 2 schimbări în SDK
 - **Who answers:** the user, după ce vorbește cu un coleg
 - **Proposed answer:**
+- **Answer:** partial, 2026-11-25 (user): un coleg a fost de acord; aplicația lui este
+  proiectul P07 „Când vine autobuzul?” (Tursib Sibiu). Stack (din fișa lui): Java 21,
+  Spring Boot, Thymeleaf randat pe server, Leaflet pentru hartă (singurul JavaScript
+  consistent), PostgreSQL + PostGIS, Docker Compose; hosting Render + Neon; are login
+  (USER / ADMIN). Încă necunoscute: URL-ul live, ce funcție pune sub flag, ce `user_id`
+  trimite (Q-027), cum include SDK-ul fără npm (Q-026).
+- **Recorded as:**
+
+## Q-026 · Cum include SDK-ul o aplicație fără npm (Thymeleaf, P07)?
+- **Status:** open
+- **Blocks:** integrarea în P07; D-007 (SDK publicat doar ca tarball `npm pack`)
+- **Who answers:** the user
+- **Proposed answer:** pe lângă tarball, `sdk/` produce și un singur fișier JS pentru
+  `<script>` (expune `window.FF`), pe care P07 îl copiază în `static/` sau îl încarcă de la
+  serverul de flag-uri. Ar schimba D-007, deci ar fi un PROPOSAL.
+- **Answer:**
+- **Recorded as:**
+
+## Q-027 · Ce `user_id` trimite P07 SDK-ului?
+- **Status:** open
+- **Blocks:** bucketing-ul stabil în P07; regula „fără date personale”
+- **Who answers:** the user, cu colegul
+- **Proposed answer:** un id anonim aleator în `localStorage` (ca P1, D-006) pentru
+  vizitatori; pentru utilizatorii logați, un id opac (nu email, nu username).
 - **Answer:**
 - **Recorded as:**
 

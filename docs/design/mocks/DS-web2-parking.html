@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-parking · Parcarea (mock, approved)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md. Nicio valoare în afara lor, cu excepția culorilor variantelor (mai jos). */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --control-h:36px;
+  --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
+  --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  /* Valorile variantelor din experimentul reserve-button-color (date de experiment, nu tokens).
+     Aceleași în light și dark, ca tema să nu influențeze experimentul. Aprobate 2026-11-25. */
+  --variant-blue:#2563EB; --variant-green:#15803D; --variant-on:#FFFFFF;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+@media (max-width:767px) { :root { --control-h:44px; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:var(--text-base); }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.sm { font:var(--text-sm); }
+.muted { color:var(--color-text-muted); }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font:var(--text-sm); color:var(--color-text-muted); }
+.mockbar select { font:inherit; }
+
+header { padding:var(--space-3) var(--space-4); border-bottom:1px solid var(--color-divider); }
+header .wrap { display:flex; align-items:center; gap:var(--space-2); }
+.brand { font-weight:600; }
+
+main { max-width:560px; margin:0 auto; padding:var(--space-6) var(--space-4) var(--space-8); }
+h1 { font:var(--text-xl); margin:0; }
+.sub { margin:var(--space-1) 0 var(--space-6); }
+h2 { font:var(--text-lg); margin:0 0 var(--space-3); }
+
+.legend { display:flex; gap:var(--space-4); margin-bottom:var(--space-3); }
+
+/* Locurile sunt butoane radio: se aleg din tastatură (săgeți) */
+.spots { border:0; margin:0 0 var(--space-6); padding:0; display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:var(--space-3); }
+.spot { position:relative; }
+.spot input { position:absolute; opacity:0; inset:0; margin:0; cursor:pointer; }
+.spot .box { display:block; min-height:var(--control-h); border:1px solid var(--color-border); border-radius:var(--radius-md);
+  padding:var(--space-3) var(--space-4); background:var(--color-bg); transition:border-color var(--duration-fast); }
+.spot .id { font-weight:600; overflow-wrap:anywhere; }
+.spot .status { display:flex; align-items:center; gap:var(--space-1); }
+.spot.free .status { color:var(--color-success); }
+.spot.taken .box { background:var(--color-surface); border-style:dashed; border-color:var(--color-divider); }
+.spot.taken .status, .spot.taken .id { color:var(--color-text-muted); }
+.spot.taken input { cursor:not-allowed; }
+.spot input:checked + .box { border:2px solid var(--color-accent); padding:calc(var(--space-3) - 1px) calc(var(--space-4) - 1px); }
+.spot input:focus-visible + .box { outline:2px solid var(--color-accent); outline-offset:2px; }
+
+.cta { width:100%; min-height:44px; border:0; border-radius:var(--radius-sm); font:var(--text-lg);
+  color:var(--variant-on); background:var(--variant-blue); cursor:pointer; }
+body[data-variant="green"] .cta { background:var(--variant-green); }
+.cta:hover { filter:brightness(1.08); }
+.cta-wait { width:100%; min-height:44px; border-radius:var(--radius-sm); background:var(--color-surface); }
+
+.err { color:var(--color-danger); margin:var(--space-2) 0 0; }
+.notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4);
+  border:1px solid var(--color-divider); border-radius:var(--radius-md); background:var(--color-surface); margin-bottom:var(--space-6); }
+.notice.success { border-color:var(--color-success); }
+.notice.error { border-color:var(--color-danger); }
+.notice .icon { font-weight:600; }
+.notice.success .icon { color:var(--color-success); }
+.notice.error .icon { color:var(--color-danger); }
+.notice p { margin:0; }
+.btn { font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm);
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text); cursor:pointer; margin-top:var(--space-2); }
+.btn:hover { background:var(--color-surface); }
+
+.skel { height:72px; border-radius:var(--radius-md); background:var(--color-surface); }
+footer { text-align:center; padding:var(--space-4); }
+
+.state { display:none; }
+body[data-state="list"] .s-list, body[data-state="one"] .s-one, body[data-state="empty"] .s-empty,
+body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[data-state="success"] .s-success,
+body[data-state="invalid"] .s-list, body[data-state="invalid"] .s-invalid { display:block; }
+body[data-state="error"] .s-list { display:block; }
+</style>
+</head>
+<body data-state="list" data-variant="blue">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-parking · approved (2026-11-25)</strong>
+  <label>Stare:
+    <select id="state">
+      <option value="list">Listă (multe locuri, text lung)</option>
+      <option value="one">Un singur loc liber</option>
+      <option value="empty">Gol (niciun loc liber)</option>
+      <option value="loading">Încărcare</option>
+      <option value="invalid">Eroare de validare (niciun loc ales)</option>
+      <option value="error">Eroare (locul tocmai a fost ocupat)</option>
+      <option value="success">Succes (rezervat)</option>
+    </select>
+  </label>
+  <label>Variantă:
+    <select id="variant"><option value="blue">blue (control)</option><option value="green">green</option></select>
+  </label>
+  <label>Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<header><div class="wrap"><span class="brand">Parcare Centru</span></div></header>
+
+<main>
+  <h1>Rezervă un loc</h1>
+  <p class="sub muted">Alege un loc liber și rezervă-l. Locul rămâne al tău o oră.</p>
+
+  <!-- Succes -->
+  <div class="state s-success">
+    <div class="notice success" role="status">
+      <span class="icon" aria-hidden="true">✓</span>
+      <div><p><strong>Locul A12 e rezervat.</strong></p>
+        <p class="muted">Etaj 1 · până la 15:40. Îl găsești în stânga rampei.</p>
+        <button class="btn" type="button">Anulează rezervarea</button></div>
+    </div>
+  </div>
+
+  <!-- Eroare: locul s-a ocupat între timp -->
+  <div class="state s-error">
+    <div class="notice error" role="alert">
+      <span class="icon" aria-hidden="true">!</span>
+      <div><p><strong>Locul A12 tocmai a fost ocupat.</strong></p>
+        <p class="muted">Alege alt loc liber de mai jos.</p></div>
+    </div>
+  </div>
+
+  <!-- Încărcare: butonul apare abia când varianta e cunoscută, fără să-și schimbe culoarea -->
+  <div class="state s-loading" aria-busy="true">
+    <h2>Locuri</h2>
+    <div class="spots" aria-hidden="true">
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+    <div class="cta-wait" aria-hidden="true"></div>
+    <p class="sr" role="status">Se încarcă locurile.</p>
+  </div>
+
+  <!-- Gol -->
+  <div class="state s-empty">
+    <div class="notice">
+      <span class="icon" aria-hidden="true">○</span>
+      <div><p><strong>Toate locurile sunt ocupate acum.</strong></p>
+        <p class="muted">Locurile se eliberează pe parcursul zilei. Revino peste câteva minute.</p>
+        <button class="btn" type="button">Reîncarcă</button></div>
+    </div>
+  </div>
+
+  <!-- Un singur loc liber -->
+  <div class="state s-one">
+    <h2 id="h-one">Locuri</h2>
+    <fieldset class="spots" aria-labelledby="h-one">
+      <label class="spot free"><input type="radio" name="one" checked><span class="box">
+        <span class="id">A12</span> <span class="sm muted">· etaj 1</span>
+        <span class="status sm"><span aria-hidden="true">●</span> Liber</span></span></label>
+      <label class="spot taken"><input type="radio" name="one" disabled><span class="box">
+        <span class="id">A13</span> <span class="sm">· etaj 1</span>
+        <span class="status sm"><span aria-hidden="true">✕</span> Ocupat</span></span></label>
+    </fieldset>
+    <button class="cta" type="button">Rezervă locul</button>
+  </div>
+
+  <!-- Listă -->
+  <div class="state s-list">
+    <div class="legend sm muted"><span>3 libere din 6</span></div>
+    <h2 id="h-list">Locuri</h2>
+    <fieldset class="spots" aria-labelledby="h-list">
+      <label class="spot free"><input type="radio" name="spot" checked><span class="box">
+        <span class="id">A12</span> <span class="sm muted">· etaj 1</span>
+        <span class="status sm"><span aria-hidden="true">●</span> Liber</span></span></label>
+      <label class="spot taken"><input type="radio" name="spot" disabled><span class="box">
+        <span class="id">A13</span> <span class="sm">· etaj 1</span>
+        <span class="status sm"><span aria-hidden="true">✕</span> Ocupat</span></span></label>
+      <label class="spot free"><input type="radio" name="spot"><span class="box">
+        <span class="id">B03</span> <span class="sm muted">· etaj 2</span>
+        <span class="status sm"><span aria-hidden="true">●</span> Liber</span></span></label>
+      <label class="spot taken"><input type="radio" name="spot" disabled><span class="box">
+        <span class="id">B04</span> <span class="sm">· etaj 2</span>
+        <span class="status sm"><span aria-hidden="true">✕</span> Ocupat</span></span></label>
+      <label class="spot free"><input type="radio" name="spot"><span class="box">
+        <span class="id">C01-ELECTRIC-INCARCARE-RAPIDA</span> <span class="sm muted">· subsol, lângă lift</span>
+        <span class="status sm"><span aria-hidden="true">●</span> Liber</span></span></label>
+      <label class="spot taken"><input type="radio" name="spot" disabled><span class="box">
+        <span class="id">C02</span> <span class="sm">· subsol</span>
+        <span class="status sm"><span aria-hidden="true">✕</span> Ocupat</span></span></label>
+    </fieldset>
+    <button class="cta" type="button" aria-describedby="err">Rezervă locul</button>
+    <p class="err sm state s-invalid" id="err" role="alert">Alege mai întâi un loc liber.</p>
+  </div>
+</main>
+
+<footer class="sm muted">Aplicație demonstrativă · nu păstrăm date personale</footer>
+
+<script>
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+document.documentElement.dataset.theme = themeSel.value;
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+document.getElementById('variant').onchange = e => document.body.dataset.variant = e.target.value;
+document.getElementById('state').onchange = e => {
+  document.body.dataset.state = e.target.value;
+  document.querySelectorAll('.s-list input[name="spot"]').forEach(i => { if (e.target.value === 'invalid') i.checked = false; });
+};
+</script>
+</body>
+</html>
