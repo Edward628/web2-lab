@@ -17,6 +17,7 @@
 - D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
 - D-010 · Versiunea configurației: un întreg per mediu
 - D-011 · API-ul SDK-ului: D-009 plus evenimente (expuneri, track, batch)
+- D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
 
 ---
 
@@ -153,4 +154,17 @@
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (5 s / 20 de evenimente, experimentul marcat în configurație, ordinea de ingestie,
   A1–A2, keepalive + pagehide).
+- **Confirmed:** 2026-11-25
+
+## D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
+- **Status:** approved
+- **Rule:** `p1/` importă `../sdk/src/index.js` ca modul ES și e servit de un server static
+  (local, legat la `127.0.0.1`). Cheia SDK (prod) și `baseUrl` stau în `p1/config.js`, ignorat
+  de git; `p1/config.example.js` e în repo. P1 apelează `track("reserve_click")` doar la o
+  rezervare validă (un loc liber ales), niciodată la un click invalid.
+- **Why:** P1 e HTML static fără bundler (D-002), iar tarball-ul `npm pack` (D-007) nu se poate
+  importa direct dintr-o pagină; cheia e creată de seed per bază de date, deci nu se scrie în
+  repo; metrica numără rezervări, nu click-uri greșite.
+- **Evidence:** user, plan „P1, the parking page (DS-web2-parking)”, 2026-11-25. D-007 rămâne
+  calea prin care alte aplicații primesc SDK-ul.
 - **Confirmed:** 2026-11-25

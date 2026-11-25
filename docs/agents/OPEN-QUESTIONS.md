@@ -43,6 +43,7 @@
 - Q-032 · Acceptăm deadlock-urile între batch-uri care scriu aceleași chei în ordini diferite?
 - Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
 - Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
+- Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 
 ---
 
@@ -72,6 +73,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
 
 ## Q-004 · How are the labs laid out in the repo (one folder per lab, one shared app, …)?
 - **Status:** answered
@@ -93,7 +95,11 @@
 - **Answer:** partial, 2026-11-12 (user): the code lives on GitHub,
   `https://github.com/Edward628/web2-lab` (public), remote `origin`, branch `main`.
   Still open: how labs are handed in, and whether anything is deployed or tagged.
+  For the hosting plan, 2026-11-25 (user): serve only `p1/` and `sdk/src`, never the repo
+  root (it holds `.env`); consider a ~5 s timeout on P1's first `refresh()` that falls back
+  to the control (blue) without an exposure.
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
 
 ## Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?
 - **Status:** open
@@ -128,6 +134,7 @@
   serverul de flag-uri. Ar schimba D-007, deci ar fi un PROPOSAL.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
 
 ## Q-027 · Ce `user_id` trimite P07 SDK-ului?
 - **Status:** open
@@ -161,6 +168,7 @@
 - **Proposed answer:**
 - **Answer:** partial, 2026-11-18 (user): nu există un P1 real; studentul vrea să construiască o aplicație mică de parcare, pusă online, folosită de colegii de grupă. De confirmat că fișa acceptă asta.
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
 
 ## Q-011 · Ce face butonul „Kill switch” față de comutatorul Pornit / Oprit din listă?
 - **Status:** answered
@@ -331,6 +339,7 @@
 - **Answer:** partial, 2026-11-25 (user): cheile SDK au 128 de biți aleatori (32 de cifre hex),
   începând cu seed-ul ParkingLot. Încă deschis: ce au voie să conțină regulile.
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
 
 ## Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
 - **Status:** open
@@ -388,3 +397,15 @@
   când sosește expunerea (schimbă C-003, PROPOSAL); sau acceptat și documentat.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-25
+
+## Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend?
+- **Status:** answered
+- **Blocks:** DS-web2-parking (starea de eroare); P1
+- **Who answers:** the user
+- **Proposed answer:**
+- **Answer:** 2026-11-25 (user): starea de eroare dispare din DS-web2-parking. Fără backend,
+  un loc nu poate fi ocupat de altcineva între timp. Mock-ul se actualizează în build-ul P1 și
+  se re-aprobă.
+- **Recorded as:** D-006; docs/design/mocks/DS-web2-parking.html (la build-ul P1)
+
