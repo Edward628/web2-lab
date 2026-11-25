@@ -46,5 +46,5 @@ designs:
     kind: screen
     name: Parcarea
     app: p1
-    status: approved   # re-confirmed by the user, 2026-11-25 (error state dropped, Q-035; no ramp hint)
+    status: implemented   # p1/, 2026-11-25; mock re-confirmed the same day (error state dropped, Q-035; no ramp hint)
     mock: docs/design/mocks/DS-web2-parking.html

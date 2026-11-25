@@ -11,6 +11,7 @@
 - PATTERN-003 · Testele noi se verifică pe stub-uri temporare, ca să pice din motivul corect · candidate
 - PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test` · candidate
 - PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate · candidate
+- PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch · candidate
 
 ---
 
@@ -62,3 +63,12 @@
   lasă răspunsurile să se termine. Comportamentul cap la cap rămâne în testul round-trip pe
   serverul real.
 - **Example:** `sdk/test/events.test.js`
+
+## PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch
+- **Status:** candidate
+- **How:** Modulele care țin date în browser primesc `storage` ca parametru (nu citesc
+  `localStorage` global), iar fiecare `getItem` / `setItem` / `removeItem` e în try/catch: un
+  storage blocat sau lipsă face ca datele să țină doar cât pagina, fără excepție. Pagina obține
+  `localStorage` tot într-un try (accesul în sine poate arunca). Testele folosesc un storage în
+  memorie și unul la care orice apel aruncă.
+- **Example:** `p1/src/user-id.js`, `p1/src/reservation.js`, `p1/test/helpers.js`

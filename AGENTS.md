@@ -95,6 +95,9 @@ docker compose up -d --wait db                    # only PostgreSQL, for the ser
 docker compose exec server npm run seed           # ParkingLot project + keys (idempotent; prints the SDK keys)
 (cd server && set -a && . ../.env && set +a && npm test)   # server tests; need db up, wipe web2_test
 (cd sdk && npm test)                              # SDK unit tests (node --test)
+(cd p1 && npm test)                               # P1 unit tests (node --test)
+cp p1/config.example.js p1/config.js              # then paste the prod key printed by the seed
+python3 -m http.server -b 127.0.0.1 8000          # from the repo root; P1 at http://127.0.0.1:8000/p1/
 # lint:                  none for now (Q-002)
 # screenshot:            not set yet (Q-003)
 ```
