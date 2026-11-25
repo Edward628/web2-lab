@@ -11,7 +11,8 @@ A feature flags and A/B testing service with a browser SDK (README.md). Planned 
 deterministic bucketing and the client that evaluates flags locally.
 
 ```text
-sdk/src/index.js     init({ sdkKey, config }) → { identify, isEnabled, getVariant } (D-009)
+sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh } (D-009)
+sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configuration is used
 sdk/src/evaluate.js  evaluate(flagKey, flag, user): rules, then variant ranges (D-004, C-001)
 sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 ```
@@ -19,7 +20,7 @@ sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
-| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation on a configuration passed to `init` (C-001, D-009); no network yet. ES modules, no dependencies; tests in `sdk/test` | nothing yet |
+| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-009) on a configuration passed to `init` or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002 (not built yet) |
 
 ## Data flow
 None yet.

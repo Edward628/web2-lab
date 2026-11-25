@@ -37,3 +37,4 @@
   test nou pică cu „not implemented”, cele vechi trec), apoi stub-urile se șterg înainte de
   commit-ul `test(...)`.
 - **Example:** commit `e74e46c` (`sdk/test/evaluate.test.js`, `sdk/test/client.test.js`)
+- **Confirmed:** 2026-11-25
