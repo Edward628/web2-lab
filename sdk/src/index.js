@@ -8,7 +8,7 @@ export function init({ sdkKey, config }) {
   let user = null;
 
   function value(flagKey) {
-    if (!Object.hasOwn(config.flags, flagKey)) return null;
+    if (typeof flagKey !== 'string' || !Object.hasOwn(config.flags, flagKey)) return null;
     const flag = config.flags[flagKey];
     if (user === null) return flag.default;
     return evaluate(flagKey, flag, user);
