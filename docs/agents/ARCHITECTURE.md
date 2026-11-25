@@ -12,9 +12,10 @@ SDK evaluates flags locally; the server serves each environment's configuration 
 PostgreSQL (C-002) and ingests the SDK's event batches (C-003).
 
 ```text
-sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh } (D-009)
+sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh, track, flush } (D-011)
+sdk/src/events.js    createEventQueue({ sdkKey, baseUrl }): queue, 20 / 5 s, one request in flight, pagehide (C-003)
 sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configuration is used
-sdk/src/evaluate.js  evaluate(flagKey, flag, user): rules, then variant ranges (D-004, C-001)
+sdk/src/evaluate.js  evaluateDetail → { value, fromVariant }, evaluate → value: rules, then variant ranges (D-004, C-001)
 sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
 server/src/index.js  reads DATABASE_URL, PORT; migrate(); listen
@@ -29,7 +30,7 @@ server/src/db.js     createPool(url), migrate(pool) runs server/db/schema.sql
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
-| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-009) on a configuration passed to `init` or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002 |
+| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init` or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003 |
 | Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
 
 ## Data flow

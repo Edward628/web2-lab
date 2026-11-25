@@ -42,7 +42,7 @@
 - Q-031 · Cum evită ingestia blocarea pe rândurile `flag_environments` la 1.000 de evenimente/s?
 - Q-032 · Acceptăm deadlock-urile între batch-uri care scriu aceleași chei în ordini diferite?
 - Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
-- Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
+- Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei? · _answered_
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 
 ---
@@ -97,7 +97,9 @@
   Still open: how labs are handed in, and whether anything is deployed or tagged.
   For the hosting plan, 2026-11-25 (user): serve only `p1/` and `sdk/src`, never the repo
   root (it holds `.env`); consider a ~5 s timeout on P1's first `refresh()` that falls back
-  to the control (blue) without an exposure.
+  to the control (blue) without an exposure. 2026-11-25 (user): serving P1 from the same
+  origin as the server would avoid the CORS preflight on the `keepalive` event POST sent at
+  `pagehide` (some browsers do not preflight keepalive requests).
 - **Recorded as:**
 - **Confirmed:** 2026-11-25
 
@@ -386,7 +388,7 @@
 - **Recorded as:**
 
 ## Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** planul testului de încărcare; corectitudinea ratei de conversie (D-001, D-005)
 - **Who answers:** the user
 - **Proposed answer:** review-ul de performanță (P4): după C-003, o conversie fără expunere
@@ -395,8 +397,13 @@
   un `500`, conversia se pierde definitiv, deci rata e subestimată. Opțiuni: SDK-ul trimite un
   singur batch o dată (D-011, partea 2); sau serverul păstrează conversiile timpurii și le numără
   când sosește expunerea (schimbă C-003, PROPOSAL); sau acceptat și documentat.
-- **Answer:**
-- **Recorded as:**
+- **Answer:** 2026-11-25 (user): SDK-ul trimite o singură cerere o dată, iar evenimentele
+  rămân în coadă (aceleași id-uri) până la răspuns, deci o expunere ajunge mereu înaintea
+  conversiei ei. C-003 nu se schimbă. Cazurile rămase sunt acceptate și documentate: două
+  tab-uri ale aceluiași utilizator trimit independent; la `pagehide` cu peste 20 de
+  evenimente, bucățile pleacă în paralel, deci o conversie dintr-o bucată ulterioară își
+  poate pierde expunerea.
+- **Recorded as:** D-011
 - **Confirmed:** 2026-11-25
 
 ## Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend?
