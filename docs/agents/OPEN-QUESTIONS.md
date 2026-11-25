@@ -36,6 +36,8 @@
 - Q-023 · Cum se publică SDK-ul? · _answered_
 - Q-024 · După câte zile e semnalat un flag „100% într-o direcție”?
 - Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
+- Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
+- Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
 
 ---
 
@@ -301,3 +303,26 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
+
+## Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
+- **Status:** open
+- **Blocks:** planul API-ului de administrare (scrierile care cresc `config_version`, D-010)
+- **Who answers:** the user, în planul API-ului de administrare
+- **Proposed answer:** `buildConfig` (`server/src/config.js`) citește versiunea și flag-urile
+  în două interogări separate. Odată ce există scrieri, una care se încheie între ele ar servi
+  flag-urile noi cu ETag-ul vechi (D-003, C-002). Ambele citiri într-o singură tranzacție
+  `REPEATABLE READ`, pe un singur client. Azi nu se poate întâmpla: nu există scrieri.
+- **Answer:**
+- **Recorded as:**
+
+## Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
+- **Status:** open
+- **Blocks:** editorul de reguli; generarea cheilor SDK în API-ul de administrare
+- **Who answers:** the user
+- **Proposed answer:** cheia SDK e publică (C-002), deci oricine vede tot ce e în regulile unui
+  mediu, inclusiv valorile de targetare. Regulile nu conțin date personale (email, nume, id-uri
+  reale), ca la D-006. Cheile SDK se generează cu cel puțin 128 de biți aleatori, ca să nu poată
+  fi ghicite (`404` vs `200` arată dacă o cheie există).
+- **Answer:**
+- **Recorded as:**
+

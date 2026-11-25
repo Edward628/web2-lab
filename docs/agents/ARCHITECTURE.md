@@ -50,7 +50,9 @@ SDK `refresh()` → `GET /sdk/config?key=…` (+ `If-None-Match`) → `sdk_keys`
 ## Build, deploy, runtime
 Source on GitHub (`origin`, branch `main`). Stack: D-002. `docker compose up -d --build`
 runs PostgreSQL 17 and the server image (`node:24-alpine`, built from the repo root so it
-can copy `sdk/src`). Commands: AGENTS.md section 2.
+can copy `sdk/src`; runs as `node`; `restart: unless-stopped`). Both ports are bound to
+`127.0.0.1` until hosting is decided (Q-005). The pool logs a dropped idle connection and
+keeps running. Commands: AGENTS.md section 2.
 Hand-in and deploy: not decided (Q-005). See AGENTS.md sections 2 and 5.
 
 ## Boundaries
