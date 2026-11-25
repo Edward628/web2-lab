@@ -49,3 +49,4 @@
   fixe. Fișierele rulează unul câte unul (`--test-concurrency=1`). Aplicația primește pool-ul
   prin `createApp({ pool })` și ascultă pe un port aleator.
 - **Example:** `server/test/helpers.js`, `server/test/sdk-config.test.js`
+- **Confirmed:** 2026-11-25

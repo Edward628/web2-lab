@@ -38,6 +38,7 @@
 - Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
 - Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
 - Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
+- Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
 
 ---
 
@@ -323,6 +324,14 @@
   mediu, inclusiv valorile de targetare. Regulile nu conțin date personale (email, nume, id-uri
   reale), ca la D-006. Cheile SDK se generează cu cel puțin 128 de biți aleatori, ca să nu poată
   fi ghicite (`404` vs `200` arată dacă o cheie există).
-- **Answer:**
+- **Answer:** partial, 2026-11-25 (user): cheile SDK au 128 de biți aleatori (32 de cifre hex),
+  începând cu seed-ul ParkingLot. Încă deschis: ce au voie să conțină regulile.
 - **Recorded as:**
 
+## Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
+- **Status:** open
+- **Blocks:** o limită a cozii de evenimente în SDK (D-011); azi coada crește fără limită
+- **Who answers:** the user
+- **Proposed answer:**
+- **Answer:**
+- **Recorded as:**
