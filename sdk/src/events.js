@@ -6,6 +6,7 @@
 
 const BATCH = 20;
 const DELAY_MS = 5000;
+const TIMEOUT_MS = 10000;
 
 // 128 random bits as 32 hex digits (randomUUID needs a secure context, D-011).
 function newId() {
@@ -51,6 +52,7 @@ export function createEventQueue({ sdkKey, baseUrl }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ events }),
         keepalive: true,
+        signal: AbortSignal.timeout(TIMEOUT_MS), // no answer in 10 s → 'error', retried
       });
     } catch {
       return 'error';
@@ -78,8 +80,14 @@ export function createEventQueue({ sdkKey, baseUrl }) {
     return inflight;
   }
 
+  // An event JSON cannot encode is dropped here, so it never blocks the queue.
   function push(event) {
     if (!enabled) return;
+    try {
+      JSON.stringify(event);
+    } catch {
+      return;
+    }
     queue.push({ id: newId(), ...event });
     if (queue.length >= BATCH) sendNext();
     else startTimer();
@@ -103,11 +111,16 @@ export function createEventQueue({ sdkKey, baseUrl }) {
     return 'empty';
   }
 
-  // The page is going away: send everything now, in-flight events included.
+  // The page is going away: send everything now, in-flight events included. If the
+  // page is kept (back/forward cache) and a send failed, the 5 s retry restarts.
   function sendAll() {
     clearTimer();
     takeCounts();
-    for (let i = 0; i < queue.length; i += BATCH) post(queue.slice(i, i + BATCH));
+    for (let i = 0; i < queue.length; i += BATCH) {
+      post(queue.slice(i, i + BATCH)).then((result) => {
+        if (result === 'error' && !inflight && queue.length > 0) startTimer();
+      });
+    }
   }
 
   if (enabled) globalThis.addEventListener?.('pagehide', sendAll);

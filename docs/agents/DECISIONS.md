@@ -161,6 +161,11 @@
     deja unul.
   - `track(metric)` verifică tipul înainte de `identify`. Fără `baseUrl` nu se pune nimic în
     coadă, iar `flush()` → `'empty'`.
+  - O cerere fără răspuns în 10 s (`AbortSignal.timeout(10_000)`) e `'error'`: evenimentele
+    rămân și se retrimit cu aceleași id-uri. Și după o trimitere eșuată de la `pagehide`
+    (pagina păstrată în back/forward cache) timer-ul de 5 s repornește.
+  - Un eveniment pe care `JSON.stringify` nu-l poate codifica (de exemplu o variantă `BigInt`
+    dintr-o configurație dată la `init`) se aruncă la punerea în coadă, ca să nu blocheze coada.
 - **Why:** D-005 cere expuneri, conversii și evaluări trimise în batch de SDK; `keepalive` și
   `pagehide` păstrează o conversie făcută chiar înainte de închiderea tab-ului;
   `randomUUID` există doar pe HTTPS sau localhost, iar hosting-ul P1 nu e decis (Q-005).
@@ -168,7 +173,8 @@
   2026-11-25 (5 s / 20 de evenimente, experimentul marcat în configurație, ordinea de ingestie,
   A1–A2, keepalive + pagehide); user, plan „SDK part 2: exposures, track, flush, batching”,
   2026-11-25 (o cerere în curs, timer, pagehide, rezultatul lui `flush()`, `evaluations`,
-  fără `baseUrl`).
+  fără `baseUrl`); user, review-ul PR-ului #14, 2026-11-25 (timeout de 10 s, retrimiterea după
+  `pagehide`, evenimentele necodificabile).
 - **Confirmed:** 2026-11-25
 
 ## D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
