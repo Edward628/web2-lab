@@ -311,3 +311,65 @@ test('without baseUrl nothing is queued and flush gives empty', async (t) => {
   await settle();
   assert.equal(calls.length, 0);
 });
+
+test('after pagehide sends fail, the 5 s timer restarts and resends with the same ids', async (t) => {
+  const fire = capturePagehide(t);
+  let n = 0;
+  const calls = stubFetch(t, () => (n++ === 0 ? status(500) : status(204)));
+  const ff = client(t);
+  ff.identify('u1');
+  ff.track('reserve_click');
+  fire();
+  await settle();
+  assert.equal(calls.length, 1);
+  t.mock.timers.tick(5000);
+  await settle();
+  assert.equal(calls.length, 2);
+  assert.deepEqual(ids(calls[1]), ids(calls[0]));
+  assert.equal(await ff.flush(), 'empty');
+});
+
+test('an event JSON cannot encode is dropped when queued and does not block the others', async (t) => {
+  const calls = stubFetch(t);
+  const cfg = config();
+  cfg.flags['reserve-button-color'].variants = [{ value: 1n, from: 0, to: 100 }];
+  const ff = client(t, { config: cfg });
+  ff.identify('u1');
+  assert.equal(ff.getVariant('reserve-button-color'), 1n);
+  ff.track('reserve_click');
+  assert.equal(await ff.flush(), 'sent');
+  assert.deepEqual(strip(calls[0].events), [
+    { type: 'conversion', userId: 'u1', metric: 'reserve_click' },
+    { type: 'evaluations', counts: { 'reserve-button-color': 1 } },
+  ]);
+});
+
+test('a request with no answer after 10 s is an error; the events are resent with the same ids', async (t) => {
+  // AbortSignal.timeout runs on its own timer; this stand-in uses the mocked setTimeout.
+  const timeouts = [];
+  t.mock.method(AbortSignal, 'timeout', (ms) => {
+    timeouts.push(ms);
+    const c = new AbortController();
+    setTimeout(() => c.abort(new DOMException('timed out', 'TimeoutError')), ms);
+    return c.signal;
+  });
+  // A server that never answers: the request ends only when its signal aborts.
+  const calls = stubFetch(t, ({ options }) => new Promise((_, reject) => options.signal?.addEventListener('abort', () => reject(options.signal.reason))));
+  const ff = client(t);
+  ff.identify('u1');
+  ff.track('reserve_click');
+  let result;
+  ff.flush().then((r) => (result = r));
+  await settle();
+  t.mock.timers.tick(9999);
+  await settle();
+  assert.equal(result, undefined);
+  t.mock.timers.tick(1);
+  await settle();
+  assert.equal(result, 'error');
+  assert.deepEqual(timeouts, [10000]);
+  t.mock.timers.tick(5000);
+  await settle();
+  assert.equal(calls.length, 2);
+  assert.deepEqual(ids(calls[1]), ids(calls[0]));
+});
