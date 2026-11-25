@@ -98,6 +98,7 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 (cd p1 && npm test)                               # P1 unit tests (node --test)
 cp p1/config.example.js p1/config.js              # then paste the prod key printed by the seed
 python3 -m http.server -b 127.0.0.1 8000          # from the repo root; P1 at http://127.0.0.1:8000/p1/
+#   ↑ serves the whole repo, including .env and .git: stop it after use; never bind beyond 127.0.0.1
 # lint:                  none for now (Q-002)
 # screenshot:            not set yet (Q-003)
 ```

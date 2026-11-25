@@ -13,7 +13,7 @@ PostgreSQL (C-002) and ingests the SDK's event batches (C-003); P1 is the parkin
 runs the `reserve-button-color` experiment through the SDK (D-006, D-012).
 
 ```text
-sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh, track, flush } (D-011)
+sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh, track, flush } (D-011); refresh() times out at 10 s (D-013)
 sdk/src/events.js    createEventQueue({ sdkKey, baseUrl }): queue, 20 / 5 s, one request in flight, pagehide (C-003)
 sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configuration is used
 sdk/src/evaluate.js  evaluateDetail → { value, fromVariant }, evaluate → value: rules, then variant ranges (D-004, C-001)
@@ -28,7 +28,8 @@ server/scripts/seed.js  `npm run seed`: migrate + seedParkingLot on DATABASE_URL
 server/src/db.js     createPool(url), migrate(pool) runs server/db/schema.sql
 
 p1/index.html        DS-web2-parking (states loading, list, invalid, success); p1/styles.css
-p1/src/app.js        import ../config.js → getUserId → init + identify → await refresh() → getVariant once → body[data-variant]
+p1/src/app.js        import ../config.js → getUserId → init + identify → firstVariant → body[data-variant]
+p1/src/variant.js    firstVariant(ff, flagKey): waits ≤ 5 s for refresh(), then getVariant once; late → 'blue', no exposure (D-013)
 p1/src/user-id.js    getUserId(storage): 32 hex in localStorage; a new id per page load when storage is blocked
 p1/src/reservation.js SPOTS (6 fixed), loadReservation / reserve (1 h hold, track('reserve_click') only when valid) / cancel, variantOf
 p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitignored (D-012)

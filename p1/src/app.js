@@ -1,10 +1,12 @@
 // DS-web2-parking: the parking page that runs the reserve-button-color experiment
-// (D-006, D-012). Config → anonymous user → SDK → one variant read → the list.
+// (D-006, D-012). Config → anonymous user → SDK → one variant read, waiting at most
+// 5 s for the configuration (D-013) → the list.
 // Without p1/config.js the page shows the control and logs why.
 
 import { init } from '../../sdk/src/index.js';
 import { getUserId } from './user-id.js';
-import { SPOTS, loadReservation, reserve, cancel, variantOf } from './reservation.js';
+import { SPOTS, loadReservation, reserve, cancel } from './reservation.js';
+import { firstVariant } from './variant.js';
 
 const FLAG_KEY = 'reserve-button-color';
 
@@ -76,8 +78,7 @@ function showList() {
 const { sdkKey, baseUrl } = await loadConfig();
 const ff = init({ sdkKey, baseUrl });
 ff.identify(getUserId(storage));
-await ff.refresh();
-document.body.dataset.variant = variantOf(ff.getVariant(FLAG_KEY));
+document.body.dataset.variant = await firstVariant(ff, FLAG_KEY);
 
 renderSpots();
 $('spots').addEventListener('change', () => {
