@@ -46,5 +46,5 @@ designs:
     kind: screen
     name: Parcarea
     app: p1
-    status: draft
-    mock: none
+    status: approved   # confirmed by the user, 2026-11-25 (with the variant colors)
+    mock: docs/design/mocks/DS-web2-parking.html

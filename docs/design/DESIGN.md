@@ -104,7 +104,9 @@ them; a ticket with UI has a design subtask instead (team addon).
 ## Tokens
 One set for both the flag dashboard and the P1 app. Style: sober and technical,
 indigo accent, system font. Contrast ratios were computed against `color-bg` (WCAG).
-The blue and green of the P1 button are experiment variant values, not tokens.
+The blue and green of the P1 button are experiment variant values, not tokens:
+`blue` (control) `#2563EB`, `green` `#15803D`, text `#FFFFFF` on both (5.2 / 5.0 : 1), the
+same in light and dark so the theme does not bias the experiment (user, 2026-11-25).
 Theme: both apps follow the system setting (`prefers-color-scheme`); there is no theme
 switcher (user, 2026-11-18).
 
