@@ -80,3 +80,12 @@ test('two clients do not share state', () => {
   assert.equal(b.isEnabled('new-checkout'), false); // b has no user yet
   assert.equal(b.sdkKey, 'b');
 });
+
+test('a flag key that is an inherited object property is still unknown', () => {
+  const ff = init({ sdkKey: 'k', config: config() });
+  assert.equal(ff.getVariant('toString'), null);
+  assert.equal(ff.getVariant('__proto__'), null);
+  ff.identify('user-1');
+  assert.equal(ff.getVariant('constructor'), null);
+  assert.equal(ff.isEnabled('hasOwnProperty'), false);
+});
