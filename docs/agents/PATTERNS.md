@@ -20,6 +20,7 @@
   eroare, succes, confirmare) și un selector light / dark. Stările sunt blocuri `.state`
   afișate după `body[data-state]`; tokens-urile sunt variabile CSS din `DESIGN.md`.
 - **Example:** `docs/design/mocks/DS-web2-flags.html`
+- **Confirmed:** 2026-11-25
 
 ## PATTERN-002 · Vectorii de referință vin dintr-o implementare independentă, nu din codul testat
 - **Status:** candidate
