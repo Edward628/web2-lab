@@ -77,3 +77,15 @@ test('a second run changes nothing and returns the same keys', async () => {
   assert.deepEqual(second, first);
   assert.deepEqual(await snapshot(), before);
 });
+
+test('two seeds at the same time create one project and return the same keys (review S5)', async () => {
+  const [a, b] = await Promise.all([seedParkingLot(pool), seedParkingLot(pool)]);
+  assert.deepEqual(a, b);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM projects')).rows[0].n, 1);
+  assert.equal((await pool.query('SELECT count(*)::int AS n FROM sdk_keys')).rows[0].n, 2);
+});
+
+test('project names are unique (review S5)', async () => {
+  await pool.query(`INSERT INTO projects (name) VALUES ('Same')`);
+  await assert.rejects(pool.query(`INSERT INTO projects (name) VALUES ('Same')`), { code: '23505' });
+});
