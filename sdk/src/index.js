@@ -10,6 +10,8 @@ import { evaluateDetail } from './evaluate.js';
 import { createEventQueue } from './events.js';
 import { isValidConfig } from './validate.js';
 
+const TIMEOUT_MS = 10000; // a config request with no answer in 10 s is 'error' (D-013)
+
 export function init({ sdkKey, baseUrl, config }) {
   if (config !== undefined && !isValidConfig(config)) {
     throw new TypeError('init: config does not match C-001');
@@ -41,9 +43,10 @@ export function init({ sdkKey, baseUrl, config }) {
   async function refresh() {
     if (typeof baseUrl !== 'string') return 'error';
     let res;
+    const signal = AbortSignal.timeout(TIMEOUT_MS);
     try {
       const headers = etag === null ? {} : { 'If-None-Match': etag };
-      res = await fetch(`${baseUrl}/sdk/config?key=${encodeURIComponent(sdkKey)}`, { headers });
+      res = await fetch(`${baseUrl}/sdk/config?key=${encodeURIComponent(sdkKey)}`, { headers, signal });
     } catch {
       return 'error';
     }
@@ -53,7 +56,7 @@ export function init({ sdkKey, baseUrl, config }) {
     try {
       next = await res.json();
     } catch {
-      return 'rejected';
+      return signal.aborted ? 'error' : 'rejected'; // the body stalled past the timeout
     }
     if (!isValidConfig(next)) return 'rejected';
     current = next;

@@ -18,6 +18,7 @@
 - D-010 · Versiunea configurației: un întreg per mediu
 - D-011 · API-ul SDK-ului: D-009 plus evenimente (expuneri, track, batch)
 - D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
+- D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 
 ---
 
@@ -188,4 +189,18 @@
   repo; metrica numără rezervări, nu click-uri greșite.
 - **Evidence:** user, plan „P1, the parking page (DS-web2-parking)”, 2026-11-25. D-007 rămâne
   calea prin care alte aplicații primesc SDK-ul.
+- **Confirmed:** 2026-11-25
+
+## D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
+- **Status:** approved
+- **Rule:** P1 așteaptă primul `refresh()` cel mult 5 s. Dacă răspunsul vine la timp (orice
+  rezultat), citește varianta o dată cu `getVariant`. Altfel afișează controlul (`blue`) fără
+  să apeleze `getVariant`, deci fără expunere, și rămâne pe control pentru acea încărcare a
+  paginii chiar dacă configurația vine mai târziu. În SDK, cererea configurației (C-002) are un
+  timeout de 10 s (`AbortSignal.timeout(10_000)`), ca POST-ul de evenimente (D-011): o cerere
+  sau un corp fără răspuns în 10 s întoarce `'error'` din `refresh()`.
+- **Why:** un server care acceptă conexiunea dar nu răspunde ținea skeleton-ul pe ecran
+  oricât (review-ul de performanță al PR-ului #15); o expunere fără ca utilizatorul să fi văzut
+  varianta ar strica experimentul (D-005).
+- **Evidence:** user, review-ul PR-ului #15, 2026-11-25; nota din Q-005 (2026-11-25).
 - **Confirmed:** 2026-11-25

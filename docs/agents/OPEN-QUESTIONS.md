@@ -44,6 +44,7 @@
 - Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
 - Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei? · _answered_
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
+- Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
 
 ---
 
@@ -416,3 +417,17 @@
   se re-aprobă.
 - **Recorded as:** D-006; docs/design/mocks/DS-web2-parking.html (la build-ul P1)
 
+## Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
+- **Status:** open
+- **Blocks:** nimic acum; P1 merge fără ele
+- **Who answers:** the user
+- **Proposed answer:** sugestiile, lăsate deoparte la cererea userului (2026-11-25):
+  (1) `<link rel="modulepreload">` în `p1/index.html` pentru modulele SDK și `config.js`
+  (lanț de ~6 cereri una după alta înainte de listă); (2) o rezervare existentă afișată înainte
+  de cererea configurației (`p1/src/app.js`), alegere de design; (3) skeleton cu 6 locuri și
+  loc pentru legendă, ca lista să nu împingă conținutul (cere re-aprobarea mock-ului);
+  (4) la hosting public (Q-005): `<meta name="robots" content="noindex">` și o meta description;
+  (5) un mesaj `<noscript>` (cere re-aprobarea mock-ului). De reținut: cache-ul configurației în
+  `localStorage` din D-003 nu e construit în SDK, deci offline P1 arată mereu controlul.
+- **Answer:**
+- **Recorded as:**
