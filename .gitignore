@@ -3,3 +3,7 @@
 
 # Mockup de idee, fără server (nu e codul proiectului)
 flagship/
+
+# Local secrets and dependencies
+.env
+node_modules/
