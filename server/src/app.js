@@ -1,9 +1,11 @@
 // The Express app. GET /sdk/config (C-002): the configuration of the key's
 // environment (C-001), ETag = "<version>" (D-003, D-010), 304 on a matching
-// If-None-Match, CORS for browser SDKs on other origins.
+// If-None-Match. POST /sdk/events (C-003): the SDK's event batches. CORS for
+// browser SDKs on other origins.
 import express from 'express';
 import { isValidConfig } from '../../sdk/src/validate.js';
 import { buildConfig } from './config.js';
+import { validateBatch, environmentOf, ingestBatch } from './events.js';
 
 function cors(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -41,6 +43,36 @@ export function createApp({ pool }) {
     res.set('ETag', etag);
     if (req.get('If-None-Match') === etag) return res.status(304).end();
     res.json(config);
+  });
+
+  app.options('/sdk/events', cors, (req, res) => {
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(204).end();
+  });
+
+  app.post('/sdk/events', cors, express.json(), async (req, res) => {
+    const key = req.query.key;
+    if (typeof key !== 'string' || key === '') return res.status(400).end();
+    const events = validateBatch(req.body);
+    if (events === null) return res.status(400).end();
+    try {
+      const environmentId = await environmentOf(pool, key);
+      if (environmentId === null) return res.status(404).end();
+      await ingestBatch(pool, environmentId, events);
+    } catch (err) {
+      console.error('POST /sdk/events: database error', err);
+      return res.status(500).end();
+    }
+    res.status(204).end();
+  });
+
+  // express.json() errors: over 100 kB → 413; any other body it refuses (not JSON,
+  // an unsupported charset or Content-Encoding, which it reports as 415) → 400.
+  app.use('/sdk/events', (err, req, res, next) => {
+    if (err.status === 413) return res.status(413).end();
+    if (err.status >= 400 && err.status < 500) return res.status(400).end();
+    next(err);
   });
 
   return app;

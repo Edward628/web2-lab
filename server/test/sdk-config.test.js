@@ -2,7 +2,7 @@ import { test, before, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { isValidConfig } from '../../sdk/src/validate.js';
 import { migrate } from '../src/db.js';
-import { testPool, reset, seed, listen, addFlagEnvironment } from './helpers.js';
+import { testPool, reset, seed, listen, addFlagEnvironment, addExperiment } from './helpers.js';
 
 // GET /sdk/config (C-002) against a real PostgreSQL (TEST_DATABASE_URL).
 const pool = testPool();
@@ -87,6 +87,21 @@ test('an old If-None-Match after the version changes gets 200 with the new versi
   assert.equal(res.status, 200);
   assert.equal(res.headers.get('etag'), '"8"');
   assert.equal((await res.json()).version, 8);
+});
+
+test('a flag with an experiment in the key environment gets experiment: true; the others have no such field (C-001)', async () => {
+  await addExperiment(pool, 2, 1, 'reserve_click'); // reserve-button-color, project A dev
+  await addExperiment(pool, 1, 2, 'reserve_click'); // new-checkout, project A prod only
+  const res = await get('key-a-dev');
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.flags['reserve-button-color'].experiment, true);
+  assert.equal(Object.hasOwn(body.flags['new-checkout'], 'experiment'), false);
+  assert.deepEqual(body, {
+    ...projectADev,
+    flags: { ...projectADev.flags, 'reserve-button-color': { ...projectADev.flags['reserve-button-color'], experiment: true } },
+  });
+  assert.equal(isValidConfig(body), true);
 });
 
 test('an unknown key gets 404; a missing key gets 400', async () => {

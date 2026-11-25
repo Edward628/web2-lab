@@ -11,6 +11,7 @@
 ## Index
 - C-001 · Configurația unui mediu (JSON servit SDK-ului) · provided
 - C-002 · Endpoint-ul configurației pentru SDK · provided
+- C-003 · Endpoint-ul de evenimente pentru SDK · provided
 
 ---
 
@@ -28,8 +29,11 @@
         "default": <valoare>,
         "rules": [ { "attribute": "<nume>", "operator": "equals", "value": <v>, "serve": <valoare> },
                    { "attribute": "<nume>", "operator": "in", "values": [<v>, ...], "serve": <valoare> } ],
-        "variants": [ { "value": <valoare>, "from": 0, "to": 50 } ] } } }
+        "variants": [ { "value": <valoare>, "from": 0, "to": 50 } ],
+        "experiment": true } } }
   ```
+  `experiment` e opțional: apare, cu valoarea `true`, doar când flag-ul are un experiment în
+  mediul respectiv (tabelul `experiments`); lipsește în rest. Validarea nu îl verifică.
   Un flag oprit servește `default`. Regulile se evaluează în ordine; prima potrivită servește
   `serve`. Apoi varianta cu `from ≤ bucket < to` (bucket D-004); un bucket neacoperit servește
   `default`. Un flag boolean cu rollout N% = `variants: [{value: true, from: 0, to: N}]`,
@@ -41,10 +45,12 @@
 - **Provider:** `server/src/config.js` (construiește configurația din PostgreSQL, D-010) și
   `server/src/app.js` (o servește prin C-002, doar dacă trece `isValidConfig`); configurația
   se poate da și direct la `init` (D-009).
-- **Consumers:** `sdk/src/validate.js`, `sdk/src/evaluate.js`, `sdk/src/index.js`; în viitor
-  `dashboard/` (scrie flag-urile pe care serverul le servește în această formă).
+- **Consumers:** `sdk/src/validate.js`, `sdk/src/evaluate.js`, `sdk/src/index.js` (citește
+  `experiment`, D-011); în viitor `dashboard/` (scrie flag-urile pe care serverul le servește în
+  această formă).
 - **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25; user,
-  plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25.
+  plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25; user, plan „Event
+  ingest, SDK exposures, track and batching, ParkingLot seed”, 2026-11-25 (`experiment`).
 - **Confirmed:** 2026-11-25
 
 ### C-002 · Endpoint-ul configurației pentru SDK
@@ -66,6 +72,43 @@
 - **Evidence:** user, plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25;
   user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25 (400/404/500,
   CORS, forma ETag-ului).
+- **Confirmed:** 2026-11-25
+
+### C-003 · Endpoint-ul de evenimente pentru SDK
+- **Status:** approved
+- **Interface:** `POST {baseUrl}/sdk/events?key=<cheia SDK, URL-encoded>`, cu
+  `Content-Type: application/json` și corpul:
+  ```json
+  { "events": [
+    { "id": "<1–64 caractere>", "type": "exposure",    "userId": "u", "flagKey": "f", "variant": <json> },
+    { "id": "…",                "type": "conversion",  "userId": "u", "metric": "reserve_click" },
+    { "id": "…",                "type": "evaluations", "counts": { "<flag_key>": <întreg ≥ 1> } } ] }
+  ```
+  `userId`, `flagKey`, `metric` și cheile din `counts` au cel mult 256 de caractere. Niciun
+  string din batch (inclusiv `variant` și cheile lui) nu conține NUL (`\u0000`) sau un surogat
+  singur, pe care PostgreSQL nu le poate păstra.
+  Acceptat → `204`. Fără `key` (sau gol), corp pe care parserul JSON îl refuză (nu e JSON,
+  charset sau `Content-Encoding` nesuportat), corp care nu are forma și limitele de mai sus,
+  sau `events` gol → `400`, fără corp, tot batch-ul respins, nimic salvat. Cheie necunoscută
+  (inclusiv una care conține NUL) → `404`. Corp
+  peste 100 kB (limita implicită Express) → `413`. Eroare de bază de date → `500`, nimic
+  salvat (o tranzacție per batch), deci SDK-ul poate retrimite.
+  Ingestia, în ordinea din array, în mediul cheii: un `id` deja văzut în acest mediu se ignoră
+  (idempotență). O expunere contează o dată per utilizator și experiment; se păstrează prima
+  variantă. O conversie contează o dată per utilizator și experiment, în fiecare experiment al
+  mediului cu acea metrică, doar dacă expunerea utilizatorului e deja salvată (într-un batch
+  anterior sau mai devreme în același batch); altfel se ignoră și nu se păstrează pentru mai
+  târziu. `evaluations` pune `last_evaluated_at = now()` pe flag-urile mediului (D-005).
+  Un flag necunoscut, o expunere pe un flag fără experiment și o metrică pe care n-o folosește
+  niciun experiment sunt valide, dar ignorate. Un experiment = un flag într-un mediu, cu o
+  metrică (cel mult unul per flag și mediu).
+  CORS: fiecare răspuns are `Access-Control-Allow-Origin: *`; preflight-ul `OPTIONS` → `204` cu
+  `Access-Control-Allow-Methods: POST` și `Access-Control-Allow-Headers: Content-Type`.
+- **Provider:** `server/src/app.js`, `server/src/events.js`.
+- **Consumers:** `sdk/src/index.js` (D-011; în partea 2 a planului).
+- **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
+  2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
+  (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).
 - **Confirmed:** 2026-11-25
 
 ## Consumed

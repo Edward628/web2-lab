@@ -92,6 +92,7 @@ python3 docs/agents/tools/ledger-lint.py          # --fix rebuilds the indexes
 (cd server && npm install)                        # server dependencies (express, pg)
 docker compose up -d --build --wait               # PostgreSQL + server on :3000 (builds the image)
 docker compose up -d --wait db                    # only PostgreSQL, for the server tests
+docker compose exec server npm run seed           # ParkingLot project + keys (idempotent; prints the SDK keys)
 (cd server && set -a && . ../.env && set +a && npm test)   # server tests; need db up, wipe web2_test
 (cd sdk && npm test)                              # SDK unit tests (node --test)
 # lint:                  none for now (Q-002)
