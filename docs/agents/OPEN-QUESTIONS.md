@@ -10,7 +10,7 @@
 
 ## Index
 - Q-001 · Which stack does web2-lab use, and how is it installed, run and built? · _answered_
-- Q-002 · Which test runner and linter do the labs use, if any?
+- Q-002 · Which test runner and linter do the labs use, if any? · _answered_
 - Q-003 · How do we screenshot this app?
 - Q-004 · How are the labs laid out in the repo (one folder per lab, one shared app, …)? · _answered_
 - Q-005 · How is lab work handed in or deployed (git remote, hosting, branches, tags)?
@@ -50,12 +50,13 @@
 - **Recorded as:** D-002
 
 ## Q-002 · Which test runner and linter do the labs use, if any?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** tests first in /build; the test check in the definition of done
 - **Who answers:** the user
 - **Proposed answer:**
-- **Answer:** partial, 2026-11-18 (user): tests use `node --test` (D-002). Linter: not chosen yet.
-- **Recorded as:** D-002
+- **Answer:** 2026-11-18 (user): tests use `node --test` (D-002). 2026-11-25 (user): no
+  linter for now.
+- **Recorded as:** D-002; AGENTS.md section 2
 
 ## Q-003 · How do we screenshot this app?
 - **Status:** open
