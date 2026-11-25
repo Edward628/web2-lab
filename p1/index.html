@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rezervă un loc · Parcare Centru</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="src/app.js"></script>
+</head>
+<body data-state="loading">
+
+<header><div class="wrap"><span class="brand">Parcare Centru</span></div></header>
+
+<main>
+  <h1>Rezervă un loc</h1>
+  <p class="sub muted">Alege un loc liber și rezervă-l. Locul rămâne al tău o oră.</p>
+
+  <!-- Succes -->
+  <div class="state s-success">
+    <div class="notice success" role="status" id="success" tabindex="-1">
+      <span class="icon" aria-hidden="true">✓</span>
+      <div><p><strong id="success-title"></strong></p>
+        <p class="muted" id="success-detail"></p>
+        <button class="btn" type="button" id="cancel">Anulează rezervarea</button></div>
+    </div>
+  </div>
+
+  <!-- Încărcare: butonul apare abia când varianta e cunoscută, fără să-și schimbe culoarea -->
+  <div class="state s-loading" aria-busy="true">
+    <h2>Locuri</h2>
+    <div class="spots" aria-hidden="true">
+      <div class="skel"></div><div class="skel"></div><div class="skel"></div><div class="skel"></div>
+    </div>
+    <div class="cta-wait" aria-hidden="true"></div>
+    <p class="sr" role="status">Se încarcă locurile.</p>
+  </div>
+
+  <!-- Listă -->
+  <div class="state s-list">
+    <div class="legend sm muted"><span id="legend"></span></div>
+    <h2 id="h-list">Locuri</h2>
+    <fieldset class="spots" aria-labelledby="h-list" id="spots"></fieldset>
+    <button class="cta" type="button" id="reserve" aria-describedby="err">Rezervă locul</button>
+    <p class="err sm state s-invalid" id="err" role="alert">Alege mai întâi un loc liber.</p>
+  </div>
+</main>
+
+<footer class="sm muted">Aplicație demonstrativă · nu păstrăm date personale</footer>
+</body>
+</html>

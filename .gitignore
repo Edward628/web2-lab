@@ -7,3 +7,6 @@ flagship/
 # Local secrets and dependencies
 .env
 node_modules/
+
+# P1: the SDK key and server URL (D-012)
+p1/config.js
