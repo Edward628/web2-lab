@@ -110,6 +110,12 @@ test('an unknown key gets 404; a missing key gets 400', async () => {
   assert.equal((await get('')).status, 400);
 });
 
+test('a key no environment can have (NUL) gets 404, not 500', async () => {
+  const res = await get('k\u0000');
+  assert.equal(res.status, 404);
+  assert.equal(res.headers.get('access-control-allow-origin'), '*');
+});
+
 test('a stored configuration that fails C-001 gets 500 with no body', async (t) => {
   t.mock.method(console, 'error', () => {}); // the server logs it; keep the test output clean
   await pool.query('DELETE FROM flag_environments WHERE environment_id = 3');
