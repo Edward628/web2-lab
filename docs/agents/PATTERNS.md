@@ -26,3 +26,4 @@
   dată, în afara repo-ului), verificată întâi pe vectorii publici. Testul scrie valorile literal
   și spune de unde vin; implementarea independentă nu devine dependență.
 - **Example:** `sdk/test/bucket.test.js` (murmurhash3js-revisited 3.0.0)
+- **Confirmed:** 2026-11-25
