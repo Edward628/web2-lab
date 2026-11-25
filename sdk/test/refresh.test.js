@@ -105,3 +105,30 @@ test('an unreachable server or no baseUrl gives error, without throwing', async 
   assert.equal(ff.isEnabled('new-checkout'), true);
   assert.equal(await init({ sdkKey: 'k' }).refresh(), 'error');
 });
+
+test('a config request with no answer after 10 s is an error (D-013)', async (t) => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  // AbortSignal.timeout runs on its own timer; this stand-in uses the mocked setTimeout.
+  const timeouts = [];
+  t.mock.method(AbortSignal, 'timeout', (ms) => {
+    timeouts.push(ms);
+    const c = new AbortController();
+    setTimeout(() => c.abort(new DOMException('timed out', 'TimeoutError')), ms);
+    return c.signal;
+  });
+  // A server that never answers: the request ends only when its signal aborts.
+  t.mock.method(globalThis, 'fetch', (_url, options) =>
+    new Promise((_, reject) => options?.signal?.addEventListener('abort', () => reject(options.signal.reason))));
+  const settle = () => new Promise((r) => setImmediate(r));
+  const ff = init({ sdkKey: 'k', baseUrl: 'http://127.0.0.1:1' });
+  let result;
+  ff.refresh().then((r) => (result = r));
+  await settle();
+  t.mock.timers.tick(9999);
+  await settle();
+  assert.equal(result, undefined);
+  t.mock.timers.tick(1);
+  await settle();
+  assert.equal(result, 'error');
+  assert.deepEqual(timeouts, [10000]);
+});
