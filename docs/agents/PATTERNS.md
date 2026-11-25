@@ -9,6 +9,7 @@
 - PATTERN-001 · Un mock are o bară de control cu toate stările și cu tema light / dark · candidate
 - PATTERN-002 · Vectorii de referință vin dintr-o implementare independentă, nu din codul testat · candidate
 - PATTERN-003 · Testele noi se verifică pe stub-uri temporare, ca să pice din motivul corect · candidate
+- PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test` · candidate
 
 ---
 
@@ -38,3 +39,13 @@
   commit-ul `test(...)`.
 - **Example:** commit `e74e46c` (`sdk/test/evaluate.test.js`, `sdk/test/client.test.js`)
 - **Confirmed:** 2026-11-25
+
+## PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test`
+- **Status:** candidate
+- **How:** Testele din `server/test` folosesc `TEST_DATABASE_URL` (baza `web2_test`, creată de
+  `server/db/init-test-db.sql` la primul `docker compose up`). `helpers.js` refuză orice bază al
+  cărei nume nu se termină în `_test`, aplică schema cu `migrate()` și golește tabelele
+  (`TRUNCATE … RESTART IDENTITY`) înainte de fiecare test, deci id-urile din fixture-uri sunt
+  fixe. Fișierele rulează unul câte unul (`--test-concurrency=1`). Aplicația primește pool-ul
+  prin `createApp({ pool })` și ascultă pe un port aleator.
+- **Example:** `server/test/helpers.js`, `server/test/sdk-config.test.js`

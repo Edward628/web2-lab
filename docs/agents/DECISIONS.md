@@ -16,6 +16,7 @@
 - D-007 · Structura repo-ului, proiectele și publicarea SDK-ului
 - D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
 - D-009 · API-ul SDK-ului: init întoarce un client; citirile nu aruncă
+- D-010 · Versiunea configurației: un întreg per mediu
 
 ---
 
@@ -139,4 +140,15 @@
   configurații stricate. SSE și polling-ul (planuri ulterioare) vor apela `refresh()`.
 - **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25; user,
   plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25.
+- **Confirmed:** 2026-11-25
+
+## D-010 · Versiunea configurației: un întreg per mediu
+- **Status:** approved
+- **Rule:** Fiecare mediu are `environments.config_version`, un întreg care începe la 1.
+  Configurația servită (C-001) are `version` = această valoare, iar ETag-ul (C-002) e
+  `"<config_version>"`. Orice schimbare care modifică configurația unui mediu trebuie să
+  crească versiunea acelui mediu (scrierea vine cu API-ul de administrare).
+- **Why:** D-003 cere `ETag = version`; o coloană pe mediu e cel mai puțin de construit și
+  de testat, fără istoric al configurației (README → „Simplificat față de fișă”).
+- **Evidence:** user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25.
 - **Confirmed:** 2026-11-25
