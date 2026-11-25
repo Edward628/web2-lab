@@ -2,8 +2,10 @@
 // shape: { version, flags: { <flag_key>: { type, enabled, default, rules, variants } } },
 // plus experiment: true on a flag that has an experiment in this environment.
 
-// → the configuration, or null when the key is unknown.
+// → the configuration, or null when the key is unknown. A key with a NUL cannot be
+// stored, so it is unknown without a query (PostgreSQL would reject it: a 500).
 export async function buildConfig(pool, sdkKey) {
+  if (sdkKey.includes('\u0000')) return null;
   const env = await pool.query(
     `SELECT e.id, e.config_version
        FROM sdk_keys k JOIN environments e ON e.id = k.environment_id
