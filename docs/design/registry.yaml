@@ -9,13 +9,13 @@ designs:
     kind: screen
     name: Autentificare
     app: dashboard
-    status: draft   # mock drawn 2026-11-26 (PR 2 of the admin plan); waiting for the user's confirmation
+    status: approved   # confirmed by the user, 2026-11-26
     mock: docs/design/mocks/DS-web2-login.html
   - id: DS-web2-flags
     kind: screen
     name: Lista flag-urilor
     app: dashboard
-    status: approved   # re-confirmed by the user, 2026-11-18 (after Q-011 fixes); PR 2 additions (Logout, confirm on in prod, toggle error) drawn 2026-11-26, to confirm
+    status: approved   # re-confirmed by the user, 2026-11-18 (after Q-011 fixes) and 2026-11-26 (PR 2: Logout, confirm on in prod, toggle error, empty-state and success copy)
     mock: docs/design/mocks/DS-web2-flags.html
   - id: DS-web2-flag-detail
     kind: screen

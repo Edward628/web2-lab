@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DS-web2-flags · Lista flag-urilor (mock, approved; modificări PR 2 în draft)</title>
+<title>DS-web2-flags · Lista flag-urilor (mock, approved)</title>
 <style>
 /* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
 :root {
@@ -138,7 +138,7 @@ body.built .later { display:none !important; }
 <body data-state="list">
 
 <div class="mockbar" role="region" aria-label="Controale mock">
-  <strong>Mock DS-web2-flags · approved (reconfirmat 2026-11-18) · modificări PR 2: draft</strong>
+  <strong>Mock DS-web2-flags · approved (reconfirmat 2026-11-26, cu modificările PR 2)</strong>
   <label>Stare:
     <select id="state">
       <option value="list">Listă (multe flag-uri, text lung)</option>
@@ -196,7 +196,7 @@ body.built .later { display:none !important; }
   <div class="state s-success">
     <div class="notice success" role="status">
       <span class="icon" aria-hidden="true">✓</span>
-      <div><strong>Flag oprit.</strong> <code>new-checkout</code> e oprit în prod. Aplicațiile primesc configurația v48 în câteva secunde.
+      <div><strong>Flag oprit.</strong> <code>new-checkout</code> e oprit în prod, în configurația v48. Aplicațiile conectate o primesc în cel mult 15 s; celelalte, la următoarea încărcare.
         <button class="btn" type="button" style="margin-left:var(--space-2)">Anulează</button></div>
     </div>
   </div>
@@ -248,6 +248,7 @@ body.built .later { display:none !important; }
     <div class="card empty">
       <h2>Niciun flag în prod</h2>
       <p class="muted" style="margin:0 0 var(--space-4)">Un flag pornește sau oprește o funcție fără redeploy. Aici vei vedea starea, regulile și rollout-ul fiecărui flag.</p>
+      <p class="sm muted" style="margin:0 0 var(--space-4)">Flag-urile se adaugă deocamdată cu seed-ul.</p>
       <button class="btn btn-primary later" type="button">Creează primul flag</button>
     </div>
   </div>
