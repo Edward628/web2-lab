@@ -9,6 +9,7 @@
 
 ## Index
 - D-009 · API-ul SDK-ului: init întoarce un client; citirile nu aruncă · _superseded-by D-011_
+- D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă · _superseded-by D-015_
 
 ---
 
@@ -34,3 +35,15 @@
   configurații stricate. SSE și polling-ul (planuri ulterioare) vor apela `refresh()`.
 - **Evidence:** user, plan „SDK init, identify, isEnabled și getVariant”, 2026-11-25; user,
   plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25.
+
+## D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
+- **Status:** superseded-by D-015
+- **Rule:** `p1/` importă `../sdk/src/index.js` ca modul ES și e servit de un server static
+  (local, legat la `127.0.0.1`). Cheia SDK (prod) și `baseUrl` stau în `p1/config.js`, ignorat
+  de git; `p1/config.example.js` e în repo. P1 apelează `track("reserve_click")` doar la o
+  rezervare validă (un loc liber ales), niciodată la un click invalid.
+- **Why:** P1 e HTML static fără bundler (D-002), iar tarball-ul `npm pack` (D-007) nu se poate
+  importa direct dintr-o pagină; cheia e creată de seed per bază de date, deci nu se scrie în
+  repo; metrica numără rezervări, nu click-uri greșite.
+- **Evidence:** user, plan „P1, the parking page (DS-web2-parking)”, 2026-11-25. D-007 rămâne
+  calea prin care alte aplicații primesc SDK-ul.

@@ -1,5 +1,5 @@
 // DS-web2-parking: the parking page that runs the reserve-button-color experiment
-// (D-006, D-012). Config → anonymous user → SDK → one variant read, waiting at most
+// (D-006, D-015). Config → anonymous user → SDK → one variant read, waiting at most
 // 5 s for the configuration (D-013) → the list.
 // Without p1/config.js the page shows the control and logs why.
 
@@ -22,7 +22,7 @@ async function loadConfig() {
   try {
     return await import('../config.js');
   } catch (err) {
-    console.error('P1: p1/config.js is missing or broken; copy p1/config.example.js (D-012). Showing the control.', err);
+    console.error('P1: p1/config.js is missing or broken; copy p1/config.example.js, or set P1_SDK_KEY on the server (D-015). Showing the control.', err);
     return {};
   }
 }

@@ -99,6 +99,7 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 cp p1/config.example.js p1/config.js              # then paste the prod key printed by the seed
 python3 -m http.server -b 127.0.0.1 8000          # from the repo root; P1 at http://127.0.0.1:8000/p1/
 #   ↑ serves the whole repo, including .env and .git: stop it after use; never bind beyond 127.0.0.1
+#   or: set P1_SDK_KEY in .env, then P1 at http://127.0.0.1:3000/p1/ (served by the server, D-015)
 # lint:                  none for now (Q-002)
 # screenshot:            not set yet (Q-003)
 ```
@@ -123,7 +124,19 @@ Add each command here once it exists, and run it once before you write it down.
 ## 5. Release
 - Code lives on GitHub: `https://github.com/Edward628/web2-lab` (public), remote `origin`.
 - The default branch is `main`. Push only with the user's go.
-- How labs are handed in, and any deploy or tag: not decided yet (Q-005).
+- Hosting (D-014): the server on Render, PostgreSQL on Neon; P1 at `https://<service>.onrender.com/p1/`.
+  Auto-deploy is off: deploy only with the user's go (Render → Manual Deploy → latest commit).
+- One-time setup, done by the user with their own accounts (no secrets pass through an agent):
+  1. Neon: a project, PostgreSQL 17, region Frankfurt; copy the connection URL and end it in
+     `?sslmode=verify-full`.
+  2. Seed, from your own terminal: `cd server && npm install && read -rs DATABASE_URL && export DATABASE_URL && npm run seed`
+     (paste the URL; it is not echoed or kept in history). Note the `prod` key it prints.
+  3. Render: New → Web Service → public repo `https://github.com/Edward628/web2-lab`, branch
+     `main`, runtime Docker, Dockerfile path `server/Dockerfile`, Docker build context `.`,
+     region Frankfurt, plan Free, health check path `/p1/`, Auto-Deploy off. Env vars:
+     `DATABASE_URL` (the Neon URL) and `P1_SDK_KEY` (the prod key).
+  4. Check: open `/p1/` in two browsers; reserve a spot; one exposure and one conversion row in Neon.
+- How labs are handed in, and any tag: not decided yet (Q-005).
 
 ## 6. Definition of done
 - Tests pass, once a test command exists (Q-002).

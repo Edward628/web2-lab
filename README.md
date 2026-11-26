@@ -53,7 +53,7 @@ semnificație statistică.
 
 ## Stack
 Node.js cu JavaScript, Express, PostgreSQL, Docker Compose; UI în HTML + JavaScript
-simplu; teste cu `node --test` (D-002). Hosting-ul nu e decis încă (Q-005).
+simplu; teste cu `node --test` (D-002). Hosting: serverul pe Render, baza pe Neon, P1 servit de server (D-014).
 
 ## Timp
 Buget: 15–20 de ore (fișa estimează ~40). Data predării: necunoscută (Q-008).

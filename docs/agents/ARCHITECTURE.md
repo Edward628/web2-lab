@@ -10,7 +10,8 @@ A feature flags and A/B testing service with a browser SDK (README.md). Planned 
 (D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. `sdk/`, `server/` and `p1/` exist so far:
 the SDK evaluates flags locally; the server serves each environment's configuration from
 PostgreSQL (C-002) and ingests the SDK's event batches (C-003); P1 is the parking page that
-runs the `reserve-button-color` experiment through the SDK (D-006, D-012).
+runs the `reserve-button-color` experiment through the SDK (D-006, D-015). Hosted, the server also serves P1 from its own origin
+(D-014): Render runs the image, Neon holds the database (C-004, C-005).
 
 ```text
 sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh, track, flush } (D-011); refresh() times out at 10 s (D-013)
@@ -19,8 +20,9 @@ sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configurat
 sdk/src/evaluate.js  evaluateDetail → { value, fromVariant }, evaluate → value: rules, then variant ranges (D-004, C-001)
 sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
-server/src/index.js  reads DATABASE_URL, PORT; migrate(); listen
-server/src/app.js    createApp({ pool }): GET/OPTIONS /sdk/config (C-002), POST/OPTIONS /sdk/events (C-003), CORS
+server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY; migrate(); listen
+server/src/app.js    createApp({ pool, p1SdkKey }): GET/OPTIONS /sdk/config (C-002), POST/OPTIONS /sdk/events (C-003), CORS;
+                     P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015)
 server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags)
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction
 server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
@@ -32,14 +34,14 @@ p1/src/app.js        import ../config.js → getUserId → init + identify → f
 p1/src/variant.js    firstVariant(ff, flagKey): waits ≤ 5 s for refresh(), then getVariant once; late → 'blue', no exposure (D-013)
 p1/src/user-id.js    getUserId(storage): 32 hex in localStorage; a new id per page load when storage is blocked
 p1/src/reservation.js SPOTS (6 fixed), loadReservation / reserve (1 h hold, track('reserve_click') only when valid) / cancel, variantOf
-p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitignored (D-012)
+p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitignored (D-015)
 ```
 
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
 | SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init` or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003 |
-| P1 | `p1/` | the parking page (DS-web2-parking): static HTML + ES modules, imports the SDK from `../sdk/src` (D-012), no backend of its own (D-006). Reservation and anonymous user id in `localStorage`. Without `p1/config.js` it shows the control and logs to the console. Tests in `p1/test` (pure modules; the page itself is checked by hand) | `server/` via the SDK (C-002, C-003) |
+| P1 | `p1/` | the parking page (DS-web2-parking): static HTML + ES modules, imports the SDK from `../sdk/src` (D-015), no backend of its own (D-006). Reservation and anonymous user id in `localStorage`. Without a config (`p1/config.js` locally, or `P1_SDK_KEY` on the server) it shows the control and logs to the console. Tests in `p1/test` (pure modules; the page itself is checked by hand) | `server/` via the SDK (C-002, C-003) |
 | Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
 
 ## Data flow
@@ -63,18 +65,22 @@ one transaction, events in order: `ingested_events` (seen id → skip) → `expo
 | `DATABASE_URL` | `docker-compose.yml` | `server/src/index.js`, `server/scripts/seed.js` | built from `POSTGRES_PASSWORD` |
 | `PORT` | `docker-compose.yml` | `server/src/index.js` | default 3000 |
 | `TEST_DATABASE_URL` | `.env` | `server/test/helpers.js` | database name must end in `_test` |
-| `sdkKey`, `baseUrl` | `p1/config.js` (gitignored; template `p1/config.example.js`) | `p1/src/app.js` | the prod SDK key printed by the seed (D-012) |
+| `sdkKey`, `baseUrl` | `p1/config.js` (gitignored; template `p1/config.example.js`) | `p1/src/app.js` | the prod SDK key printed by the seed (D-015); a static server only |
+| `P1_SDK_KEY` | `.env` (optional) locally; Render env var when hosted | `server/src/index.js` → `/p1/config.js` | the prod SDK key of that database; unset → 404, P1 shows the control (D-015) |
+| `DATABASE_URL` (hosted) | Render env var | `server/src/index.js` | Neon URL ending in `?sslmode=verify-full` (D-014, C-005); never in the repo |
 <!-- names only, never values -->
 
 ## Build, deploy, runtime
 Source on GitHub (`origin`, branch `main`). Stack: D-002. `docker compose up -d --build`
 runs PostgreSQL 17 and the server image (`node:24-alpine`, built from the repo root so it
 can copy `sdk/src`; runs as `node`; `restart: unless-stopped`). Both ports are bound to
-`127.0.0.1` until hosting is decided (Q-005). The pool logs a dropped idle connection and
+`127.0.0.1` locally; the hosted server runs on Render (D-014). The pool logs a dropped idle connection and
 keeps running. Commands: AGENTS.md section 2.
 P1 is served by a static server from the repo root, bound to `127.0.0.1` (AGENTS.md section 2);
-a host must serve only `p1/` and `sdk/src` (Q-005).
-Hand-in and deploy: not decided (Q-005). See AGENTS.md sections 2 and 5.
+or by the server itself at `/p1/` (fixed file list, D-014). The image holds no `.env`,
+`p1/config.js` or `p1/test` (`.dockerignore`).
+Hosted (D-014): Render web service (free, Docker, Frankfurt, auto-deploy off, manual deploy
+with the user's go), PostgreSQL on Neon (free, TLS). Hand-in: not decided (Q-005). See AGENTS.md sections 2 and 5.
 
 ## Boundaries
 None yet.

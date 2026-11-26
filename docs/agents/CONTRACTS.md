@@ -12,6 +12,8 @@
 - C-001 · Configurația unui mediu (JSON servit SDK-ului) · provided
 - C-002 · Endpoint-ul configurației pentru SDK · provided
 - C-003 · Endpoint-ul de evenimente pentru SDK · provided
+- C-004 · Render (web service gratuit) · external
+- C-005 · Neon (PostgreSQL gratuit) · external
 
 ---
 
@@ -72,7 +74,7 @@
 - **Evidence:** user, plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25;
   user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25 (400/404/500,
   CORS, forma ETag-ului).
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ### C-003 · Endpoint-ul de evenimente pentru SDK
 - **Status:** approved
@@ -109,10 +111,30 @@
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
   (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## Consumed
 None yet.
 
 ## External
-None yet.
+
+### C-004 · Render (web service gratuit)
+- **Status:** approved
+- **Interface:** construiește imaginea din `server/Dockerfile` (contextul = rădăcina repo-ului)
+  și setează `PORT`, pe care serverul ascultă (`server/src/index.js`). HTTPS e dat de Render.
+  Variabilele de mediu `DATABASE_URL` și `P1_SDK_KEY` se setează în dashboard-ul Render. Pe
+  planul gratuit serviciul se oprește după 15 min fără trafic, iar prima cerere îl pornește din
+  nou în ~30–60 s; sistemul de fișiere e gol la fiecare deploy (nu ținem nimic pe disc).
+- **Consumer:** `server/src/index.js`, `server/Dockerfile` (D-014).
+- **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26.
+- **Confirmed:** 2026-11-26
+
+### C-005 · Neon (PostgreSQL gratuit)
+- **Status:** approved
+- **Interface:** PostgreSQL 17, acces doar prin TLS (`?sslmode=verify-full` în `DATABASE_URL`;
+  certificatul e de la o autoritate publică). Compute-ul se oprește după 5 min fără conexiuni și
+  pornește la prima conexiune; conexiunile inactive închise de Neon sunt prinse de
+  `pool.on('error')` (`server/src/db.js`). Planul gratuit are 0,5 GB de stocare.
+- **Consumer:** `server/src/db.js`, `server/scripts/seed.js` (D-014).
+- **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26.
+- **Confirmed:** 2026-11-26

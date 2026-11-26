@@ -17,8 +17,9 @@
 - D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
 - D-010 · Versiunea configurației: un întreg per mediu
 - D-011 · API-ul SDK-ului: D-009 plus evenimente (expuneri, track, batch)
-- D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
 - D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
+- D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
+- D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
 
 ---
 
@@ -45,7 +46,7 @@
 - **Why:** studentul știe JavaScript; SDK-ul trebuie să fie în JavaScript (fișa); serverele
   rulează în Docker (Lab Setup); bugetul de 15–20 h nu lasă loc pentru framework-uri noi.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18; răspunde la Q-001.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-26
 
 ## D-003 · Configurația SDK: JSON versionat, SSE cu fallback la polling, cache local
 - **Status:** approved
@@ -118,7 +119,7 @@
 - **Why:** un singur rol (README → „Simplificat față de fișă”); cel mai puțin de construit
   pentru un dashboard pus online.
 - **Evidence:** user, 2026-11-18; Q-018.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-26
 
 ## D-010 · Versiunea configurației: un întreg per mediu
 - **Status:** approved
@@ -178,19 +179,6 @@
   `pagehide`, evenimentele necodificabile).
 - **Confirmed:** 2026-11-25
 
-## D-012 · P1: SDK-ul din sursă, cheia dintr-un fișier ignorat de git, track doar la rezervare validă
-- **Status:** approved
-- **Rule:** `p1/` importă `../sdk/src/index.js` ca modul ES și e servit de un server static
-  (local, legat la `127.0.0.1`). Cheia SDK (prod) și `baseUrl` stau în `p1/config.js`, ignorat
-  de git; `p1/config.example.js` e în repo. P1 apelează `track("reserve_click")` doar la o
-  rezervare validă (un loc liber ales), niciodată la un click invalid.
-- **Why:** P1 e HTML static fără bundler (D-002), iar tarball-ul `npm pack` (D-007) nu se poate
-  importa direct dintr-o pagină; cheia e creată de seed per bază de date, deci nu se scrie în
-  repo; metrica numără rezervări, nu click-uri greșite.
-- **Evidence:** user, plan „P1, the parking page (DS-web2-parking)”, 2026-11-25. D-007 rămâne
-  calea prin care alte aplicații primesc SDK-ul.
-- **Confirmed:** 2026-11-25
-
 ## D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - **Status:** approved
 - **Rule:** P1 așteaptă primul `refresh()` cel mult 5 s. Dacă răspunsul vine la timp (orice
@@ -203,4 +191,37 @@
   oricât (review-ul de performanță al PR-ului #15); o expunere fără ca utilizatorul să fi văzut
   varianta ar strica experimentul (D-005).
 - **Evidence:** user, review-ul PR-ului #15, 2026-11-25; nota din Q-005 (2026-11-25).
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
+
+## D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
+- **Status:** approved
+- **Rule:** Serverul rulează pe Render (web service gratuit, Docker din `server/Dockerfile`,
+  contextul = rădăcina repo-ului, branch `main`, regiunea Frankfurt, health check `/p1/`).
+  Auto-deploy e oprit: un deploy se face manual (Manual Deploy) și doar cu acordul userului.
+  Baza de date e pe Neon (gratuit, PostgreSQL 17, Frankfurt), cu TLS:
+  `DATABASE_URL` se termină în `?sslmode=verify-full`. Serverul servește P1 pe aceeași
+  origine, doar o listă fixă: `p1/index.html`, `p1/styles.css`, `p1/src/*` și `sdk/src/*`;
+  niciodată rădăcina repo-ului, `.env`, testele sau fișierele `package.json`. Imaginea nu
+  conține `p1/config.js` și `p1/test` (`.dockerignore`). Secretele (`DATABASE_URL`) stau doar
+  în variabilele de mediu Render; seed-ul pe Neon îl rulează userul, de pe mașina lui.
+- **Why:** colegii trebuie să poată folosi P1 online, gratuit. Pe aceeași origine, POST-ul
+  `keepalive` de la `pagehide` nu are nevoie de preflight CORS (nota din Q-005). Render Shell
+  și job-urile one-off sunt plătite, deci seed-ul rulează local.
+- **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26 (auto-deploy oprit,
+  regiunea, health check-ul, seed-ul rulat de user); C-004, C-005.
+- **Confirmed:** 2026-11-26
+
+## D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
+- **Status:** approved
+- **Rule:** `p1/` importă `../sdk/src/index.js` ca modul ES și `../config.js` pentru `sdkKey`
+  și `baseUrl`. Local, cu un server static legat la `127.0.0.1`, `p1/config.js` e ignorat de
+  git; `p1/config.example.js` e în repo. Când P1 e servit de serverul nostru (D-014, și local
+  la `127.0.0.1:3000/p1/`), `GET /p1/config.js` e generat din variabila de mediu `P1_SDK_KEY`
+  (cheia prod creată de seed pe baza respectivă), cu `baseUrl = location.origin`, cheia scrisă
+  cu `JSON.stringify` și `Cache-Control: no-cache`; fără `P1_SDK_KEY` → `404`, iar P1 afișează
+  controlul. P1 apelează `track("reserve_click")` doar la o rezervare validă (un loc liber
+  ales), niciodată la un click invalid.
+- **Why:** un host construit din git nu are `p1/config.js`; cheia e publică (C-002), dar e
+  creată de seed per bază de date, deci nu se scrie în repo. Restul, ca în D-012.
+- **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26; înlocuiește D-012.
+- **Confirmed:** 2026-11-26
