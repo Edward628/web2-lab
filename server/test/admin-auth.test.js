@@ -172,3 +172,25 @@ test('admin responses have no CORS header', async () => {
   const preflight = await fetch(`${app.baseUrl}/admin/flags/new-checkout?env=dev`, { method: 'OPTIONS' });
   assert.equal(preflight.headers.get('access-control-allow-origin'), null);
 });
+
+test('any other /admin path or method gets 401 without a session and 404 with one, both with no body (C-007)', async () => {
+  const requests = [
+    ['GET', '/admin'],
+    ['GET', '/admin/x'],
+    ['GET', '/admin/flags/new-checkout?env=dev'],
+    ['DELETE', '/admin/flags/new-checkout?env=dev'],
+    ['POST', '/admin/flags?env=dev'],
+    ['PUT', '/admin/flags/new-checkout?env=dev'],
+    ['OPTIONS', '/admin/flags/new-checkout?env=dev'],
+    ['OPTIONS', '/admin/flags?env=dev'],
+  ];
+  const cookie = await session();
+  for (const [method, path] of requests) {
+    for (const [headers, status] of [[{}, 401], [{ Cookie: cookie }, 404]]) {
+      const res = await fetch(`${app.baseUrl}${path}`, { method, headers });
+      assert.equal(res.status, status, `${method} ${path} ${status}`);
+      assert.equal(await res.text(), '', `${method} ${path}`);
+      assert.equal(res.headers.get('allow'), null, `${method} ${path}`);
+    }
+  }
+});
