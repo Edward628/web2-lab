@@ -6,5 +6,7 @@ docs
 # P1: the local key file and the tests never go into the image (D-014, D-015)
 p1/config.js
 p1/test
+# Dashboard tests are not needed at runtime
+dashboard/test
 # Server tests are not needed at runtime
 server/test

@@ -1,4 +1,4 @@
-# CI (D-017): the SDK, P1 and server tests on every push to main and every PR.
+# CI (D-017): the SDK, P1, dashboard and server tests on every push to main and every PR.
 # Tests only: no secrets, no deploy (deploys are manual, D-014; freeze, D-016).
 name: test
 
@@ -37,6 +37,9 @@ jobs:
         run: npm test
       - name: P1 tests
         working-directory: p1
+        run: npm test
+      - name: Dashboard tests
+        working-directory: dashboard
         run: npm test
       - name: Install server dependencies
         working-directory: server

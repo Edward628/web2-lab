@@ -13,6 +13,7 @@
 - PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate · candidate
 - PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch · candidate
 - PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server · candidate
+- PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML · candidate
 
 ---
 
@@ -86,3 +87,13 @@
   `listen().close()` închide întâi conexiunile deschise. Testul cap la cap folosește
   `EventSource` din Node (`--experimental-eventsource` în `npm test`).
 - **Example:** `sdk/test/live.test.js`, `server/test/sdk-stream.test.js`
+
+## PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML
+- **Status:** candidate
+- **How:** Copy-ul unui ecran (titluri, mesaje, plurale, rezumate) stă într-un modul fără DOM
+  (`dashboard/src/flags.js`), testat cu `node --test`; un text cu cod e o listă de părți (string sau
+  `{code}`). Clientul API primește `fetch` ca parametru și întoarce stări numite (`'wrong'`,
+  `'limited'`…), testate cu un `fetch` fals. Pagina construiește nodurile cu un `el(tag, attrs, …children)`
+  și `textContent`, niciodată din string-uri HTML, deci o cheie de flag nu poate injecta markup.
+  Comportamentul în browser rămâne verificat de mână până există o comandă de screenshot (Q-003).
+- **Example:** `dashboard/src/flags.js`, `dashboard/src/api.js`, `dashboard/src/app.js`, `dashboard/test/`
