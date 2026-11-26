@@ -1,6 +1,6 @@
 // The simulated parking lot (D-006): six fixed spots, one reservation held for an
 // hour in localStorage (kept across reloads). Only a valid reservation is tracked
-// (D-012). The experiment's variant maps to a button color; anything but 'green'
+// (D-015). The experiment's variant maps to a button color; anything but 'green'
 // is the control.
 
 export const SPOTS = [

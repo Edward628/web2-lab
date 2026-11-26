@@ -101,8 +101,11 @@
   to the control (blue) without an exposure. 2026-11-25 (user): serving P1 from the same
   origin as the server would avoid the CORS preflight on the `keepalive` event POST sent at
   `pagehide` (some browsers do not preflight keepalive requests).
-- **Recorded as:**
-- **Confirmed:** 2026-11-25
+  Hosting answered, 2026-11-26 (user): the server on Render (Docker, auto-deploy off, manual deploy
+  with the user's go), PostgreSQL on Neon, P1 served from the server's origin (D-014, D-015).
+  Still open: how labs are handed in, and any tag.
+- **Recorded as:** D-014, D-015 (hosting)
+- **Confirmed:** 2026-11-26
 
 ## Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?
 - **Status:** open
@@ -171,7 +174,7 @@
 - **Proposed answer:**
 - **Answer:** partial, 2026-11-18 (user): nu există un P1 real; studentul vrea să construiască o aplicație mică de parcare, pusă online, folosită de colegii de grupă. De confirmat că fișa acceptă asta.
 - **Recorded as:**
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## Q-011 · Ce face butonul „Kill switch” față de comutatorul Pornit / Oprit din listă?
 - **Status:** answered
@@ -387,6 +390,7 @@
   păstrează idempotența pentru retrimiteri.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-26
 
 ## Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
 - **Status:** answered
