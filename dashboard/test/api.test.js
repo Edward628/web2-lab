@@ -77,6 +77,27 @@ test('listFlags: 401 calls onUnauthorized once; other failures and network error
   }
 });
 
+test('listExperiments gets /admin/experiments?env=… and returns the data (DS-web2-experiment)', async () => {
+  const data = { project: { id: 1, name: 'ParkingLot' }, environment: 'prod', experiments: [] };
+  const t = api(status(200, data));
+  assert.deepEqual(await t.api.listExperiments('prod'), { ok: true, data });
+  assert.equal(t.calls[0].url, '/admin/experiments?env=prod');
+  assert.equal(t.calls[0].method, 'GET');
+  assert.equal(t.calls[0].credentials, 'same-origin');
+  assert.ok(t.calls[0].signal instanceof AbortSignal);
+});
+
+test('listExperiments: 401 calls onUnauthorized once; other failures and network errors are errors', async () => {
+  const t = api(status(401));
+  assert.deepEqual(await t.api.listExperiments('dev'), { ok: false, error: 'unauthorized' });
+  assert.equal(t.unauthorized.length, 1);
+  for (const answer of [status(500), status(404), status(400), offline]) {
+    const u = api(answer);
+    assert.deepEqual(await u.api.listExperiments('dev'), { ok: false, error: 'error' });
+    assert.equal(u.unauthorized.length, 0);
+  }
+});
+
 test('setEnabled patches the encoded key with {enabled} as JSON and returns {flag, version}', async () => {
   const data = { flag: { key: 'a b/c', enabled: false }, version: 8 };
   const t = api(status(200, data));

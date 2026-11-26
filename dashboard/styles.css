@@ -1,4 +1,4 @@
-/* The admin dashboard: DS-web2-login and DS-web2-flags (approved 2026-11-26).
+/* The admin dashboard: DS-web2-login, DS-web2-flags and DS-web2-experiment (approved 2026-11-26).
    Tokens: docs/design/DESIGN.md, exactly; no value outside them. Theme follows the
    system (prefers-color-scheme), no switch. */
 :root {
@@ -10,6 +10,7 @@
   --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --layout-max:1100px;
   --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
   --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  --text-stat:600 28px/36px var(--font-sans);
   --control-h:36px;
   color-scheme:light dark;
 }
@@ -95,6 +96,41 @@ td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-div
 .confirm p { margin:0; }
 .confirm .row { display:flex; gap:var(--space-2); flex-wrap:wrap; margin-top:var(--space-3); }
 
+/* Experiment results (DS-web2-experiment): one card per experiment. */
+.exp { margin-bottom:var(--space-4); }
+.exp h2 { margin:0; overflow-wrap:anywhere; }
+.exp code { overflow-wrap:anywhere; }
+.exp-head { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:flex-start; justify-content:space-between;
+  padding:var(--space-4); border-bottom:1px solid var(--color-divider); }
+.exp-head > div { min-width:0; }
+.exp-head .grow { flex:1; }
+.badge { display:inline-flex; gap:var(--space-1); align-items:center; font:var(--text-sm); font-weight:600; white-space:nowrap;
+  padding:var(--space-1) var(--space-2); border-radius:var(--radius-sm); border:1px solid currentColor; }
+.badge.ok { color:var(--color-success); }
+.badge.warn { color:var(--color-warning); }
+.exp-body { padding:var(--space-4); display:grid; gap:var(--space-4); }
+.exp-body .notice { margin-bottom:0; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(calc(var(--space-8) * 7), 1fr)); gap:var(--space-3); }
+.tile { background:var(--color-surface); border-radius:var(--radius-md); padding:var(--space-4); min-width:0; }
+.tile-head { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; }
+.tile .sm { margin-top:var(--space-1); }
+.tag { font:var(--text-sm); padding:0 var(--space-2); border-radius:var(--radius-sm); border:1px solid var(--color-border); color:var(--color-text-muted); }
+.stat { font:var(--text-stat); margin-top:var(--space-2); }
+.bar { height:var(--space-2); border-radius:var(--radius-sm); background:var(--color-bg); border:1px solid var(--color-divider);
+  overflow:hidden; margin-top:var(--space-3); }
+.bar > span { display:block; height:100%; background:var(--color-accent); }
+.bar.full > span { background:var(--color-success); }
+.table-wrap { border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden; }
+.exp th { padding:var(--space-2) var(--space-3); }
+.exp th:first-child { width:auto; }
+.exp td { padding:var(--space-2) var(--space-3); font-variant-numeric:tabular-nums; }
+.res { font-weight:600; white-space:nowrap; }
+.res.ok { color:var(--color-success); }
+.res.warn { color:var(--color-warning); }
+.method { margin:0; }
+.skeleton .bone { height:12px; border-radius:var(--radius-sm); background:var(--color-surface); margin:var(--space-2) 0; }
+.skeleton .tile .bone { background:var(--color-bg); }
+
 /* Login (DS-web2-login): a narrow card, 12 × space-8 = 384 px. */
 .login { max-width:calc(var(--space-8) * 12); padding-top:var(--space-8); }
 .login .card { padding:var(--space-6); }
@@ -120,4 +156,6 @@ td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-div
   tr { border-top:1px solid var(--color-divider); padding:var(--space-2) 0; }
   td { border:0; padding:var(--space-1) var(--space-4); }
   td[data-label]::before { content:attr(data-label) " · "; color:var(--color-text-muted); font:var(--text-sm); }
+  .exp tr:first-child { border-top:0; }
+  .exp td { padding:var(--space-1) var(--space-3); }
 }

@@ -14,6 +14,7 @@
 - PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch · candidate
 - PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server · candidate
 - PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML · candidate
+- PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile` · candidate
 
 ---
 
@@ -97,3 +98,13 @@
   și `textContent`, niciodată din string-uri HTML, deci o cheie de flag nu poate injecta markup.
   Comportamentul în browser rămâne verificat de mână până există o comandă de screenshot (Q-003).
 - **Example:** `dashboard/src/flags.js`, `dashboard/src/api.js`, `dashboard/src/app.js`, `dashboard/test/`
+
+## PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile`
+- **Status:** candidate
+- **How:** Serverul servește P1 și dashboard-ul dintr-o listă fixă (D-014), iar imaginea Docker copiază tot
+  o listă fixă. O pagină nouă (de exemplu `dashboard/experiment.html`) primește: ruta în `serveDashboard`
+  / `serveP1` (`server/src/app.js`), o linie în testul static (`server/test/dashboard-static.test.js`) și
+  numele în `COPY`-ul din `server/Dockerfile`. Testele nu acoperă imaginea, deci se verifică o dată cu
+  `docker compose up -d --build --wait server` și `curl` pe URL-ul paginii (200). Fișierele din `src/`
+  intră automat (folderul e copiat întreg).
+- **Example:** `server/Dockerfile` (`dashboard/experiment.html`, PR-ul DS-web2-experiment)
