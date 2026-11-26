@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-experiment · Rezultatele experimentului (mock, draft)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --layout-max:1100px;
+  --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
+  --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  --text-stat:600 28px/36px var(--font-sans);
+  --control-h:36px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:var(--text-base); }
+code { font:var(--text-sm); font-family:var(--font-mono); overflow-wrap:anywhere; }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.sm { font:var(--text-sm); }
+.muted { color:var(--color-text-muted); }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* Bara de control a mock-ului (nu face parte din ecran) */
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font:var(--text-sm); color:var(--color-text-muted); }
+
+/* Header, nav, titlu, mediu: la fel ca DS-web2-flags */
+header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-divider); }
+.brand { font-weight:600; }
+nav { display:flex; gap:var(--space-1); flex-wrap:wrap; }
+nav a { color:var(--color-text-muted); text-decoration:none; padding:var(--space-2) var(--space-3); border-radius:var(--radius-sm); }
+nav a[aria-current="page"] { color:var(--color-text); background:var(--color-surface); font-weight:600; }
+nav a:hover { color:var(--color-text); }
+.account { display:flex; align-items:center; gap:var(--space-3); margin-left:auto; }
+main { max-width:var(--layout-max); margin:0 auto; padding:var(--space-6); }
+.titlebar { margin-bottom:var(--space-4); }
+h1 { font:var(--text-xl); margin:0; }
+h2 { font:var(--text-lg); margin:0; overflow-wrap:anywhere; }
+.btn { font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm); cursor:pointer;
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);
+  transition:background var(--duration-fast); white-space:nowrap; }
+.btn:hover { background:var(--color-surface); }
+.toolbar { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; margin-bottom:var(--space-4); }
+.seg { display:inline-flex; border:1px solid var(--color-border); border-radius:var(--radius-sm); overflow:hidden; }
+.seg button { font:inherit; border:0; background:var(--color-bg); color:var(--color-text); padding:var(--space-1) var(--space-4); min-height:var(--control-h); cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--color-accent); color:var(--color-on-accent); font-weight:600; }
+
+.card { background:var(--color-bg); border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden; margin-bottom:var(--space-4); }
+.notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4); border-radius:var(--radius-sm);
+  border:1px solid var(--color-divider); background:var(--color-surface); }
+.notice .icon { font-weight:600; flex:none; }
+.notice.success { border-color:var(--color-success); } .notice.success .icon { color:var(--color-success); }
+.notice.warn { border-color:var(--color-warning); } .notice.warn .icon { color:var(--color-warning); }
+.notice.error { border-color:var(--color-danger); } .notice.error .icon { color:var(--color-danger); }
+.notice-actions { margin-top:var(--space-2); }
+.empty { text-align:center; padding:var(--space-8) var(--space-6); }
+.empty p { max-width:60ch; margin:var(--space-2) auto 0; }
+
+/* Un experiment */
+.exp-head { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:flex-start; justify-content:space-between;
+  padding:var(--space-4); border-bottom:1px solid var(--color-divider); }
+.exp-head > div { min-width:0; }
+.badge { display:inline-flex; gap:var(--space-1); align-items:center; font:var(--text-sm); font-weight:600; white-space:nowrap;
+  padding:var(--space-1) var(--space-2); border-radius:var(--radius-sm); border:1px solid currentColor; }
+.badge.ok { color:var(--color-success); }
+.badge.warn { color:var(--color-warning); }
+.exp-body { padding:var(--space-4); display:grid; gap:var(--space-4); }
+
+/* O variantă: rata mare (text-stat), conversiile, progresul spre eșantionul minim */
+.tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:var(--space-3); }
+.tile { background:var(--color-surface); border-radius:var(--radius-md); padding:var(--space-4); min-width:0; }
+.tile-head { display:flex; gap:var(--space-2); align-items:center; flex-wrap:wrap; }
+.tag { font:var(--text-sm); padding:0 var(--space-2); border-radius:var(--radius-sm); border:1px solid var(--color-border); color:var(--color-text-muted); }
+.stat { font:var(--text-stat); margin-top:var(--space-2); }
+.bar { height:var(--space-2); border-radius:var(--radius-sm); background:var(--color-bg); border:1px solid var(--color-divider); overflow:hidden; margin-top:var(--space-3); }
+.bar > span { display:block; height:100%; background:var(--color-accent); }
+.bar.full > span { background:var(--color-success); }
+.tile .sm { margin-top:var(--space-1); }
+
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font:var(--text-sm); font-weight:600; color:var(--color-text-muted); background:var(--color-surface); padding:var(--space-2) var(--space-3); }
+td { padding:var(--space-2) var(--space-3); border-top:1px solid var(--color-divider); vertical-align:top; font-variant-numeric:tabular-nums; }
+.table-wrap { border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden; }
+.res { font-weight:600; white-space:nowrap; }
+.res.ok { color:var(--color-success); } .res.warn { color:var(--color-warning); }
+.method { margin:0; }
+
+.skeleton div { height:12px; border-radius:var(--radius-sm); background:var(--color-surface); margin:var(--space-2) 0; }
+.skeleton .tile div { background:var(--color-bg); }
+.skeleton .exp-head > div, .skeleton .tiles, .skeleton .tile { background:none; margin:0; height:auto; }
+.skeleton .tile { background:var(--color-surface); }
+
+.state { display:none; }
+body[data-state="real"] .s-real, body[data-state="significant"] .s-significant, body[data-state="peeking"] .s-peeking,
+body[data-state="many"] .s-many, body[data-state="zero"] .s-zero, body[data-state="empty"] .s-empty,
+body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[data-state="long"] .s-long { display:block; }
+
+@media (max-width:767px) {
+  :root { --control-h:44px; }
+  header, main { padding-left:var(--space-4); padding-right:var(--space-4); }
+  thead { display:none; }
+  table, tbody, tr, td { display:block; width:100%; }
+  tr { border-top:1px solid var(--color-divider); padding:var(--space-2) 0; }
+  tr:first-child { border-top:0; }
+  td { border:0; padding:var(--space-1) var(--space-3); }
+  td[data-label]::before { content:attr(data-label) " · "; color:var(--color-text-muted); font:var(--text-sm); }
+}
+</style>
+</head>
+<body data-state="real">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-experiment · draft</strong>
+  <label>Stare:
+    <select id="state">
+      <option value="real">Nu e semnificativ încă (date reale, ~15 per variantă)</option>
+      <option value="significant">Semnificativ</option>
+      <option value="peeking">Avertisment de peeking</option>
+      <option value="many">3 variante</option>
+      <option value="zero">O variantă fără expuneri</option>
+      <option value="long">Cheie și metrică lungi</option>
+      <option value="empty">Niciun experiment în mediu</option>
+      <option value="loading">Încărcare</option>
+      <option value="error">Eroare</option>
+    </select>
+  </label>
+  <label>Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<header>
+  <span class="brand">Flag-uri</span>
+  <nav aria-label="Principal">
+    <a href="#">Flag-uri</a>
+    <a href="#" aria-current="page">Experimente</a>
+  </nav>
+  <div class="account">
+    <span class="sm muted">admin</span>
+    <button class="btn" type="button">Ieși</button>
+  </div>
+</header>
+
+<main>
+  <div class="titlebar">
+    <h1>Experimente</h1>
+    <div class="sm muted">Proiect: ParkingLot</div>
+  </div>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Mediu">
+      <button type="button" aria-pressed="false">dev</button>
+      <button type="button" aria-pressed="true">prod</button>
+    </div>
+  </div>
+
+  <!-- ================= Nu e semnificativ încă (cazul real) ================= -->
+  <div class="state s-real">
+    <section class="card" aria-labelledby="e-real">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-real"><code>reserve-button-color</code></h2>
+          <div class="sm muted">Metrica <code>reserve_click</code> · control <code>blue</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>blue</code><span class="tag">control</span></div>
+            <div class="stat">20,0%</div>
+            <div class="sm muted">3 din 15 utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:5%"></span></div>
+            <div class="sm muted">15 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>green</code></div>
+            <div class="stat">35,7%</div>
+            <div class="sm muted">5 din 14 utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:5%"></span></div>
+            <div class="sm muted">14 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+        </div>
+        <div class="notice warn" role="status">
+          <span class="icon" aria-hidden="true">◷</span>
+          <div><strong>Nu e semnificativ încă.</strong> Diferența de +15,7 pp poate fi întâmplătoare (p = 0,344, peste 0,05),
+            iar eșantionul minim nu e atins: 15 și 14 din 294 de utilizatori expuși per variantă. Lasă experimentul să ruleze.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>green</code></td><td data-label="Diferență">+15,7 pp</td><td data-label="IC 95%">−16,5 … +48,0 pp</td>
+                <td data-label="p">0,344</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= Semnificativ ================= -->
+  <div class="state s-significant">
+    <section class="card" aria-labelledby="e-sig">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-sig"><code>reserve-button-color</code></h2>
+          <div class="sm muted">Metrica <code>reserve_click</code> · control <code>blue</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge ok"><span aria-hidden="true">✓</span> Semnificativ</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>blue</code><span class="tag">control</span></div>
+            <div class="stat">20,0%</div>
+            <div class="sm muted">200 din 1.000 de utilizatori expuși au convertit</div>
+            <div class="bar full" aria-hidden="true"><span style="width:100%"></span></div>
+            <div class="sm muted">Eșantionul minim (294) e atins</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>green</code></div>
+            <div class="stat">24,0%</div>
+            <div class="sm muted">240 din 1.000 de utilizatori expuși au convertit</div>
+            <div class="bar full" aria-hidden="true"><span style="width:100%"></span></div>
+            <div class="sm muted">Eșantionul minim (294) e atins</div>
+          </div>
+        </div>
+        <div class="notice success" role="status">
+          <span class="icon" aria-hidden="true">✓</span>
+          <div><strong>Semnificativ.</strong> <code>green</code> convertește cu +4,0 pp față de control
+            (IC 95%: +0,4 … +7,6 pp), p = 0,031, cu eșantionul minim atins în ambele variante.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>green</code></td><td data-label="Diferență">+4,0 pp</td><td data-label="IC 95%">+0,4 … +7,6 pp</td>
+                <td data-label="p">0,031</td><td data-label="Eșantion minim">atins</td>
+                <td data-label="Rezultat"><span class="res ok"><span aria-hidden="true">✓</span> Semnificativ</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= Peeking ================= -->
+  <div class="state s-peeking">
+    <section class="card" aria-labelledby="e-peek">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-peek"><code>reserve-button-color</code></h2>
+          <div class="sm muted">Metrica <code>reserve_click</code> · control <code>blue</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge warn"><span aria-hidden="true">⚠</span> Nu e semnificativ încă · peeking</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>blue</code><span class="tag">control</span></div>
+            <div class="stat">10,0%</div>
+            <div class="sm muted">10 din 100 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:34%"></span></div>
+            <div class="sm muted">100 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>green</code></div>
+            <div class="stat">22,0%</div>
+            <div class="sm muted">22 din 100 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:34%"></span></div>
+            <div class="sm muted">100 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+        </div>
+        <div class="notice warn" role="status">
+          <span class="icon" aria-hidden="true">⚠</span>
+          <div><strong>Avertisment de peeking.</strong> p = 0,021 e sub 0,05, dar eșantionul minim nu e atins: 100 și 100 din 294
+            de utilizatori expuși per variantă. Un p mic văzut devreme apare des din întâmplare, deci rezultatul rămâne
+            „nu e semnificativ încă”. Nu opri experimentul acum; așteaptă eșantionul minim.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>green</code></td><td data-label="Diferență">+12,0 pp</td><td data-label="IC 95%">+2,0 … +22,0 pp</td>
+                <td data-label="p">0,021</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">⚠</span> Peeking · nu e semnificativ încă</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= 3 variante ================= -->
+  <div class="state s-many">
+    <section class="card" aria-labelledby="e-many">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-many"><code>reserve-button-color</code></h2>
+          <div class="sm muted">Metrica <code>reserve_click</code> · control <code>blue</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>blue</code><span class="tag">control</span></div>
+            <div class="stat">20,0%</div>
+            <div class="sm muted">40 din 200 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:68%"></span></div>
+            <div class="sm muted">200 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>green</code></div>
+            <div class="stat">25,3%</div>
+            <div class="sm muted">50 din 198 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:67%"></span></div>
+            <div class="sm muted">198 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>orange</code></div>
+            <div class="stat">18,9%</div>
+            <div class="sm muted">38 din 201 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:68%"></span></div>
+            <div class="sm muted">201 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+        </div>
+        <div class="notice warn" role="status">
+          <span class="icon" aria-hidden="true">◷</span>
+          <div><strong>Nu e semnificativ încă.</strong> Nicio variantă nu diferă semnificativ de control (p peste 0,05),
+            iar eșantionul minim nu e atins. Lasă experimentul să ruleze.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>green</code></td><td data-label="Diferență">+5,3 pp</td><td data-label="IC 95%">−3,0 … +13,5 pp</td>
+                <td data-label="p">0,210</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span></td></tr>
+              <tr><td><code>orange</code></td><td data-label="Diferență">−1,1 pp</td><td data-label="IC 95%">−8,8 … +6,7 pp</td>
+                <td data-label="p">0,782</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp. Fiecare variantă e comparată separat cu controlul, fără corecție
+          pentru comparații multiple: cu mai multe variante, un p sub 0,05 apare mai ușor din întâmplare.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= O variantă fără expuneri ================= -->
+  <div class="state s-zero">
+    <section class="card" aria-labelledby="e-zero">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-zero"><code>reserve-button-color</code></h2>
+          <div class="sm muted">Metrica <code>reserve_click</code> · control <code>blue</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>blue</code><span class="tag">control</span></div>
+            <div class="stat">25,0%</div>
+            <div class="sm muted">1 din 4 utilizatori expuși a convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:1%"></span></div>
+            <div class="sm muted">4 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>green</code></div>
+            <div class="stat" aria-label="fără rată">—</div>
+            <div class="sm muted">Niciun utilizator expus încă</div>
+            <div class="bar" aria-hidden="true"><span style="width:0%"></span></div>
+            <div class="sm muted">0 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+        </div>
+        <div class="notice warn" role="status">
+          <span class="icon" aria-hidden="true">◷</span>
+          <div><strong>Nu e semnificativ încă.</strong> <code>green</code> nu are încă utilizatori expuși, deci nu se poate compara
+            cu controlul. Expunerile apar după ce aplicațiile cu SDK-ul afișează varianta.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>green</code></td><td data-label="Diferență">—</td><td data-label="IC 95%">—</td>
+                <td data-label="p">—</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= Cheie și metrică lungi ================= -->
+  <div class="state s-long">
+    <section class="card" aria-labelledby="e-long">
+      <div class="exp-head">
+        <div>
+          <h2 id="e-long"><code>parking-spot-recommendation-based-on-previous-reservations-and-time-of-day</code></h2>
+          <div class="sm muted">Metrica <code>recommended_spot_reserved_within_five_minutes_of_page_load</code> · control <code>previous-spot-first</code> (valoarea implicită)</div>
+        </div>
+        <span class="badge warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span>
+      </div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile">
+            <div class="tile-head"><code>previous-spot-first</code><span class="tag">control</span></div>
+            <div class="stat">18,4%</div>
+            <div class="sm muted">7 din 38 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:13%"></span></div>
+            <div class="sm muted">38 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+          <div class="tile">
+            <div class="tile-head"><code>closest-free-spot-to-the-entrance-ramp</code></div>
+            <div class="stat">22,0%</div>
+            <div class="sm muted">9 din 41 de utilizatori expuși au convertit</div>
+            <div class="bar" aria-hidden="true"><span style="width:14%"></span></div>
+            <div class="sm muted">41 din 294 de expuneri pentru eșantionul minim</div>
+          </div>
+        </div>
+        <div class="notice warn" role="status">
+          <span class="icon" aria-hidden="true">◷</span>
+          <div><strong>Nu e semnificativ încă.</strong> Diferența de +3,5 pp poate fi întâmplătoare (p = 0,697, peste 0,05),
+            iar eșantionul minim nu e atins: 38 și 41 din 294 de utilizatori expuși per variantă. Lasă experimentul să ruleze.</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <caption class="sr">Fiecare variantă față de control</caption>
+            <thead><tr><th>Variantă</th><th>Diferență față de control</th><th>IC 95%</th><th>p</th><th>Eșantion minim</th><th>Rezultat</th></tr></thead>
+            <tbody>
+              <tr><td><code>closest-free-spot-to-the-entrance-ramp</code></td><td data-label="Diferență">+3,5 pp</td><td data-label="IC 95%">−14,1 … +21,2 pp</td>
+                <td data-label="p">0,697</td><td data-label="Eșantion minim">neatins</td>
+                <td data-label="Rezultat"><span class="res warn"><span aria-hidden="true">◷</span> Nu e semnificativ încă</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="method sm muted">Test z pe două proporții, α = 0,05, putere 80%. Eșantion minim: 294 de utilizatori expuși per variantă,
+          pentru rata de bază 20% și efectul minim detectabil +10 pp.</p>
+      </div>
+    </section>
+    <p class="sm muted">1 experiment în prod</p>
+  </div>
+
+  <!-- ================= Niciun experiment ================= -->
+  <div class="state s-empty">
+    <div class="card empty">
+      <h2>Niciun experiment în prod</h2>
+      <p class="muted">Un experiment compară variantele unui flag pe o metrică. Aici vei vedea, pentru fiecare variantă,
+        utilizatorii expuși, conversiile și rata, cu intervalul de încredere și semnificația.</p>
+      <p class="sm muted">Experimentele se adaugă deocamdată cu seed-ul.</p>
+    </div>
+  </div>
+
+  <!-- ================= Încărcare ================= -->
+  <div class="state s-loading">
+    <section class="card skeleton" aria-busy="true" aria-label="Se încarcă rezultatele">
+      <div class="exp-head"><div style="width:40%"><div style="width:70%"></div><div style="width:100%"></div></div></div>
+      <div class="exp-body">
+        <div class="tiles">
+          <div class="tile"><div style="width:30%"></div><div style="width:50%;height:28px"></div><div style="width:80%"></div><div style="width:100%"></div></div>
+          <div class="tile"><div style="width:30%"></div><div style="width:50%;height:28px"></div><div style="width:80%"></div><div style="width:100%"></div></div>
+        </div>
+        <div style="width:100%;height:48px"></div>
+        <div style="width:100%;height:72px"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ================= Eroare ================= -->
+  <div class="state s-error">
+    <div class="notice error" role="alert">
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Nu am putut încărca rezultatele.</strong> Serverul nu răspunde. Verifică conexiunea și încearcă din nou.
+        <div class="notice-actions"><button class="btn" type="button">Încearcă din nou</button></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.getElementById('state').onchange = e => document.body.dataset.state = e.target.value;
+// Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () =>
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)));
+</script>
+</body>
+</html>
