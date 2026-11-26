@@ -18,7 +18,7 @@ export async function reset(pool) {
   await migrate(pool);
   await pool.query(
     `TRUNCATE projects, environments, sdk_keys, flags, flag_environments,
-              experiments, exposures, conversions, ingested_events RESTART IDENTITY CASCADE`,
+              experiments, exposures, conversions, ingested_events, audit_log RESTART IDENTITY CASCADE`,
   );
 }
 
@@ -69,8 +69,9 @@ export function addExperiment(pool, flagId, environmentId, metric) {
 }
 
 // Starts the app on a random port; returns its base URL and a close function.
-export async function listen(pool) {
-  const server = createApp({ pool }).listen(0, '127.0.0.1');
+// `options` go to createApp as well (adminPasswordHash for the admin API, C-007).
+export async function listen(pool, options = {}) {
+  const server = createApp({ pool, ...options }).listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
   // Open streams (C-006) would keep close() waiting, so their connections are ended first.
