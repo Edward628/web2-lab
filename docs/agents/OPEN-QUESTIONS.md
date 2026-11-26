@@ -103,8 +103,11 @@
   `pagehide` (some browsers do not preflight keepalive requests).
   Hosting answered, 2026-11-26 (user): the server on Render (Docker, auto-deploy off, manual deploy
   with the user's go), PostgreSQL on Neon, P1 served from the server's origin (D-014, D-015).
+  Live, 2026-11-26 (user): first deploy done, P1 at https://web2-lab-0c75.onrender.com/p1/, checked in a browser. The
+  experiment runs 2026-11-26 08:05 – 2026-12-03 08:05 Europe/Bucharest; test events cleared in
+  Neon before it started; deploy freeze until then (D-016).
   Still open: how labs are handed in, and any tag.
-- **Recorded as:** D-014, D-015 (hosting)
+- **Recorded as:** D-014, D-015 (hosting), D-016 (experiment freeze)
 - **Confirmed:** 2026-11-26
 
 ## Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?

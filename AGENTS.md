@@ -124,7 +124,8 @@ Add each command here once it exists, and run it once before you write it down.
 ## 5. Release
 - Code lives on GitHub: `https://github.com/Edward628/web2-lab` (public), remote `origin`.
 - The default branch is `main`. Push only with the user's go.
-- Hosting (D-014): the server on Render, PostgreSQL on Neon; P1 at `https://<service>.onrender.com/p1/`.
+- Hosting (D-014): the server on Render, PostgreSQL on Neon; P1 live at https://web2-lab-0c75.onrender.com/p1/
+  (first deploy 2026-11-26, checked in a browser by the user).
   Auto-deploy is off: deploy only with the user's go (Render → Manual Deploy → latest commit).
 - One-time setup, done by the user with their own accounts (no secrets pass through an agent):
   1. Neon: a project, PostgreSQL 17, region Frankfurt; copy the connection URL and end it in
@@ -136,6 +137,11 @@ Add each command here once it exists, and run it once before you write it down.
      region Frankfurt, plan Free, health check path `/p1/`, Auto-Deploy off. Env vars:
      `DATABASE_URL` (the Neon URL) and `P1_SDK_KEY` (the prod key).
   4. Check: open `/p1/` in two browsers; reserve a spot; one exposure and one conversion row in Neon.
+- **Experiment freeze (D-016):** the `reserve-button-color` experiment runs 2026-11-26 08:05 –
+  2026-12-03 08:05 Europe/Bucharest (06:05 UTC). Until it ends: no deploy that changes `p1/` or
+  `sdk/`, no change to the `reserve-button-color` flag or its experiment, and no DELETE or UPDATE
+  on `exposures`, `conversions` or `ingested_events` in Neon (read-only `SELECT` is fine). Work
+  on `p1/` and `sdk/` may be built and merged, but not deployed.
 - How labs are handed in, and any tag: not decided yet (Q-005).
 
 ## 6. Definition of done
