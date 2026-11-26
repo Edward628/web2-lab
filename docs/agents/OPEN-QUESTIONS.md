@@ -49,6 +49,7 @@
 - Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită? · _answered_
 - Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
+- Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
 
 ---
 
@@ -163,7 +164,10 @@
 - **Blocks:** planificarea experimentului de 7 zile și a celor 25 de commit-uri pe 8 zile
 - **Who answers:** the user (profesorul)
 - **Proposed answer:**
-- **Answer:**
+- **Answer:** partial, 2026-11-26 (user, de la profesor): predarea era marți 2026-12-01, dar
+  se acceptă o amânare, fără o durată precizată. Ținta: totul gata pe 2026-12-03, după ce se
+  încheie experimentul (D-016, 08:05 Europe/Bucharest). Încă deschis: data exactă a predării
+  după amânare și data susținerii.
 - **Recorded as:**
 
 ## Q-009 · Acceptă profesorul scope-ul redus (15–20 h în loc de ~40 h)?
@@ -500,3 +504,19 @@
   presupunere acceptată de user în planul API-ului de administrare, 2026-11-26.
 - **Answer:**
 - **Recorded as:**
+
+## Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
+- **Status:** open
+- **Blocks:** orice integrare Cloudflare; orice schimbare în fața P1 live
+- **Who answers:** the user (profesorul / fișa proiectului)
+- **Proposed answer:**
+- **Answer:** partial, 2026-11-26 (user): Cloudflare trebuie integrat. Încă necunoscut: ce
+  serviciu (DNS / proxy cu domeniu propriu, Turnstile, Pages, Workers) și de ce (ce cerință
+  acoperă).
+- **Recorded as:**
+- **Note:** de știut înainte de plan: un proxy Cloudflare cere un domeniu propriu (nu se pune
+  în fața lui `onrender.com`) și poate afecta stream-ul SSE (`GET /sdk/stream`, C-006: buffering,
+  timeout-uri de conexiune), cache-ul cu ETag al configurației (D-003, C-002) și limita de login
+  (Q-038, C-007: o limită în total, nu per IP, dar orice logică pe IP ar vedea IP-urile
+  Cloudflare). Până la 2026-12-03 08:05 Europe/Bucharest nu se schimbă nimic în fața P1 live
+  (D-016: DNS, proxy, domeniu, Worker).
