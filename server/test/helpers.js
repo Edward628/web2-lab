@@ -68,6 +68,22 @@ export function addExperiment(pool, flagId, environmentId, metric) {
   ]);
 }
 
+// `exposed` users exposed to `variant` in an experiment, the first `converted` of them
+// converted (D-005). User ids are "<variant JSON>-<n>", so variants never share a user.
+export async function addExposures(pool, experimentId, variant, exposed, converted = 0) {
+  const json = JSON.stringify(variant);
+  await pool.query(
+    `INSERT INTO exposures (experiment_id, user_id, variant)
+       SELECT $1, $2 || '-' || n, $2::jsonb FROM generate_series(1, $3::int) AS n`,
+    [experimentId, json, exposed],
+  );
+  await pool.query(
+    `INSERT INTO conversions (experiment_id, user_id)
+       SELECT $1, $2 || '-' || n FROM generate_series(1, $3::int) AS n`,
+    [experimentId, json, converted],
+  );
+}
+
 // Starts the app on a random port; returns its base URL and a close function.
 // `options` go to createApp as well (adminPasswordHash for the admin API, C-007).
 export async function listen(pool, options = {}) {
