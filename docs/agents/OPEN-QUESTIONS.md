@@ -36,7 +36,7 @@
 - Q-023 · Cum se publică SDK-ul? · _answered_
 - Q-024 · După câte zile e semnalat un flag „100% într-o direcție”?
 - Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
-- Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
+- Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri? · _answered_
 - Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
 - Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
 - Q-031 · Cum evită ingestia blocarea pe rândurile `flag_environments` la 1.000 de evenimente/s?
@@ -46,6 +46,9 @@
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 - Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
 - Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
+- Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită?
+- Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
+- Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 
 ---
 
@@ -75,7 +78,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## Q-004 · How are the labs laid out in the repo (one folder per lab, one shared app, …)?
 - **Status:** answered
@@ -318,6 +321,7 @@
   0% (oprit) sau o variantă cu intervalul întreg.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-26
 
 ## Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
 - **Status:** open
@@ -328,15 +332,17 @@
 - **Recorded as:**
 
 ## Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** planul API-ului de administrare (scrierile care cresc `config_version`, D-010)
 - **Who answers:** the user, în planul API-ului de administrare
 - **Proposed answer:** `buildConfig` (`server/src/config.js`) citește versiunea și flag-urile
   în două interogări separate. Odată ce există scrieri, una care se încheie între ele ar servi
   flag-urile noi cu ETag-ul vechi (D-003, C-002). Ambele citiri într-o singură tranzacție
   `REPEATABLE READ`, pe un singur client. Azi nu se poate întâmpla: nu există scrieri.
-- **Answer:**
-- **Recorded as:**
+- **Answer:** 2026-11-26 (user, plan „Admin API, dashboard login and the flags screen”): răspunsul propus,
+  confirmat explicit: `buildConfig` citește versiunea și flag-urile într-o singură tranzacție
+  `REPEATABLE READ READ ONLY`, pe un singur client; fiecare scriere e o singură tranzacție.
+- **Recorded as:** D-020
 - **Confirmed:** 2026-11-26
 
 ## Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
@@ -350,7 +356,7 @@
 - **Answer:** partial, 2026-11-25 (user): cheile SDK au 128 de biți aleatori (32 de cifre hex),
   începând cu seed-ul ParkingLot. Încă deschis: ce au voie să conțină regulile.
 - **Recorded as:**
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## Q-030 · Câte evenimente ține SDK-ul în coadă cât e offline, și ce aruncă la coada plină?
 - **Status:** open
@@ -457,4 +463,31 @@
   peste o valoare fixă, se construiește înainte de primul deploy după experiment, adică înainte
   ca ceva să apeleze `connect()` în producție. Schimbă C-006 (PROPOSAL în planul ei). Încă
   deschis: valoarea fixă.
+- **Recorded as:**
+
+## Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită?
+- **Status:** open
+- **Blocks:** primul deploy cu API-ul de administrare (C-007), după experiment (D-016)
+- **Who answers:** the user
+- **Proposed answer:** `POST /admin/login` nu are nicio limită; scrypt încetinește fiecare
+  încercare, dar dashboard-ul e public pe Render. De exemplu: cel mult N încercări greșite pe minut
+  (per IP sau în total), apoi `429` pentru un timp fix. Valorile sunt de stabilit.
+- **Answer:**
+- **Recorded as:**
+
+## Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
+- **Status:** open
+- **Blocks:** schimbarea alocării unui experiment din dashboard (azi C-007 refuză rollout-ul pe un flag multivariat cu `400`)
+- **Who answers:** the user
+- **Proposed answer:**
+- **Answer:**
+- **Recorded as:**
+
+## Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
+- **Status:** open
+- **Blocks:** DS-web2-settings; mai multe proiecte în aceeași bază
+- **Who answers:** the user
+- **Proposed answer:** azi C-007 folosește proiectul cu id-ul cel mai mic (singurul e ParkingLot);
+  presupunere acceptată de user în planul API-ului de administrare, 2026-11-26.
+- **Answer:**
 - **Recorded as:**
