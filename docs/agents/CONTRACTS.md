@@ -13,7 +13,7 @@
 - C-002 · Endpoint-ul configurației pentru SDK · provided
 - C-003 · Endpoint-ul de evenimente pentru SDK · provided
 - C-006 · Stream-ul de versiuni pentru SDK (SSE) · provided
-- C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout) · provided
+- C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor) · provided
 - C-004 · Render (web service gratuit) · external
 - C-005 · Neon (PostgreSQL gratuit) · external
 
@@ -132,7 +132,7 @@
   state)”, 2026-11-26 (versiunea citită la 15 s, nu LISTEN/NOTIFY).
 - **Confirmed:** 2026-11-26
 
-### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout)
+### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor)
 - **Status:** approved
 - **Interface:** Fără CORS. Sesiunea: cookie-ul `ff_admin` (D-019). Toate răspunsurile de eroare
   sunt fără corp.
@@ -159,14 +159,27 @@
     `Content-Type` → `415`; alt corp, `env` greșit sau rollout pe un flag multivariat → `400`; flag
     fără rând în acel mediu → `404`; eroare de bază de date → `500`, nimic schimbat. Scrierea urmează
     D-020 (versiune nouă și rând de audit doar la o schimbare reală).
+  - `GET /admin/experiments?env=dev|prod` → `200`
+    `{project: {id, name}, environment, experiments: [{flagKey, metric, baseline, mde, minSample, control,
+    variants: [{value, exposed, converted, rate}], comparisons: [{variant, difference, ci: {low, high},
+    pValue, minSampleReached, significant, peeking}]}]}`: experimentele proiectului deschis (Q-040) în
+    acel mediu, ordonate după cheia flag-ului. `control` = valoarea implicită a flag-ului. `variants`:
+    variantele configurate, în ordine, apoi controlul dacă nu e printre ele, apoi orice altă valoare
+    expusă, după textul JSON. `rate` = convertiți / expuși, `null` fără expuneri. O comparație per
+    variantă care nu e controlul; `difference`, `ci` și `pValue` pot fi `null` (D-021).
+    `minSampleReached` = controlul și varianta au cel puțin `minSample` expuși; `significant` = p < 0,05
+    și eșantionul atins; `peeking` = p < 0,05 înainte de el (D-001). `env` lipsă sau alt mediu → `400`;
+    niciun proiect sau mediu → `404`; eroare de bază de date → `500`. Doar citire, dintr-un singur
+    snapshot (D-020).
   - Orice altă rută sau metodă `/admin/*` decât login, fără o sesiune validă (lipsă, necunoscută sau
     expirată) → `401`; cu o sesiune validă, o rută sau metodă necunoscută → `404`. Ambele fără corp
     și fără `Allow` (nici `OPTIONS` nu arată metodele).
-- **Provider:** `server/src/app.js`, `server/src/admin.js`.
+- **Provider:** `server/src/app.js`, `server/src/admin.js`, `server/src/experiments.js`, `server/src/stats.js`.
 - **Consumers:** `dashboard/src/api.js` (apelat din `dashboard/src/app.js` și `dashboard/src/login.js`).
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
   doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
-  PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`).
+  PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`); user, plan
+  „Experiment results”, 2026-11-26 (`GET /admin/experiments` aprobat).
 - **Confirmed:** 2026-11-26
 
 ## Consumed

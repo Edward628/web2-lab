@@ -50,6 +50,7 @@
 - Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 - Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
+- Q-042 · Cum se editează rata de bază și MDE ale unui experiment?
 
 ---
 
@@ -495,6 +496,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-26
 
 ## Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 - **Status:** open
@@ -520,3 +522,15 @@
   (Q-038, C-007: o limită în total, nu per IP, dar orice logică pe IP ar vedea IP-urile
   Cloudflare). Până la 2026-12-03 08:05 Europe/Bucharest nu se schimbă nimic în fața P1 live
   (D-016: DNS, proxy, domeniu, Worker).
+
+## Q-042 · Cum se editează rata de bază și MDE ale unui experiment?
+- **Status:** open
+- **Blocks:** partea „editabile per experiment” din D-001; un formular pe DS-web2-experiment
+- **Who answers:** the user
+- **Proposed answer:** `PATCH /admin/experiments/<flag_key>?env=` cu `{baseline, mde}` (schimbă C-007)
+  și un rând în jurnalul de audit fără versiune nouă de configurație (nu e în configurație), deci
+  o schimbare a D-020 (PROPOSAL). Pe `reserve-button-color` în Neon, doar după 2026-12-03 08:05 (D-016).
+- **Answer:** partial, 2026-11-26 (user, plan „Experiment results”): valorile stau per experiment
+  (`experiments.baseline_rate`, `experiments.mde`, implicit 0,20 și 0,10) și se afișează; editarea
+  vine într-un plan ulterior.
+- **Recorded as:**

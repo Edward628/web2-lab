@@ -24,6 +24,7 @@
 - D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
 - D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
 - D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
+- D-021 · Statistica rezultatelor: controlul e valoarea implicită; p cu SE comun, IC Wald, eșantion minim clasic
 
 ---
 
@@ -39,7 +40,7 @@
   ~30 de colegi eșantionul minim (~290 per variantă) nu va fi atins; rezultatul real arată
   „nu e semnificativ încă”, iar statistica e dovedită prin teste pe date cunoscute.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18; README.md → „Variabilele mele”; Q-015.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-26
 
 ## D-002 · Stack: Node.js (JavaScript), Express, PostgreSQL, Docker Compose
 - **Status:** approved
@@ -271,4 +272,22 @@
   (D-003, C-002); jurnalul de audit e cerut de D-004 și de README.
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (Q-028
   confirmat explicit, D-020 aprobat).
+- **Confirmed:** 2026-11-26
+
+## D-021 · Statistica rezultatelor: controlul e valoarea implicită; p cu SE comun, IC Wald, eșantion minim clasic
+- **Status:** approved
+- **Rule:** Controlul unui experiment e valoarea implicită (`default`) a flag-ului. Fiecare altă
+  variantă se compară cu controlul, separat, fără corecție pentru comparații multiple. Diferența =
+  rata variantei − rata controlului. p-value: test z pe două proporții, bilateral, cu eroarea
+  standard comună (pooled). Intervalul de încredere de 95%: Wald, cu eroarea standard necomună.
+  Eșantionul minim per variantă: `n = ⌈(z₀,₉₇₅·√(2p̄q̄) + z₀,₈·√(p₁q₁ + p₂q₂))² / δ²⌉`, cu
+  p₁ = rata de bază, p₂ = p₁ + MDE, p̄ = (p₁ + p₂) / 2 (294 pentru 20% / +10 pp). Eșantionul minim
+  e atins când ambele grupuri au cel puțin n utilizatori expuși. Un grup fără expuneri → diferență,
+  IC și p `null`; o eroare standard comună 0 (0% sau 100% în ambele) → p `null`; ambele înseamnă
+  „nu e semnificativ încă”. Rata de bază și MDE stau per experiment (`experiments.baseline_rate`,
+  `experiments.mde`, implicit 0,20 și 0,10); editarea lor e Q-042.
+- **Why:** D-001 lasă formulele deschise; ele fixează valorile de referință din teste. P1 tratează
+  deja `blue` (valoarea implicită) drept control (D-013).
+- **Evidence:** user, plan „Experiment results”, 2026-11-26 (controlul = `default`, fiecare variantă
+  față de control, formula clasică cu 294, editarea mai târziu; D-021 aprobat).
 - **Confirmed:** 2026-11-26
