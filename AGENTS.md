@@ -93,6 +93,7 @@ python3 docs/agents/tools/ledger-lint.py          # --fix rebuilds the indexes
 docker compose up -d --build --wait               # PostgreSQL + server on :3000 (builds the image)
 docker compose up -d --wait db                    # only PostgreSQL, for the server tests
 docker compose exec server npm run seed           # ParkingLot project + keys (idempotent; prints the SDK keys)
+(cd server && npm run -s hash-password)           # prints ADMIN_PASSWORD_HASH for .env (D-019); the password is not echoed
 (cd server && set -a && . ../.env && set +a && npm test)   # server tests; need db up, wipe web2_test
 (cd sdk && npm test)                              # SDK unit tests (node --test)
 (cd p1 && npm test)                               # P1 unit tests (node --test)
@@ -136,7 +137,9 @@ Add each command here once it exists, and run it once before you write it down.
   3. Render: New → Web Service → public repo `https://github.com/Edward628/web2-lab`, branch
      `main`, runtime Docker, Dockerfile path `server/Dockerfile`, Docker build context `.`,
      region Frankfurt, plan Free, health check path `/p1/`, Auto-Deploy off. Env vars:
-     `DATABASE_URL` (the Neon URL) and `P1_SDK_KEY` (the prod key).
+     `DATABASE_URL` (the Neon URL) and `P1_SDK_KEY` (the prod key). Admin API (C-007, D-019):
+     add `ADMIN_PASSWORD_HASH` (from `npm run hash-password`, at least 12 characters) at the first
+     deploy after the experiment. Login is limited to 10 failures a minute (Q-038, C-007).
   4. Check: open `/p1/` in two browsers; reserve a spot; one exposure and one conversion row in Neon.
 - **Experiment freeze (D-016):** the `reserve-button-color` experiment runs 2026-11-26 08:05 –
   2026-12-03 08:05 Europe/Bucharest (06:05 UTC). Until it ends: no deploy that changes `p1/` or

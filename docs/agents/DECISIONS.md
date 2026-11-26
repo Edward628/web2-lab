@@ -22,6 +22,8 @@
 - D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
 - D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
 - D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
+- D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
+- D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
 
 ---
 
@@ -236,4 +238,37 @@
 - **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
   state)”, 2026-11-26 (versiunea citită la 15 s, `connect`/`close`/`status`, fără întoarcere la
   SSE, P1 neschimbat, cele cinci presupuneri). Înlocuiește D-011.
+- **Confirmed:** 2026-11-26
+
+## D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
+- **Status:** approved
+- **Rule:** Hash-ul parolei (D-008) stă în variabila de mediu `ADMIN_PASSWORD_HASH`, în forma
+  `scrypt:<salt hex>:<hash hex>` (fără `$`, pe care Docker Compose l-ar interpola), generat cu
+  `npm run hash-password` în `server/` (`node:crypto` scrypt, comparat cu `timingSafeEqual`, fără
+  dependență nouă), care refuză o parolă sub 12 caractere. Login-ul are limita din C-007 (Q-038). Login-ul reușit creează un token aleator de 256 de biți, ținut în memoria
+  serverului 8 h; cookie-ul e `ff_admin=<token>; HttpOnly; Secure; SameSite=Strict; Path=/;
+  Max-Age=28800`. Un restart (sau oprirea Render pe planul gratuit) pierde sesiunile: adminul se
+  loghează din nou. Fără `ADMIN_PASSWORD_HASH` (sau cu o valoare greșită) serverul pornește, scrie
+  în log doar numele variabilei, iar login-ul răspunde `503`. API-ul de administrare (C-007) nu are
+  CORS, iar scrierile cer `Content-Type: application/json`, deci un formular de pe alt site nu le
+  poate trimite.
+- **Why:** D-008 lasă mecanismul deschis; o sesiune în memorie nu cere un secret nou și nici o
+  dependență, iar un singur admin acceptă o relogare după restart.
+- **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (în memorie,
+  8 h; D-019 aprobat); user, review-ul de securitate al PR-ului #20, 2026-11-26 (parola de cel puțin
+  12 caractere).
+- **Confirmed:** 2026-11-26
+
+## D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
+- **Status:** approved
+- **Rule:** Fiecare schimbare din API-ul de administrare (C-007) e o singură tranzacție: rândul din
+  `flag_environments` blocat (`FOR UPDATE`), actualizat, `environments.config_version + 1` (D-010) și
+  un rând în `audit_log` (acțiunea, valoarea dinainte și de după, versiunea nouă). O valoare deja
+  setată nu schimbă nimic: fără versiune nouă, fără rând de audit. O eroare anulează tot.
+  `buildConfig` citește versiunea și flag-urile într-o singură tranzacție `REPEATABLE READ READ ONLY`,
+  pe un singur client, deci o configurație servită are mereu flag-urile versiunii din ETag.
+- **Why:** Q-028: o scriere încheiată între cele două citiri ar servi flag-uri noi cu ETag-ul vechi
+  (D-003, C-002); jurnalul de audit e cerut de D-004 și de README.
+- **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (Q-028
+  confirmat explicit, D-020 aprobat).
 - **Confirmed:** 2026-11-26

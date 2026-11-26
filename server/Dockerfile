@@ -1,6 +1,8 @@
 # Built from the repo root so the server can import sdk/src/validate.js (C-001) and serve
 # P1 (D-014): only the page, its stylesheet and scripts; never p1/config.js or p1/test.
 FROM node:24-alpine
+# production: Express's default error handler sends no stack trace (security review, PR #20).
+ENV NODE_ENV=production
 WORKDIR /app/server
 COPY server/package.json server/package-lock.json ./
 RUN npm ci --omit=dev

@@ -22,16 +22,21 @@ sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configurat
 sdk/src/evaluate.js  evaluateDetail → { value, fromVariant }, evaluate → value: rules, then variant ranges (D-004, C-001)
 sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
-server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY; migrate(); listen
-server/src/app.js    createApp({ pool, p1SdkKey }): GET/OPTIONS /sdk/config (C-002), GET /sdk/stream (C-006), POST/OPTIONS /sdk/events (C-003), CORS;
+server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY, ADMIN_PASSWORD_HASH; migrate(); listen
+server/src/app.js    createApp({ pool, p1SdkKey, adminPasswordHash }): GET/OPTIONS /sdk/config (C-002), GET /sdk/stream (C-006), POST/OPTIONS /sdk/events (C-003), CORS;
+                     /admin/* (C-007, no CORS);
                      P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015);
                      P1 responses: nosniff, X-Frame-Options DENY, CSP frame-ancestors 'none'; no X-Powered-By
-server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags)
+server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags); one REPEATABLE READ snapshot (D-020)
+server/src/admin.js  hashPassword, parseHash; adminRoutes(app, …): login / logout (in-memory session, 8 h, cookie ff_admin, D-019;
+                     one scrypt at a time, 10 failures a minute then 429, Q-038), any other /admin path 401 / 404,
+                     GET /admin/flags?env=, PATCH /admin/flags/:key?env= {enabled} | {rollout}: one transaction, config_version + 1, audit_log row (D-020)
 server/src/stream.js streamTarget(pool, key), createStreams(pool).add: "version N" on connect and every 15 s, one timer per environment with open streams
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction
 server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
 server/scripts/seed.js  `npm run seed`: migrate + seedParkingLot on DATABASE_URL, prints the keys
-server/src/db.js     createPool(url), migrate(pool) runs server/db/schema.sql
+server/src/db.js     createPool(url), migrate(pool) runs server/db/schema.sql; readSnapshot / transaction(pool, fn)
+server/scripts/hash-password.js  `npm run hash-password`: reads the password, prints ADMIN_PASSWORD_HASH (scrypt:<salt>:<hash>)
 
 p1/index.html        DS-web2-parking (states loading, list, invalid, success); p1/styles.css
 p1/src/app.js        import ../config.js → getUserId → init + identify → firstVariant → body[data-variant]
@@ -46,7 +51,7 @@ p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitigno
 |---|---|---|---|
 | SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init`, loaded from the `localStorage` cache, or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. `connect()` keeps it current over SSE (C-006), or by polling every 30 s after 3 failures (D-018); `status()` reports `stale`. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003, C-006 |
 | P1 | `p1/` | the parking page (DS-web2-parking): static HTML + ES modules, imports the SDK from `../sdk/src` (D-015), no backend of its own (D-006). Reservation and anonymous user id in `localStorage`. Without a config (`p1/config.js` locally, or `P1_SDK_KEY` on the server) it shows the control and logs to the console. Tests in `p1/test` (pure modules; the page itself is checked by hand) | `server/` via the SDK (C-002, C-003) |
-| Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `GET /sdk/stream` sends the environment's `config_version` on connect and every 15 s while streams are open (C-006). `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
+| Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `GET /sdk/stream` sends the environment's `config_version` on connect and every 15 s while streams are open (C-006). `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). `/admin/*` (C-007): one admin with an in-memory session (D-019) lists an environment's flags and changes the switch or a boolean rollout; each change bumps `config_version` and writes `audit_log` in one transaction (D-020). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
 
 ## Data flow
 SDK `refresh()` → `GET /sdk/config?key=…` (+ `If-None-Match`) → `sdk_keys` → environment
@@ -59,12 +64,16 @@ SDK batch → `POST /sdk/events?key=…` → validate (400) → `sdk_keys` → e
 one transaction, events in order: `ingested_events` (seen id → skip) → `exposures` /
 `conversions` / `flag_environments.last_evaluated_at` → 204 (500 rolls back).
 
+Admin `PATCH /admin/flags/:key?env=` → session cookie (401) → one transaction: `flag_environments` row
+`FOR UPDATE` → update → `environments.config_version + 1` → `audit_log` → 200. SDKs see the new
+version on the next stream tick (C-006) or `refresh()`.
+
 ## State and storage
 | What | Where | Owner | Notes |
 |---|---|---|---|
 | `p1.userId`, `p1.reservation` (`{spotId, until}`) | browser `localStorage` | `p1/src/user-id.js`, `p1/src/reservation.js` | the reservation expires after 1 h |
 | `ff:config:<sdkKey>` (`{etag, config}`) | browser `localStorage` (or the `storage` given to `init`) | `sdk/src/index.js` | last configuration from the server, for offline use (D-018) |
-| projects, environments (dev/prod, `config_version`, D-010), sdk_keys, flags, flag_environments (enabled, default, rules, variants as JSONB, `last_evaluated_at`), experiments (flag + environment + metric), exposures, conversions, ingested_events | PostgreSQL `web2` (volume `db-data`) | `server/db/schema.sql` | `web2_test` is created by `server/db/init-test-db.sql` for the tests |
+| projects, environments (dev/prod, `config_version`, D-010), sdk_keys, flags, flag_environments (enabled, default, rules, variants as JSONB, `last_evaluated_at`), experiments (flag + environment + metric), exposures, conversions, ingested_events, audit_log (admin changes, D-020) | PostgreSQL `web2` (volume `db-data`) | `server/db/schema.sql` | `web2_test` is created by `server/db/init-test-db.sql` for the tests |
 
 ## Configuration
 | Name | Where set | Used by | Notes |
@@ -75,6 +84,8 @@ one transaction, events in order: `ingested_events` (seen id → skip) → `expo
 | `TEST_DATABASE_URL` | `.env` | `server/test/helpers.js` | database name must end in `_test` |
 | `sdkKey`, `baseUrl` | `p1/config.js` (gitignored; template `p1/config.example.js`) | `p1/src/app.js` | the prod SDK key printed by the seed (D-015); a static server only |
 | `P1_SDK_KEY` | `.env` (optional) locally; Render env var when hosted | `server/src/index.js` → `/p1/config.js` | the prod SDK key of that database; unset → 404, P1 shows the control (D-015) |
+| `ADMIN_PASSWORD_HASH` | `.env` (optional) locally; Render env var when hosted (after the experiment) | `server/src/index.js` → `server/src/admin.js` | `scrypt:<salt>:<hash>` from `npm run hash-password` (D-019); unset or malformed → login 503 |
+| admin sessions | server memory | `server/src/admin.js` | 8 h; lost on restart (D-019) |
 | `DATABASE_URL` (hosted) | Render env var | `server/src/index.js` | Neon URL ending in `?sslmode=verify-full` (D-014, C-005); never in the repo |
 <!-- names only, never values -->
 

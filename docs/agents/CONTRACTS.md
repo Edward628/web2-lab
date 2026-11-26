@@ -13,6 +13,7 @@
 - C-002 · Endpoint-ul configurației pentru SDK · provided
 - C-003 · Endpoint-ul de evenimente pentru SDK · provided
 - C-006 · Stream-ul de versiuni pentru SDK (SSE) · provided
+- C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout) · provided
 - C-004 · Render (web service gratuit) · external
 - C-005 · Neon (PostgreSQL gratuit) · external
 
@@ -129,6 +130,43 @@
 - **Consumers:** `sdk/src/live.js`, pornit din `sdk/src/index.js` (`connect()`, D-018).
 - **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
   state)”, 2026-11-26 (versiunea citită la 15 s, nu LISTEN/NOTIFY).
+- **Confirmed:** 2026-11-26
+
+### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout)
+- **Status:** approved
+- **Interface:** Fără CORS. Sesiunea: cookie-ul `ff_admin` (D-019). Toate răspunsurile de eroare
+  sunt fără corp.
+  - `POST /admin/login`, corp `{"password": "<string>"}` → `204` + `Set-Cookie: ff_admin=<token>;
+    HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`. Fără hash configurat → `503`;
+    `Content-Type` diferit de `application/json` → `415`; corp care nu e JSON sau fără `password`
+    string → `400`; parolă greșită → `401`. Limita (Q-038): o singură verificare de parolă (scrypt)
+    o dată, iar cererile așteaptă la rând; cel mult 10 login-uri eșuate (`401`) pe minut, în total,
+    minutul numărat de la primul eșec; peste ele, orice login (și cu parola bună) → `429`, fără corp
+    și fără cookie, până se încheie minutul. Limita e verificată când vine rândul cererii. `400` și
+    `415` nu contează ca eșecuri; un login reușit nu golește numărătoarea. Numărătoarea stă în
+    memorie (un restart o pornește de la zero).
+  - `POST /admin/logout` → `204`, șterge sesiunea și cookie-ul (`Max-Age=0`).
+  - `GET /admin/flags?env=dev|prod` → `200`
+    `{project: {id, name}, environment, version, flags: [{key, type, enabled, default, ruleCount, variants, rollout}]}`,
+    flag-urile cu rând în acel mediu, ordonate după cheie. Proiectul e cel cu id-ul cel mai mic
+    (Q-040). `rollout` = N când flag-ul e boolean și `variants` e `[]` (0) sau
+    `[{value: true, from: 0, to: N}]`; altfel `null`. `env` lipsă sau alt mediu → `400`; niciun
+    proiect sau mediu → `404`.
+  - `PATCH /admin/flags/<flag_key>?env=dev|prod`, `Content-Type: application/json`, corpul exact unul
+    dintre `{"enabled": <boolean>}` și `{"rollout": <întreg 0–100>}` → `200 {flag, version}` (`flag`
+    ca în listă, `version` = versiunea curentă a mediului). Rollout N pune
+    `variants = [{value: true, from: 0, to: N}]` (C-001) și nu atinge `default` sau `enabled`. Alt
+    `Content-Type` → `415`; alt corp, `env` greșit sau rollout pe un flag multivariat → `400`; flag
+    fără rând în acel mediu → `404`; eroare de bază de date → `500`, nimic schimbat. Scrierea urmează
+    D-020 (versiune nouă și rând de audit doar la o schimbare reală).
+  - Orice altă rută sau metodă `/admin/*` decât login, fără o sesiune validă (lipsă, necunoscută sau
+    expirată) → `401`; cu o sesiune validă, o rută sau metodă necunoscută → `404`. Ambele fără corp
+    și fără `Allow` (nici `OPTIONS` nu arată metodele).
+- **Provider:** `server/src/app.js`, `server/src/admin.js`.
+- **Consumers:** în viitor `dashboard/src/api.js` (PR-ul 2 al planului).
+- **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
+  doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
+  PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`).
 - **Confirmed:** 2026-11-26
 
 ## Consumed

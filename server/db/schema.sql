@@ -84,3 +84,17 @@ CREATE TABLE IF NOT EXISTS ingested_events (
   ingested_at    timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (environment_id, id)
 );
+
+-- Every change made through the admin API (C-007, D-020): one row per real change, in
+-- the same transaction as the change and the config_version bump. One admin (D-008),
+-- so no actor column.
+CREATE TABLE IF NOT EXISTS audit_log (
+  id             serial PRIMARY KEY,
+  at             timestamptz NOT NULL DEFAULT now(),
+  environment_id integer NOT NULL REFERENCES environments (id),
+  flag_id        integer NOT NULL REFERENCES flags (id),
+  action         text NOT NULL CHECK (action IN ('enable', 'disable', 'rollout')),
+  before         jsonb NOT NULL,
+  after          jsonb NOT NULL,
+  config_version integer NOT NULL
+);
