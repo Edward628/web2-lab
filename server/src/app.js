@@ -1,12 +1,14 @@
 // The Express app. GET /sdk/config (C-002): the configuration of the key's
 // environment (C-001), ETag = "<version>" (D-003, D-010), 304 on a matching
-// If-None-Match. POST /sdk/events (C-003): the SDK's event batches. CORS for
+// If-None-Match. GET /sdk/stream (C-006): "version N" to connected SDKs.
+// POST /sdk/events (C-003): the SDK's event batches. CORS for
 // browser SDKs on other origins. P1 itself is served here too (D-014, D-015).
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { isValidConfig } from '../../sdk/src/validate.js';
 import { buildConfig } from './config.js';
 import { validateBatch, environmentOf, ingestBatch } from './events.js';
+import { createStreams, streamTarget } from './stream.js';
 
 function cors(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -77,6 +79,23 @@ export function createApp({ pool, p1SdkKey }) {
     res.set('ETag', etag);
     if (req.get('If-None-Match') === etag) return res.status(304).end();
     res.json(config);
+  });
+
+  const streams = createStreams(pool);
+  app.get('/sdk/stream', cors, async (req, res) => {
+    const key = req.query.key;
+    if (typeof key !== 'string' || key === '') return res.status(400).end();
+    let target;
+    try {
+      target = await streamTarget(pool, key);
+    } catch (err) {
+      console.error('GET /sdk/stream: database error', err);
+      return res.status(500).end();
+    }
+    if (target === null) return res.status(404).end();
+    res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' });
+    res.flushHeaders();
+    streams.add(target.id, target.version, res);
   });
 
   app.options('/sdk/events', cors, (req, res) => {

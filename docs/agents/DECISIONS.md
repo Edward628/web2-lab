@@ -16,12 +16,12 @@
 - D-007 · Structura repo-ului, proiectele și publicarea SDK-ului
 - D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
 - D-010 · Versiunea configurației: un întreg per mediu
-- D-011 · API-ul SDK-ului: D-009 plus evenimente (expuneri, track, batch)
 - D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
 - D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
 - D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
 - D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
+- D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
 
 ---
 
@@ -134,54 +134,6 @@
 - **Evidence:** user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25.
 - **Confirmed:** 2026-11-25
 
-## D-011 · API-ul SDK-ului: D-009 plus evenimente (expuneri, track, batch)
-- **Status:** approved
-- **Rule:** Tot ce spune D-009 rămâne valabil (init, identify, isEnabled, getVariant, refresh,
-  citirile nu aruncă). În plus, clientul are `track(metric)` și `flush()`:
-  - `track(metric)` pune în coadă o conversie `{id, type: 'conversion', userId, metric}`; un
-    `metric` care nu e string aruncă `TypeError`; înainte de `identify` conversia se ignoră.
-  - `getVariant` pe un flag cu `experiment: true` (C-001), după `identify`, cu valoarea venită
-    dintr-un interval de variantă (nu flag oprit, nu regulă de targetare, nu bucket neacoperit),
-    pune în coadă o singură expunere per utilizator și flag. `isEnabled` nu trimite expuneri.
-  - Fiecare citire a unui flag cunoscut numără o evaluare; numărătorile pleacă într-un singur
-    eveniment `evaluations` per trimitere.
-  - Coada se trimite (C-003) la 20 de evenimente sau după 5 s, în cereri de cel mult 20 de
-    evenimente, cu `fetch(…, { keepalive: true })`, și la `pagehide`. O eroare de rețea sau 5xx
-    păstrează evenimentele (aceleași id-uri); un 4xx le aruncă. `flush()` întoarce un Promise
-    cu `'sent' | 'empty' | 'error' | 'dropped'` și nu e respins niciodată.
-  - Id-urile de eveniment au 128 de biți aleatori (`crypto.getRandomValues`, 32 de cifre hex).
-  - O conversie contează după ordinea de ingestie pe server (D-005, C-003), nu după ceasul
-    browserului.
-  - O singură cerere e în curs o dată (Q-034); evenimentele ies din coadă doar când vine
-    răspunsul (șterse după id).
-  - Timer-ul de 5 s pornește când coada devine nevidă și repornește la 5 s după o trimitere
-    eșuată, fără backoff.
-  - La `pagehide` se trimite toată coada imediat, în cereri de cel mult 20, inclusiv
-    evenimentele cererii în curs (aceleași id-uri; serverul le ignoră pe cele văzute).
-  - `flush()` așteaptă cererea în curs, apoi trimite bucățile una după alta; rezultatul e
-    `'error'` dacă s-a oprit la o eroare, altfel `'dropped'` dacă o bucată a fost aruncată,
-    altfel `'sent'`; `'empty'` dacă nu era nimic de trimis.
-  - Numărătorile pleacă într-un eveniment `evaluations` adăugat la coadă doar când nu așteaptă
-    deja unul.
-  - `track(metric)` verifică tipul înainte de `identify`. Fără `baseUrl` nu se pune nimic în
-    coadă, iar `flush()` → `'empty'`.
-  - O cerere fără răspuns în 10 s (`AbortSignal.timeout(10_000)`) e `'error'`: evenimentele
-    rămân și se retrimit cu aceleași id-uri. Și după o trimitere eșuată de la `pagehide`
-    (pagina păstrată în back/forward cache) timer-ul de 5 s repornește.
-  - Un eveniment pe care `JSON.stringify` nu-l poate codifica (de exemplu o variantă `BigInt`
-    dintr-o configurație dată la `init`) se aruncă la punerea în coadă, ca să nu blocheze coada.
-- **Why:** D-005 cere expuneri, conversii și evaluări trimise în batch de SDK; `keepalive` și
-  `pagehide` păstrează o conversie făcută chiar înainte de închiderea tab-ului;
-  `randomUUID` există doar pe HTTPS sau localhost; când s-a decis, hosting-ul P1 nu era stabilit
-  (Q-005). P1 e acum pe HTTPS (D-014), dar `getRandomValues` merge în orice context, deci regula rămâne.
-- **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
-  2026-11-25 (5 s / 20 de evenimente, experimentul marcat în configurație, ordinea de ingestie,
-  A1–A2, keepalive + pagehide); user, plan „SDK part 2: exposures, track, flush, batching”,
-  2026-11-25 (o cerere în curs, timer, pagehide, rezultatul lui `flush()`, `evaluations`,
-  fără `baseUrl`); user, review-ul PR-ului #14, 2026-11-25 (timeout de 10 s, retrimiterea după
-  `pagehide`, evenimentele necodificabile).
-- **Confirmed:** 2026-11-26
-
 ## D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - **Status:** approved
 - **Rule:** P1 așteaptă primul `refresh()` cel mult 5 s. Dacă răspunsul vine la timp (orice
@@ -257,4 +209,31 @@
 - **Why:** testele rulează la fiecare PR, nu doar local; deploy-ul rămâne manual, cu acordul
   userului (D-014), iar în timpul experimentului e oprit (D-016).
 - **Evidence:** user, plan „CI with GitHub Actions”, 2026-11-26 (trigger-ele: push pe `main` și PR).
+- **Confirmed:** 2026-11-26
+
+## D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
+- **Status:** approved
+- **Rule:** Tot ce spune D-011 rămâne valabil. În plus:
+  - `init({ sdkKey, baseUrl, config?, storage? })`: `storage` e implicit `localStorage`, citit
+    într-un try (PATTERN-006); `null` = fără cache.
+  - Cache: `{etag, config}` sub cheia `ff:config:<sdkKey>`, salvat la fiecare `refresh()` cu
+    `'updated'`. La `init`, fără `config`, un cache valid (C-001, `etag` string sau `null`) devine
+    configurația curentă și ETag-ul ei; un cache invalid sau ilizibil se ignoră. Un `config` dat
+    la `init` câștigă în fața cache-ului.
+  - `connect()`: un `EventSource` pe C-006 (fără `EventSource` global → polling imediat). O
+    versiune mai nouă decât configurația curentă (sau orice versiune, fără configurație) →
+    `refresh()`; datele care nu sunt un întreg se ignoră. După o eroare, SDK-ul închide stream-ul
+    și îl redeschide după 3 s. A 3-a eroare la rând, fără `open` între ele (prima încercare
+    contează), trece pe polling: `refresh()` imediat, apoi la 30 s, până la `close()`; nu se mai
+    întoarce la SSE. `connect()` de două ori deschide un singur stream.
+  - `close()` oprește stream-ul, reconectarea în așteptare și polling-ul.
+  - `status()` → `'ok' | 'stale'`: `'stale'` când au trecut 60 s de la `init` sau de la ultima
+    confirmare. Confirmă: `open`, un mesaj `version` valid, un `refresh()` cu `'updated'` sau
+    `'not-modified'`. Nu confirmă: `'error'`, `'rejected'`, configurația din cache.
+- **Why:** D-003 (SSE cu fallback la polling, cache pentru offline, starea `stale`); `connect()`
+  explicit lasă `init` și P1 neschimbate; reconectarea făcută de SDK face numărarea eșecurilor
+  deterministă.
+- **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
+  state)”, 2026-11-26 (versiunea citită la 15 s, `connect`/`close`/`status`, fără întoarcere la
+  SSE, P1 neschimbat, cele cinci presupuneri). Înlocuiește D-011.
 - **Confirmed:** 2026-11-26

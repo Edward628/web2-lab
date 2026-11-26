@@ -73,5 +73,11 @@ export async function listen(pool) {
   const server = createApp({ pool }).listen(0, '127.0.0.1');
   await new Promise((resolve) => server.once('listening', resolve));
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
-  return { baseUrl, close: () => new Promise((r) => server.close(r)) };
+  // Open streams (C-006) would keep close() waiting, so their connections are ended first.
+  const close = () =>
+    new Promise((r) => {
+      server.close(r);
+      server.closeAllConnections();
+    });
+  return { baseUrl, close };
 }

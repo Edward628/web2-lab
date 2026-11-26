@@ -53,3 +53,18 @@ test('events sent with an unknown key are dropped', async () => {
   ff.track('reserve_click');
   assert.equal(await ff.flush(), 'dropped');
 });
+
+// Both sides of C-006, with Node's EventSource (--experimental-eventsource in npm test).
+test('connect() alone loads the configuration through the stream', async () => {
+  assert.equal(typeof EventSource, 'function', 'run with --experimental-eventsource');
+  const ff = init({ sdkKey: 'key-a-dev', baseUrl: app.baseUrl, storage: null });
+  ff.identify('user-1', { country: 'RO' });
+  ff.connect();
+  try {
+    for (let i = 0; i < 100 && !ff.isEnabled('new-checkout'); i++) await new Promise((r) => setTimeout(r, 20));
+    assert.equal(ff.isEnabled('new-checkout'), true); // version 7 arrived, refresh() fetched it
+    assert.equal(ff.status(), 'ok');
+  } finally {
+    ff.close();
+  }
+});

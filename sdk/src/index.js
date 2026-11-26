@@ -1,24 +1,64 @@
-// The SDK client (D-011): init({ sdkKey, baseUrl, config? }) →
-// { identify, isEnabled, getVariant, refresh, track, flush }.
+// The SDK client (D-018): init({ sdkKey, baseUrl, config?, storage? }) →
+// { identify, isEnabled, getVariant, refresh, track, flush, connect, close, status }.
 // refresh() fetches the configuration (C-002) with If-None-Match (D-003); only a
 // configuration that passes C-001 replaces the current one, in one swap.
 // Reads never throw: an unknown flag gives false / null, no user yet gives default.
 // Each read of a known flag counts an evaluation; getVariant on an experiment flag
 // queues one exposure per user and flag when the value comes from a variant range.
+// The last configuration from the server and its ETag are cached in storage
+// (localStorage by default) under ff:config:<sdkKey>, and loaded at init (D-003).
+// connect() keeps the configuration current (live.js); status() is 'stale' once 60 s
+// pass with no confirmation from the server.
 
 import { evaluateDetail } from './evaluate.js';
 import { createEventQueue } from './events.js';
+import { createLive } from './live.js';
 import { isValidConfig } from './validate.js';
 
 const TIMEOUT_MS = 10000; // a config request with no answer in 10 s is 'error' (D-013)
+const STALE_MS = 60000;
 
-export function init({ sdkKey, baseUrl, config }) {
+function defaultStorage() {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null; // access itself throws when storage is blocked
+  }
+}
+
+// → { etag, config } from storage, or null when missing, unreadable or invalid (C-001).
+function loadCache(storage, cacheKey) {
+  try {
+    const cached = JSON.parse(storage?.getItem(cacheKey) ?? 'null');
+    if (cached === null || typeof cached !== 'object') return null;
+    if (typeof cached.etag !== 'string' && cached.etag !== null) return null;
+    return isValidConfig(cached.config) ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(storage, cacheKey, etag, config) {
+  try {
+    storage?.setItem(cacheKey, JSON.stringify({ etag, config }));
+  } catch {
+    // blocked or full: the configuration lasts only as long as the page
+  }
+}
+
+export function init({ sdkKey, baseUrl, config, storage = defaultStorage() }) {
   if (config !== undefined && !isValidConfig(config)) {
     throw new TypeError('init: config does not match C-001');
   }
-  let current = config ?? null;
-  let etag = null;
+  const cacheKey = `ff:config:${sdkKey}`;
+  const cached = config === undefined ? loadCache(storage, cacheKey) : null;
+  let current = config ?? cached?.config ?? null;
+  let etag = cached?.etag ?? null;
   let user = null;
+  let confirmedAt = Date.now();
+  const confirm = () => {
+    confirmedAt = Date.now();
+  };
   const events = createEventQueue({ sdkKey, baseUrl });
   const exposed = new Set();
 
@@ -50,7 +90,10 @@ export function init({ sdkKey, baseUrl, config }) {
     } catch {
       return 'error';
     }
-    if (res.status === 304) return 'not-modified';
+    if (res.status === 304) {
+      confirm();
+      return 'not-modified';
+    }
     if (res.status !== 200) return 'error';
     let next;
     try {
@@ -61,8 +104,20 @@ export function init({ sdkKey, baseUrl, config }) {
     if (!isValidConfig(next)) return 'rejected';
     current = next;
     etag = res.headers.get('ETag');
+    confirm();
+    saveCache(storage, cacheKey, etag, next);
     return 'updated';
   }
+
+  const live =
+    typeof baseUrl === 'string'
+      ? createLive({
+          streamUrl: `${baseUrl}/sdk/stream?key=${encodeURIComponent(sdkKey)}`,
+          refresh,
+          currentVersion: () => current?.version ?? null,
+          confirm,
+        })
+      : null;
 
   return {
     sdkKey,
@@ -84,5 +139,9 @@ export function init({ sdkKey, baseUrl, config }) {
       events.push({ type: 'conversion', userId: user.userId, metric });
     },
     flush: events.flush,
+    connect: () => live?.connect(),
+    close: () => live?.close(),
+    // → 'ok' | 'stale'
+    status: () => (Date.now() - confirmedAt >= STALE_MS ? 'stale' : 'ok'),
   };
 }
