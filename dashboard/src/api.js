@@ -52,6 +52,7 @@ export function createApi({ fetch = globalThis.fetch.bind(globalThis), onUnautho
       return res?.status === 204;
     },
     listFlags: (env) => data('GET', `/admin/flags?env=${encodeURIComponent(env)}`),
+    listExperiments: (env) => data('GET', `/admin/experiments?env=${encodeURIComponent(env)}`),
     setEnabled: (key, env, enabled) =>
       data('PATCH', `/admin/flags/${encodeURIComponent(key)}?env=${encodeURIComponent(env)}`, { enabled }),
   };

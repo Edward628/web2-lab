@@ -51,7 +51,7 @@ function serveP1(app, p1SdkKey) {
   app.use('/sdk/src', express.static(sdkSrcDir, staticOptions));
 }
 
-// The dashboard (DS-web2-flags, DS-web2-login): its two pages, the stylesheet and
+// The dashboard (DS-web2-flags, DS-web2-login, DS-web2-experiment): its three pages, the stylesheet and
 // src/; never its tests or package.json. The pages are public; their data needs a
 // session (C-007). Same headers as P1: no sniffing, never framed.
 function serveDashboard(app) {
@@ -61,6 +61,7 @@ function serveDashboard(app) {
     res.sendFile('index.html', { root: dashboardDir });
   });
   app.get('/dashboard/login.html', (req, res) => res.sendFile('login.html', { root: dashboardDir }));
+  app.get('/dashboard/experiment.html', (req, res) => res.sendFile('experiment.html', { root: dashboardDir }));
   app.get('/dashboard/styles.css', (req, res) => res.sendFile('styles.css', { root: dashboardDir }));
   app.use('/dashboard/src', express.static(`${dashboardDir}src`, staticOptions));
 }

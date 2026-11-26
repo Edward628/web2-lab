@@ -4,11 +4,14 @@
 
 // "1 regulă", "2 reguli", "20 de reguli": Romanian puts "de" before numbers from 20
 // on, unless the last two digits are 01–19.
+export function needsDe(n) {
+  const lastTwo = n % 100;
+  return n >= 20 && (lastTwo === 0 || lastTwo >= 20);
+}
+
 export function countRo(n, one, many) {
   if (n === 1) return `${n} ${one}`;
-  const lastTwo = n % 100;
-  const de = n >= 20 && (lastTwo === 0 || lastTwo >= 20);
-  return `${n} ${de ? 'de ' : ''}${many}`;
+  return `${n} ${needsDe(n) ? 'de ' : ''}${many}`;
 }
 
 export function typeLabel(flag) {

@@ -27,7 +27,7 @@ designs:
     kind: screen
     name: Rezultatele experimentului
     app: dashboard
-    status: approved   # mock confirmed 2026-11-26 ("utilizatori expuși" everywhere, not "expuneri")
+    status: implemented   # dashboard/experiment.html + src/experiment.js, src/results.js, 2026-11-26; mock confirmed the same day ("utilizatori expuși" everywhere). Not built: the "Rezultate" button on a flags row
     mock: docs/design/mocks/DS-web2-experiment.html
   - id: DS-web2-audit
     kind: screen

@@ -99,6 +99,7 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 (cd p1 && npm test)                               # P1 unit tests (node --test)
 (cd dashboard && npm test)                        # dashboard unit tests (node --test)
 #   dashboard: http://127.0.0.1:3000/dashboard/ (served by the server; set ADMIN_PASSWORD_HASH in .env)
+#   experiment results: http://127.0.0.1:3000/dashboard/experiment.html (DS-web2-experiment)
 cp p1/config.example.js p1/config.js              # then paste the prod key printed by the seed
 python3 -m http.server -b 127.0.0.1 8000          # from the repo root; P1 at http://127.0.0.1:8000/p1/
 #   ↑ serves the whole repo, including .env and .git: stop it after use; never bind beyond 127.0.0.1
