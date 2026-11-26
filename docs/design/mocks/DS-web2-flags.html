@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DS-web2-flags · Lista flag-urilor (mock, approved)</title>
+<title>DS-web2-flags · Lista flag-urilor (mock, approved; modificări PR 2 în draft)</title>
 <style>
 /* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
 :root {
@@ -113,8 +113,14 @@ td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-div
 .state { display:none; }
 body[data-state="list"] .s-list, body[data-state="one"] .s-one, body[data-state="empty"] .s-empty,
 body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[data-state="success"] .s-success,
-body[data-state="confirm"] .s-confirm { display:block; }
-body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display:block; }
+body[data-state="confirm"] .s-confirm, body[data-state="confirm-on"] .s-confirm-on,
+body[data-state="write-error"] .s-write-error { display:block; }
+body[data-state="success"] .s-list, body[data-state="confirm"] .s-list,
+body[data-state="confirm-on"] .s-list, body[data-state="write-error"] .s-list { display:block; }
+
+/* Mock: „Doar ce construiește PR 2” ascunde părțile încă neconstruite (.later). */
+body.built .later { display:none !important; }
+.account { display:flex; align-items:center; gap:var(--space-3); margin-left:auto; }
 
 /* Mobil: tabelul devine carduri */
 @media (max-width:767px) {
@@ -132,7 +138,7 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
 <body data-state="list">
 
 <div class="mockbar" role="region" aria-label="Controale mock">
-  <strong>Mock DS-web2-flags · approved (reconfirmat 2026-11-18)</strong>
+  <strong>Mock DS-web2-flags · approved (reconfirmat 2026-11-18) · modificări PR 2: draft</strong>
   <label>Stare:
     <select id="state">
       <option value="list">Listă (multe flag-uri, text lung)</option>
@@ -142,8 +148,11 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
       <option value="error">Eroare</option>
       <option value="success">Succes (după oprire în prod)</option>
       <option value="confirm">Confirmare oprire în prod</option>
+      <option value="confirm-on">Confirmare pornire în prod (nou)</option>
+      <option value="write-error">Eroare la comutare (nou)</option>
     </select>
   </label>
+  <label><input type="checkbox" id="built" checked> Doar ce construiește PR 2</label>
   <label>Temă:
     <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
   </label>
@@ -153,11 +162,14 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
   <span class="brand">Flag-uri</span>
   <nav aria-label="Principal">
     <a href="#" aria-current="page">Flag-uri</a>
-    <a href="#">Experimente</a>
-    <a href="#">Jurnal de audit</a>
-    <a href="#">Proiect și medii</a>
+    <a class="later" href="#">Experimente</a>
+    <a class="later" href="#">Jurnal de audit</a>
+    <a class="later" href="#">Proiect și medii</a>
   </nav>
-  <span class="sm muted" style="margin-left:auto">admin</span>
+  <div class="account">
+    <span class="sm muted">admin</span>
+    <button class="btn" type="button">Ieși</button>
+  </div>
 </header>
 
 <main>
@@ -166,7 +178,7 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
       <h1>Flag-uri</h1>
       <div class="sm muted">Proiect: ParkingLot</div>
     </div>
-    <button class="btn btn-primary" type="button">Creează flag</button>
+    <button class="btn btn-primary later" type="button">Creează flag</button>
   </div>
 
   <div class="toolbar">
@@ -174,8 +186,8 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
       <button type="button" aria-pressed="false">dev</button>
       <button type="button" aria-pressed="true">prod</button>
     </div>
-    <input type="search" placeholder="Caută după cheie sau etichetă" aria-label="Caută flag-uri">
-    <select aria-label="Filtrează după stare">
+    <input class="later" type="search" placeholder="Caută după cheie sau etichetă" aria-label="Caută flag-uri">
+    <select class="later" aria-label="Filtrează după stare">
       <option>Active</option><option>Arhivate</option><option>Toate</option>
     </select>
   </div>
@@ -201,6 +213,27 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
     </div>
   </div>
 
+  <!-- Confirmare pornire în prod (nou, PR 2): D-004 cere confirmare în prod în ambele direcții -->
+  <div class="state s-confirm-on">
+    <div class="confirm" role="alertdialog" aria-labelledby="kt-on" aria-describedby="kd-on">
+      <h2 id="kt-on">Pornești <code>dark-mode</code> în prod?</h2>
+      <p id="kd-on" style="margin:0">Utilizatorii primesc imediat valoarea dată de reguli și de rollout. Schimbarea apare în jurnalul de audit și poate fi anulată.</p>
+      <div class="row">
+        <button class="btn btn-primary" type="button">Pornește flag-ul</button>
+        <button class="btn" type="button">Renunță</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Eroare la comutare (nou, PR 2): comutatorul revine la starea de dinainte -->
+  <div class="state s-write-error">
+    <div class="notice error" role="alert">
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Nu am putut opri <code>new-checkout</code>.</strong> Serverul nu a răspuns, deci flag-ul a rămas pornit în prod. Încearcă din nou.
+        <div style="margin-top:var(--space-2)"><button class="btn" type="button">Încearcă din nou</button></div></div>
+    </div>
+  </div>
+
   <!-- Eroare -->
   <div class="state s-error">
     <div class="notice error" role="alert">
@@ -215,7 +248,7 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
     <div class="card empty">
       <h2>Niciun flag în prod</h2>
       <p class="muted" style="margin:0 0 var(--space-4)">Un flag pornește sau oprește o funcție fără redeploy. Aici vei vedea starea, regulile și rollout-ul fiecărui flag.</p>
-      <button class="btn btn-primary" type="button">Creează primul flag</button>
+      <button class="btn btn-primary later" type="button">Creează primul flag</button>
     </div>
   </div>
 
@@ -240,7 +273,7 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
         <thead><tr><th>Flag</th><th>Tip</th><th>Targetare</th><th>Stare</th><th><span class="sr">Acțiuni</span></th></tr></thead>
         <tbody>
           <tr>
-            <td><div class="flagname"><a href="#"><code>new-checkout</code></a></div><div class="desc sm muted">Checkout nou, într-un singur pas.</div></td>
+            <td><div class="flagname"><a href="#"><code>new-checkout</code></a></div><div class="desc sm muted later">Checkout nou, într-un singur pas.</div></td>
             <td data-label="Tip">boolean</td>
             <td data-label="Targetare">1 regulă · rollout 10%</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
@@ -259,8 +292,8 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
         <tbody>
           <tr>
             <td><div class="flagname"><a href="#"><code>new-checkout</code></a></div>
-              <div class="desc sm muted">Checkout nou, într-un singur pas.</div>
-              <div class="tags"><span class="tag">checkout</span></div></td>
+              <div class="desc sm muted later">Checkout nou, într-un singur pas.</div>
+              <div class="tags later"><span class="tag">checkout</span></div></td>
             <td data-label="Tip">boolean</td>
             <td data-label="Targetare">1 regulă · rollout 10%</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
@@ -268,26 +301,26 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
           </tr>
           <tr>
             <td><div class="flagname"><a href="#"><code>reserve-button-color</code></a></div>
-              <div class="desc sm muted">Culoarea butonului „Rezervă locul”: albastru (control) față de verde.</div>
-              <div class="tags"><span class="tag">experiment</span><span class="tag">p1</span></div></td>
+              <div class="desc sm muted later">Culoarea butonului „Rezervă locul”: albastru (control) față de verde.</div>
+              <div class="tags later"><span class="tag">experiment</span><span class="tag">p1</span></div></td>
             <td data-label="Tip">multivariat · 2 variante</td>
             <td data-label="Targetare">alocare 50 / 50</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
-            <td><div class="actions"><a class="btn" href="#" style="text-decoration:none">Rezultate</a></div></td>
+            <td><div class="actions"><a class="btn later" href="#" style="text-decoration:none">Rezultate</a></div></td>
           </tr>
           <tr>
             <td><div class="flagname"><a href="#"><code>dark-mode</code></a></div>
-              <div class="desc sm muted">Tema întunecată în aplicația P1.</div>
-              <div class="tags"><span class="tag warn">⚠ Stale · neevaluat de 34 de zile</span></div></td>
+              <div class="desc sm muted later">Tema întunecată în aplicația P1.</div>
+              <div class="tags later"><span class="tag warn">⚠ Stale · neevaluat de 34 de zile</span></div></td>
             <td data-label="Tip">boolean</td>
             <td data-label="Targetare">fără reguli</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="false" type="button"><span class="track"></span>Oprit</button></td>
-            <td><div class="actions"><button class="btn" type="button">Arhivează</button></div></td>
+            <td><div class="actions"><button class="btn later" type="button">Arhivează</button></div></td>
           </tr>
           <tr>
             <td><div class="flagname"><a href="#"><code>old-banner</code></a></div>
-              <div class="desc sm muted">Bannerul vechi de pe pagina principală.</div>
-              <div class="tags"><span class="tag warn">⚠ 100% pornit de 45 de zile · poate fi arhivat</span></div></td>
+              <div class="desc sm muted later">Bannerul vechi de pe pagina principală.</div>
+              <div class="tags later"><span class="tag warn">⚠ 100% pornit de 45 de zile · poate fi arhivat</span></div></td>
             <td data-label="Tip">boolean</td>
             <td data-label="Targetare">rollout 100%</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
@@ -295,8 +328,8 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
           </tr>
           <tr>
             <td><div class="flagname"><a href="#"><code>parking-spot-recommendation-based-on-previous-reservations-and-time-of-day</code></a></div>
-              <div class="desc sm muted">Recomandă un loc de parcare pe baza rezervărilor anterioare ale utilizatorului și a orei din zi, cu o descriere suficient de lungă încât să fie tăiată după două rânduri în listă și afișată complet în detaliul flag-ului.</div>
-              <div class="tags"><span class="tag">p1</span><span class="tag">recomandări</span><span class="tag">beta</span></div></td>
+              <div class="desc sm muted later">Recomandă un loc de parcare pe baza rezervărilor anterioare ale utilizatorului și a orei din zi, cu o descriere suficient de lungă încât să fie tăiată după două rânduri în listă și afișată complet în detaliul flag-ului.</div>
+              <div class="tags later"><span class="tag">p1</span><span class="tag">recomandări</span><span class="tag">beta</span></div></td>
             <td data-label="Tip">boolean</td>
             <td data-label="Targetare">2 reguli · rollout 30%</td>
             <td data-label="Stare"><button class="switch" role="switch" aria-checked="true" type="button"><span class="track"></span>Pornit</button></td>
@@ -312,6 +345,9 @@ body[data-state="success"] .s-list, body[data-state="confirm"] .s-list { display
 <style>.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}</style>
 <script>
 document.getElementById('state').onchange = e => document.body.dataset.state = e.target.value;
+const built = document.getElementById('built');
+const showBuilt = () => document.body.classList.toggle('built', built.checked);
+built.onchange = showBuilt; showBuilt();
 // Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
 const themeSel = document.getElementById('theme');
 themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';

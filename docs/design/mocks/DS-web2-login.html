@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-login · Autentificare (mock, draft)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --layout-max:1100px;
+  --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
+  --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  --control-h:36px; /* ≥ 24 px cu pointer; 44 px pe mobil (mai jos) */
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:var(--text-base); }
+code { font:var(--text-sm); font-family:var(--font-mono); }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.sm { font:var(--text-sm); }
+.muted { color:var(--color-text-muted); }
+
+/* Bara de control a mock-ului (nu face parte din ecran) */
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font:var(--text-sm); color:var(--color-text-muted); }
+
+/* Același header ca DS-web2-flags, fără navigare (nu există sesiune). */
+header { display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-divider); }
+.brand { font-weight:600; }
+
+/* Un card îngust, centrat: 12 × space-8 = 384 px, fără o valoare nouă. */
+main { max-width:calc(var(--space-8) * 12); margin:0 auto; padding:var(--space-8) var(--space-6); }
+.card { background:var(--color-bg); border:1px solid var(--color-divider); border-radius:var(--radius-md); padding:var(--space-6); }
+h1 { font:var(--text-xl); margin:0 0 var(--space-1); }
+.lead { margin:0 0 var(--space-6); }
+
+label { display:block; font-weight:600; margin-bottom:var(--space-1); }
+input[type="password"] { display:block; width:100%; font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-3);
+  color:var(--color-text); background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-sm); }
+input[aria-invalid="true"] { border-color:var(--color-danger); }
+input:disabled { background:var(--color-surface); color:var(--color-text-muted); cursor:not-allowed; }
+.field { margin-bottom:var(--space-4); }
+.field-error { color:var(--color-danger); margin-top:var(--space-1); }
+
+.btn { font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm); cursor:pointer;
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);
+  transition:background var(--duration-fast); white-space:nowrap; }
+.btn-primary { width:100%; background:var(--color-accent); color:var(--color-on-accent); border-color:var(--color-accent); font-weight:600; }
+.btn-primary:hover { background:var(--color-accent-hover); border-color:var(--color-accent-hover); }
+.btn:disabled { cursor:not-allowed; opacity:1; background:var(--color-surface); color:var(--color-text-muted); border-color:var(--color-divider); }
+
+.notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4); border-radius:var(--radius-sm);
+  border:1px solid var(--color-divider); background:var(--color-surface); margin-bottom:var(--space-4); }
+.notice.error { border-color:var(--color-danger); }
+.notice.warn { border-color:var(--color-warning); }
+.notice .icon { font-weight:600; }
+.notice.error .icon { color:var(--color-danger); }
+.notice.warn .icon { color:var(--color-warning); }
+
+/* Stările: un bloc .state per stare, afișat după body[data-state] */
+.state { display:none; }
+body[data-state="default"] .s-default, body[data-state="busy"] .s-busy, body[data-state="wrong"] .s-wrong,
+body[data-state="limited"] .s-limited, body[data-state="expired"] .s-expired,
+body[data-state="unconfigured"] .s-unconfigured, body[data-state="error"] .s-error { display:block; }
+
+@media (max-width:767px) {
+  :root { --control-h:44px; } /* țintă tactilă ≥ 44 × 44 px */
+  header { padding-left:var(--space-4); padding-right:var(--space-4); }
+  main { padding:var(--space-6) var(--space-4); }
+  .card { padding:var(--space-4); }
+}
+</style>
+</head>
+<body data-state="default">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-login · draft (PR 2)</strong>
+  <label style="display:inline;font-weight:400;margin:0">Stare:
+    <select id="state">
+      <option value="default">Implicit</option>
+      <option value="busy">Se verifică parola</option>
+      <option value="wrong">Parolă greșită (401)</option>
+      <option value="limited">Prea multe încercări (429)</option>
+      <option value="expired">Sesiune expirată (trimis aici de la 401)</option>
+      <option value="unconfigured">Login neconfigurat (503)</option>
+      <option value="error">Eroare de server sau de rețea</option>
+    </select>
+  </label>
+  <label style="display:inline;font-weight:400;margin:0">Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<header>
+  <span class="brand">Flag-uri</span>
+</header>
+
+<main>
+  <div class="card">
+    <h1>Autentificare</h1>
+    <p class="lead muted">Intră în dashboard-ul de flag-uri cu parola de admin.</p>
+
+    <!-- Sesiune expirată: dashboard-ul a primit 401 și a trimis adminul aici -->
+    <div class="state s-expired">
+      <div class="notice warn" role="status">
+        <span class="icon" aria-hidden="true">⚠</span>
+        <div><strong>Sesiunea a expirat.</strong> Intră din nou ca să continui.</div>
+      </div>
+    </div>
+
+    <!-- 429 (C-007): după 10 încercări greșite într-un minut -->
+    <div class="state s-limited">
+      <div class="notice error" role="alert">
+        <span class="icon" aria-hidden="true">!</span>
+        <div><strong>Prea multe încercări greșite.</strong> Autentificarea e blocată pentru cel mult un minut. Așteaptă și încearcă din nou.</div>
+      </div>
+    </div>
+
+    <!-- 503 (C-007): ADMIN_PASSWORD_HASH lipsește sau e greșit; un singur admin, care e și dezvoltatorul -->
+    <div class="state s-unconfigured">
+      <div class="notice error" role="alert">
+        <span class="icon" aria-hidden="true">!</span>
+        <div><strong>Autentificarea nu e configurată.</strong> Setează <code>ADMIN_PASSWORD_HASH</code> pe server (<code>npm run hash-password</code>) și repornește-l.</div>
+      </div>
+    </div>
+
+    <!-- 500 sau fără răspuns -->
+    <div class="state s-error">
+      <div class="notice error" role="alert">
+        <span class="icon" aria-hidden="true">!</span>
+        <div><strong>Nu am putut ajunge la server.</strong> Verifică conexiunea și încearcă din nou.</div>
+      </div>
+    </div>
+
+    <!-- Formularul: o variantă per stare, ca mock-ul să arate exact câmpul și butonul -->
+    <form class="state s-default s-expired s-limited s-error" onsubmit="return false">
+      <div class="field">
+        <label for="pw1">Parolă</label>
+        <input id="pw1" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Intră</button>
+    </form>
+
+    <form class="state s-busy" onsubmit="return false" aria-busy="true">
+      <div class="field">
+        <label for="pw2">Parolă</label>
+        <input id="pw2" type="password" value="••••••••••••" disabled>
+      </div>
+      <button class="btn btn-primary" type="submit" disabled>Se verifică…</button>
+    </form>
+
+    <form class="state s-wrong" onsubmit="return false">
+      <div class="field">
+        <label for="pw3">Parolă</label>
+        <input id="pw3" type="password" aria-invalid="true" aria-describedby="pw3-err" autocomplete="current-password">
+        <div id="pw3-err" class="field-error sm" role="alert">Parola nu e corectă. Încearcă din nou.</div>
+      </div>
+      <button class="btn btn-primary" type="submit">Intră</button>
+    </form>
+
+    <form class="state s-unconfigured" onsubmit="return false">
+      <div class="field">
+        <label for="pw4">Parolă</label>
+        <input id="pw4" type="password" disabled>
+      </div>
+      <button class="btn btn-primary" type="submit" disabled>Intră</button>
+    </form>
+  </div>
+</main>
+
+<script>
+// Formularele au mai multe clase de stare; o regulă per clasă le afișează.
+document.getElementById('state').onchange = e => document.body.dataset.state = e.target.value;
+// Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+</script>
+</body>
+</html>
