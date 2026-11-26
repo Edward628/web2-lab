@@ -100,6 +100,7 @@ cp p1/config.example.js p1/config.js              # then paste the prod key prin
 python3 -m http.server -b 127.0.0.1 8000          # from the repo root; P1 at http://127.0.0.1:8000/p1/
 #   ↑ serves the whole repo, including .env and .git: stop it after use; never bind beyond 127.0.0.1
 #   or: set P1_SDK_KEY in .env, then P1 at http://127.0.0.1:3000/p1/ (served by the server, D-015)
+# CI:                    .github/workflows/test.yml runs the SDK, P1 and server tests on push to main and on PRs; no deploy (D-017)
 # lint:                  none for now (Q-002)
 # screenshot:            not set yet (Q-003)
 ```
@@ -145,7 +146,7 @@ Add each command here once it exists, and run it once before you write it down.
 - How labs are handed in, and any tag: not decided yet (Q-005).
 
 ## 6. Definition of done
-- Tests pass, once a test command exists (Q-002).
+- Tests pass, once a test command exists (Q-002), and the CI run on the PR is green (D-017).
 - The build passes, once a build command exists (Q-001).
 - Screenshots of every changed screen, light and dark, compared with
   `docs/design/DESIGN.md`, once a screenshot command exists (Q-003).

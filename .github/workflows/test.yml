@@ -1,0 +1,48 @@
+# CI (D-017): the SDK, P1 and server tests on every push to main and every PR.
+# Tests only: no secrets, no deploy (deploys are manual, D-014; freeze, D-016).
+name: test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine  # as docker-compose.yml
+        env:
+          POSTGRES_DB: web2_test  # helpers.js refuses any database not named *_test
+          # A throwaway container, reachable only from this job, so no password.
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h 127.0.0.1 -U postgres -d web2_test"
+          --health-interval 2s
+          --health-timeout 3s
+          --health-retries 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24  # as server/Dockerfile
+      - name: SDK tests
+        working-directory: sdk
+        run: npm test
+      - name: P1 tests
+        working-directory: p1
+        run: npm test
+      - name: Install server dependencies
+        working-directory: server
+        run: npm ci
+      - name: Server tests
+        working-directory: server
+        env:
+          TEST_DATABASE_URL: postgres://postgres@localhost:5432/web2_test
+        run: npm test
