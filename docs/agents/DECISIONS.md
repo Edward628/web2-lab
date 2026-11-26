@@ -21,6 +21,7 @@
 - D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
 - D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
 - D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
+- D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
 
 ---
 
@@ -246,3 +247,14 @@
   `exposures`, `conversions`, `ingested_events` până la final, `SELECT` permis.
 - **Confirmed:** 2026-11-26
 
+## D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
+- **Status:** approved
+- **Rule:** `.github/workflows/test.yml` rulează testele din `sdk/`, `p1/` și `server/` la fiecare
+  push pe `main` și la fiecare pull request, pe Node 24 (ca `server/Dockerfile`). Testele
+  serverului folosesc un container de serviciu `postgres:17-alpine` cu baza `web2_test`
+  (PATTERN-004), cu autentificare `trust`, deci fără parolă în fișier. CI-ul nu are secrete și
+  nu face niciodată deploy.
+- **Why:** testele rulează la fiecare PR, nu doar local; deploy-ul rămâne manual, cu acordul
+  userului (D-014), iar în timpul experimentului e oprit (D-016).
+- **Evidence:** user, plan „CI with GitHub Actions”, 2026-11-26 (trigger-ele: push pe `main` și PR).
+- **Confirmed:** 2026-11-26
