@@ -139,8 +139,9 @@ Add each command here once it exists, and run it once before you write it down.
   4. Check: open `/p1/` in two browsers; reserve a spot; one exposure and one conversion row in Neon.
 - **Experiment freeze (D-016):** the `reserve-button-color` experiment runs 2026-11-26 08:05 –
   2026-12-03 08:05 Europe/Bucharest (06:05 UTC). Until it ends: no deploy that changes `p1/` or
-  `sdk/`, and no change to the `reserve-button-color` flag or its experiment. Work on those may be
-  built and merged, but not deployed.
+  `sdk/`, no change to the `reserve-button-color` flag or its experiment, and no DELETE or UPDATE
+  on `exposures`, `conversions` or `ingested_events` in Neon (read-only `SELECT` is fine). Work
+  on `p1/` and `sdk/` may be built and merged, but not deployed.
 - How labs are handed in, and any tag: not decided yet (Q-005).
 
 ## 6. Definition of done

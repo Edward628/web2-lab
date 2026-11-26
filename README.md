@@ -46,7 +46,7 @@ semnificație statistică.
 |---|---|
 | Aplicația 1 (P1) | o aplicație mică de parcare, construită în acest proiect, pusă online: https://web2-lab-0c75.onrender.com/p1/ |
 | Aplicația 2 | proiectul unui coleg — necunoscut încă (Q-007) |
-| Experimentul | culoarea butonului de rezervare din P1; metrica: click pe rezervare; rulează 7 zile, 2026-11-26 08:05 – 2026-12-03 08:05 (ora României), fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag până la final (D-016) |
+| Experimentul | culoarea butonului de rezervare din P1; metrica: click pe rezervare; rulează 7 zile, 2026-11-26 08:05 – 2026-12-03 08:05 (ora României), fără deploy pe `p1/` sau `sdk/` fără schimbări la flag și fără ștergeri sau modificări ale evenimentelor din Neon până la final (D-016) |
 | Utilizatori | colegii de grupă |
 | Metoda statistică | frecventistă, test z pe două proporții, α = 0,05 (D-001) |
 | Formatul configurației și fallback-ul | JSON versionat, SSE + polling, cache local (D-003) |

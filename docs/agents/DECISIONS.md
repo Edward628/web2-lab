@@ -235,11 +235,14 @@
   https://web2-lab-0c75.onrender.com/p1/. Până la final: niciun deploy care schimbă ceva în `p1/` sau `sdk/`
   (serverul importă `sdk/src`, deci și un deploy al serverului cu schimbări în `sdk/` e oprit),
   și nicio schimbare la flag-ul `reserve-button-color` sau la experimentul lui (setări, variante,
-  metrică), nici în cod, nici în baza de pe Neon. Schimbările pe aceste părți se pot construi și
-  merge-ui, dar nu se pun online până la final.
+  metrică), nici în cod, nici în baza de pe Neon. Nici rândurile din `exposures`, `conversions`
+  și `ingested_events` din Neon nu se șterg și nu se modifică; interogările `SELECT` (doar citire)
+  sunt permise. Schimbările pe aceste părți se pot construi și merge-ui, dar nu se pun online
+  până la final.
 - **Why:** o schimbare în pagină, în SDK sau în alocare în timpul experimentului ar amesteca două
   variante ale testului și ar strica rezultatul (D-001, D-005).
 - **Evidence:** user, 2026-11-26: primul deploy făcut, experimentul pornit la 08:05, evenimentele de
-  test șterse în Neon înainte de start.
+  test șterse în Neon înainte de start; user, 2026-11-26: fără ștergeri sau modificări în
+  `exposures`, `conversions`, `ingested_events` până la final, `SELECT` permis.
 - **Confirmed:** 2026-11-26
 
