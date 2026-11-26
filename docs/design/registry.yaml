@@ -27,7 +27,7 @@ designs:
     kind: screen
     name: Rezultatele experimentului
     app: dashboard
-    status: draft   # mock drawn 2026-11-26, waiting for the user's confirmation
+    status: approved   # mock confirmed 2026-11-26 ("utilizatori expuși" everywhere, not "expuneri")
     mock: docs/design/mocks/DS-web2-experiment.html
   - id: DS-web2-audit
     kind: screen

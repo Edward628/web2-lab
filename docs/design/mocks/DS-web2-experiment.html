@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DS-web2-experiment · Rezultatele experimentului (mock, draft)</title>
+<title>DS-web2-experiment · Rezultatele experimentului (mock, approved)</title>
 <style>
 /* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
 :root {
@@ -129,14 +129,14 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
 <body data-state="real">
 
 <div class="mockbar" role="region" aria-label="Controale mock">
-  <strong>Mock DS-web2-experiment · draft</strong>
+  <strong>Mock DS-web2-experiment · approved 2026-11-26</strong>
   <label>Stare:
     <select id="state">
       <option value="real">Nu e semnificativ încă (date reale, ~15 per variantă)</option>
       <option value="significant">Semnificativ</option>
       <option value="peeking">Avertisment de peeking</option>
       <option value="many">3 variante</option>
-      <option value="zero">O variantă fără expuneri</option>
+      <option value="zero">O variantă fără utilizatori expuși</option>
       <option value="long">Cheie și metrică lungi</option>
       <option value="empty">Niciun experiment în mediu</option>
       <option value="loading">Încărcare</option>
@@ -189,14 +189,14 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
             <div class="stat">20,0%</div>
             <div class="sm muted">3 din 15 utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:5%"></span></div>
-            <div class="sm muted">15 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">15 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>green</code></div>
             <div class="stat">35,7%</div>
             <div class="sm muted">5 din 14 utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:5%"></span></div>
-            <div class="sm muted">14 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">14 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
         </div>
         <div class="notice warn" role="status">
@@ -289,14 +289,14 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
             <div class="stat">10,0%</div>
             <div class="sm muted">10 din 100 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:34%"></span></div>
-            <div class="sm muted">100 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">100 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>green</code></div>
             <div class="stat">22,0%</div>
             <div class="sm muted">22 din 100 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:34%"></span></div>
-            <div class="sm muted">100 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">100 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
         </div>
         <div class="notice warn" role="status">
@@ -340,21 +340,21 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
             <div class="stat">20,0%</div>
             <div class="sm muted">40 din 200 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:68%"></span></div>
-            <div class="sm muted">200 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">200 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>green</code></div>
             <div class="stat">25,3%</div>
             <div class="sm muted">50 din 198 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:67%"></span></div>
-            <div class="sm muted">198 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">198 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>orange</code></div>
             <div class="stat">18,9%</div>
             <div class="sm muted">38 din 201 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:68%"></span></div>
-            <div class="sm muted">201 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">201 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
         </div>
         <div class="notice warn" role="status">
@@ -384,7 +384,7 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
     <p class="sm muted">1 experiment în prod</p>
   </div>
 
-  <!-- ================= O variantă fără expuneri ================= -->
+  <!-- ================= O variantă fără utilizatori expuși ================= -->
   <div class="state s-zero">
     <section class="card" aria-labelledby="e-zero">
       <div class="exp-head">
@@ -401,20 +401,20 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
             <div class="stat">25,0%</div>
             <div class="sm muted">1 din 4 utilizatori expuși a convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:1%"></span></div>
-            <div class="sm muted">4 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">4 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>green</code></div>
             <div class="stat" aria-label="fără rată">—</div>
             <div class="sm muted">Niciun utilizator expus încă</div>
             <div class="bar" aria-hidden="true"><span style="width:0%"></span></div>
-            <div class="sm muted">0 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">0 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
         </div>
         <div class="notice warn" role="status">
           <span class="icon" aria-hidden="true">◷</span>
           <div><strong>Nu e semnificativ încă.</strong> <code>green</code> nu are încă utilizatori expuși, deci nu se poate compara
-            cu controlul. Expunerile apar după ce aplicațiile cu SDK-ul afișează varianta.</div>
+            cu controlul. Utilizatorii expuși apar după ce aplicațiile cu SDK-ul afișează varianta.</div>
         </div>
         <div class="table-wrap">
           <table>
@@ -451,14 +451,14 @@ body[data-state="loading"] .s-loading, body[data-state="error"] .s-error, body[d
             <div class="stat">18,4%</div>
             <div class="sm muted">7 din 38 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:13%"></span></div>
-            <div class="sm muted">38 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">38 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
           <div class="tile">
             <div class="tile-head"><code>closest-free-spot-to-the-entrance-ramp</code></div>
             <div class="stat">22,0%</div>
             <div class="sm muted">9 din 41 de utilizatori expuși au convertit</div>
             <div class="bar" aria-hidden="true"><span style="width:14%"></span></div>
-            <div class="sm muted">41 din 294 de expuneri pentru eșantionul minim</div>
+            <div class="sm muted">41 din 294 de utilizatori expuși pentru eșantionul minim</div>
           </div>
         </div>
         <div class="notice warn" role="status">
