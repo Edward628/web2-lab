@@ -45,6 +45,7 @@
 - Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei? · _answered_
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 - Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
+- Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
 
 ---
 
@@ -441,3 +442,19 @@
 - **Answer:**
 - **Recorded as:**
 - **Confirmed:** 2026-11-26
+
+## Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
+- **Status:** open
+- **Blocks:** primul deploy după experiment (D-016) și orice `connect()` în producție
+- **Who answers:** the user
+- **Proposed answer:** review-ul PR-ului #19 (constatarea 1): `GET /sdk/stream`
+  (`server/src/app.js`, `server/src/stream.js`) nu are nicio limită per cheie, per IP sau în total.
+  Cheia SDK e publică (C-002), deci oricine poate ține deschise oricâte stream-uri, fiecare cu un
+  socket și câțiva KB de memorie, fără timeout, pe instanța gratuită Render de 512 MB. Fără conexiune
+  de bază de date ținută; o interogare per mediu la 15 s, oricâte stream-uri. Azi nu se întâmplă:
+  P1 nu apelează `connect()`. Valoarea limitei e încă de stabilit.
+- **Answer:** partial, 2026-11-26 (user): o limită pe totalul stream-urilor deschise, cu `503`
+  peste o valoare fixă, se construiește înainte de primul deploy după experiment, adică înainte
+  ca ceva să apeleze `connect()` în producție. Schimbă C-006 (PROPOSAL în planul ei). Încă
+  deschis: valoarea fixă.
+- **Recorded as:**
