@@ -27,6 +27,8 @@ services:
       PORT: "3000"
       # Optional: the prod SDK key from the seed; P1 then runs at http://127.0.0.1:3000/p1/ (D-015)
       P1_SDK_KEY: ${P1_SDK_KEY:-}
+      # Optional: the admin password hash from `npm run hash-password` (D-019); unset → admin login 503
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-}
     ports:
       - "127.0.0.1:3000:3000"  # local only; the hosted server runs on Render (D-014)
     restart: unless-stopped

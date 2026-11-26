@@ -4,6 +4,7 @@
   "scripts": {
     "start": "node src/index.js",
     "seed": "node scripts/seed.js",
+    "hash-password": "node scripts/hash-password.js",
     "test": "node --experimental-eventsource --test --test-concurrency=1 test/*.test.js"
   },
   "dependencies": {

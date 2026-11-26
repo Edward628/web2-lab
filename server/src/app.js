@@ -3,12 +3,14 @@
 // If-None-Match. GET /sdk/stream (C-006): "version N" to connected SDKs.
 // POST /sdk/events (C-003): the SDK's event batches. CORS for
 // browser SDKs on other origins. P1 itself is served here too (D-014, D-015).
+// /admin/* (C-007): the admin API, with a session (D-019); no CORS.
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { isValidConfig } from '../../sdk/src/validate.js';
 import { buildConfig } from './config.js';
 import { validateBatch, environmentOf, ingestBatch } from './events.js';
 import { createStreams, streamTarget } from './stream.js';
+import { adminRoutes } from './admin.js';
 
 function cors(req, res, next) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -47,11 +49,12 @@ function serveP1(app, p1SdkKey) {
   app.use('/sdk/src', express.static(sdkSrcDir, staticOptions));
 }
 
-export function createApp({ pool, p1SdkKey }) {
+export function createApp({ pool, p1SdkKey, adminPasswordHash }) {
   const app = express();
   app.set('etag', false); // the ETag is the configuration version, set by hand below
   app.disable('x-powered-by');
   serveP1(app, p1SdkKey);
+  adminRoutes(app, { pool, adminPasswordHash });
 
   app.options('/sdk/config', cors, (req, res) => {
     res.set('Access-Control-Allow-Methods', 'GET');

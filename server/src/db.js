@@ -17,3 +17,29 @@ export function createPool(connectionString) {
 export async function migrate(pool) {
   await pool.query(await readFile(schemaUrl, 'utf8'));
 }
+
+// Runs fn(client) inside one transaction on one client and returns its result; any
+// error rolls back and is rethrown. A client whose ROLLBACK fails is destroyed.
+async function withTransaction(pool, begin, fn) {
+  const client = await pool.connect();
+  let broken;
+  try {
+    await client.query(begin);
+    const result = await fn(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (err) {
+    await client.query('ROLLBACK').catch((rollbackErr) => {
+      broken = rollbackErr;
+    });
+    throw err;
+  } finally {
+    client.release(broken);
+  }
+}
+
+// Reads that must agree with each other (Q-028, D-020): one snapshot for all of them.
+export const readSnapshot = (pool, fn) => withTransaction(pool, 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY', fn);
+
+// Writes that succeed or fail together (D-020).
+export const transaction = (pool, fn) => withTransaction(pool, 'BEGIN', fn);
