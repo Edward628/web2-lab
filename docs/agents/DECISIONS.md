@@ -170,14 +170,15 @@
     dintr-o configurație dată la `init`) se aruncă la punerea în coadă, ca să nu blocheze coada.
 - **Why:** D-005 cere expuneri, conversii și evaluări trimise în batch de SDK; `keepalive` și
   `pagehide` păstrează o conversie făcută chiar înainte de închiderea tab-ului;
-  `randomUUID` există doar pe HTTPS sau localhost, iar hosting-ul P1 nu e decis (Q-005).
+  `randomUUID` există doar pe HTTPS sau localhost; când s-a decis, hosting-ul P1 nu era stabilit
+  (Q-005). P1 e acum pe HTTPS (D-014), dar `getRandomValues` merge în orice context, deci regula rămâne.
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (5 s / 20 de evenimente, experimentul marcat în configurație, ordinea de ingestie,
   A1–A2, keepalive + pagehide); user, plan „SDK part 2: exposures, track, flush, batching”,
   2026-11-25 (o cerere în curs, timer, pagehide, rezultatul lui `flush()`, `evaluations`,
   fără `baseUrl`); user, review-ul PR-ului #14, 2026-11-25 (timeout de 10 s, retrimiterea după
   `pagehide`, evenimentele necodificabile).
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - **Status:** approved
