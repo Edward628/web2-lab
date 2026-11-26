@@ -99,3 +99,20 @@ test('nothing outside the fixed list is served: repo root, .env, tests, package 
     assert.equal(res.status, 404, path);
   }
 });
+
+test('P1 responses carry nosniff and frame protection', async () => {
+  for (const path of ['/p1/', '/p1/styles.css', '/p1/config.js', '/p1/src/app.js', '/sdk/src/index.js']) {
+    const res = await get(withKey, path);
+    assert.equal(res.status, 200, path);
+    assert.equal(res.headers.get('x-content-type-options'), 'nosniff', path);
+    assert.equal(res.headers.get('x-frame-options'), 'DENY', path);
+    assert.equal(res.headers.get('content-security-policy'), "frame-ancestors 'none'", path);
+  }
+});
+
+test('no X-Powered-By header, on P1 or on the SDK endpoints', async () => {
+  for (const path of ['/p1/', '/p1/config.js', '/sdk/src/index.js', '/sdk/config', '/nothing-here']) {
+    const res = await get(withKey, path);
+    assert.equal(res.headers.get('x-powered-by'), null, path);
+  }
+});
