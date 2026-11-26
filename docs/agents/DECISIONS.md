@@ -245,7 +245,7 @@
 - **Rule:** Hash-ul parolei (D-008) stă în variabila de mediu `ADMIN_PASSWORD_HASH`, în forma
   `scrypt:<salt hex>:<hash hex>` (fără `$`, pe care Docker Compose l-ar interpola), generat cu
   `npm run hash-password` în `server/` (`node:crypto` scrypt, comparat cu `timingSafeEqual`, fără
-  dependență nouă). Login-ul reușit creează un token aleator de 256 de biți, ținut în memoria
+  dependență nouă), care refuză o parolă sub 12 caractere. Login-ul are limita din C-007 (Q-038). Login-ul reușit creează un token aleator de 256 de biți, ținut în memoria
   serverului 8 h; cookie-ul e `ff_admin=<token>; HttpOnly; Secure; SameSite=Strict; Path=/;
   Max-Age=28800`. Un restart (sau oprirea Render pe planul gratuit) pierde sesiunile: adminul se
   loghează din nou. Fără `ADMIN_PASSWORD_HASH` (sau cu o valoare greșită) serverul pornește, scrie
@@ -255,7 +255,8 @@
 - **Why:** D-008 lasă mecanismul deschis; o sesiune în memorie nu cere un secret nou și nici o
   dependență, iar un singur admin acceptă o relogare după restart.
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (în memorie,
-  8 h; D-019 aprobat).
+  8 h; D-019 aprobat); user, review-ul de securitate al PR-ului #20, 2026-11-26 (parola de cel puțin
+  12 caractere).
 - **Confirmed:** 2026-11-26
 
 ## D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`

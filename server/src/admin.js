@@ -15,6 +15,9 @@ const SESSION_MS = 8 * 60 * 60 * 1000;
 const COOKIE = 'ff_admin';
 const COOKIE_ATTRIBUTES = 'HttpOnly; Secure; SameSite=Strict; Path=/';
 const ENVIRONMENTS = new Set(['dev', 'prod']);
+const MAX_FAILURES = 10;
+const FAILURE_WINDOW_MS = 60 * 1000;
+export const MIN_PASSWORD_LENGTH = 12;
 
 // → "scrypt:<salt hex>:<hash hex>", the ADMIN_PASSWORD_HASH format (no $, which
 // Docker Compose would interpolate). Used by `npm run hash-password`.
@@ -55,6 +58,39 @@ function createSessions() {
     end(token) {
       expiries.delete(token);
     },
+  };
+}
+
+// Q-038: at most 10 failed logins a minute in total, the minute counted from its
+// first failure; past that, every login gets 429 until the minute ends. Kept in this
+// process, like the sessions.
+function createLoginLimit() {
+  let windowStart = 0;
+  let failures = 0;
+  const expire = () => {
+    if (Date.now() - windowStart >= FAILURE_WINDOW_MS) failures = 0;
+  };
+  return {
+    isBlocked() {
+      expire();
+      return failures >= MAX_FAILURES;
+    },
+    fail() {
+      expire();
+      if (failures === 0) windowStart = Date.now();
+      failures += 1;
+    },
+  };
+}
+
+// Runs fn only after every earlier call has finished: one scrypt at a time, so a flood
+// of logins cannot fill the libuv threadpool that P1's files and pg's DNS lookups share.
+function createQueue() {
+  let last = Promise.resolve();
+  return (fn) => {
+    const run = last.then(fn);
+    last = run.catch(() => {});
+    return run;
   };
 }
 
@@ -185,6 +221,8 @@ export function adminRoutes(app, { pool, adminPasswordHash }) {
     console.error('ADMIN_PASSWORD_HASH is malformed (expected scrypt:<salt>:<hash> from `npm run hash-password`); admin login is disabled');
   }
   const sessions = createSessions();
+  const loginLimit = createLoginLimit();
+  const oneAtATime = createQueue();
 
   const requireJson = (req, res, next) => (req.is('application/json') ? next() : res.status(415).end());
   const json = express.json();
@@ -201,7 +239,16 @@ export function adminRoutes(app, { pool, adminPasswordHash }) {
       if (body === null || typeof body !== 'object' || Array.isArray(body) || typeof body.password !== 'string') {
         return res.status(400).end();
       }
-      if (!(await verifyPassword(body.password, credentials))) return res.status(401).end();
+      // The limit is checked when this login's turn comes, so logins that arrived together
+      // cannot all slip past it.
+      const outcome = await oneAtATime(async () => {
+        if (loginLimit.isBlocked()) return 'limited';
+        if (await verifyPassword(body.password, credentials)) return 'ok';
+        loginLimit.fail();
+        return 'wrong';
+      });
+      if (outcome === 'limited') return res.status(429).end();
+      if (outcome === 'wrong') return res.status(401).end();
       res.set('Set-Cookie', `${COOKIE}=${sessions.create()}; ${COOKIE_ATTRIBUTES}; Max-Age=${SESSION_MS / 1000}`);
       res.status(204).end();
     },
@@ -244,6 +291,10 @@ export function adminRoutes(app, { pool, adminPasswordHash }) {
     if (result === 'rollout-not-boolean') return res.status(400).end();
     res.json(result);
   });
+
+  // Any other /admin path or method (C-007): 401 without a session, 404 with one, no
+  // body, so nobody without a session can map the admin API.
+  app.use('/admin', requireAdmin, (req, res) => res.status(404).end());
 
   // express.json() errors: over 100 kB → 413; any other body it refuses → 400.
   app.use('/admin', (err, req, res, next) => {

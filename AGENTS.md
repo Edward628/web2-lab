@@ -138,8 +138,8 @@ Add each command here once it exists, and run it once before you write it down.
      `main`, runtime Docker, Dockerfile path `server/Dockerfile`, Docker build context `.`,
      region Frankfurt, plan Free, health check path `/p1/`, Auto-Deploy off. Env vars:
      `DATABASE_URL` (the Neon URL) and `P1_SDK_KEY` (the prod key). Admin API (C-007, D-019):
-     add `ADMIN_PASSWORD_HASH` (from `npm run hash-password`) at the first deploy after the
-     experiment, once Q-038 (login attempt limit) is built.
+     add `ADMIN_PASSWORD_HASH` (from `npm run hash-password`, at least 12 characters) at the first
+     deploy after the experiment. Login is limited to 10 failures a minute (Q-038, C-007).
   4. Check: open `/p1/` in two browsers; reserve a spot; one exposure and one conversion row in Neon.
 - **Experiment freeze (D-016):** the `reserve-button-color` experiment runs 2026-11-26 08:05 –
   2026-12-03 08:05 Europe/Bucharest (06:05 UTC). Until it ends: no deploy that changes `p1/` or

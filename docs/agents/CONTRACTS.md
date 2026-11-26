@@ -139,7 +139,12 @@
   - `POST /admin/login`, corp `{"password": "<string>"}` → `204` + `Set-Cookie: ff_admin=<token>;
     HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=28800`. Fără hash configurat → `503`;
     `Content-Type` diferit de `application/json` → `415`; corp care nu e JSON sau fără `password`
-    string → `400`; parolă greșită → `401`.
+    string → `400`; parolă greșită → `401`. Limita (Q-038): o singură verificare de parolă (scrypt)
+    o dată, iar cererile așteaptă la rând; cel mult 10 login-uri eșuate (`401`) pe minut, în total,
+    minutul numărat de la primul eșec; peste ele, orice login (și cu parola bună) → `429`, fără corp
+    și fără cookie, până se încheie minutul. Limita e verificată când vine rândul cererii. `400` și
+    `415` nu contează ca eșecuri; un login reușit nu golește numărătoarea. Numărătoarea stă în
+    memorie (un restart o pornește de la zero).
   - `POST /admin/logout` → `204`, șterge sesiunea și cookie-ul (`Max-Age=0`).
   - `GET /admin/flags?env=dev|prod` → `200`
     `{project: {id, name}, environment, version, flags: [{key, type, enabled, default, ruleCount, variants, rollout}]}`,
@@ -154,12 +159,14 @@
     `Content-Type` → `415`; alt corp, `env` greșit sau rollout pe un flag multivariat → `400`; flag
     fără rând în acel mediu → `404`; eroare de bază de date → `500`, nimic schimbat. Scrierea urmează
     D-020 (versiune nouă și rând de audit doar la o schimbare reală).
-  - Orice altă rută `/admin/*` decât login, fără o sesiune validă (lipsă, necunoscută sau expirată)
-    → `401`.
+  - Orice altă rută sau metodă `/admin/*` decât login, fără o sesiune validă (lipsă, necunoscută sau
+    expirată) → `401`; cu o sesiune validă, o rută sau metodă necunoscută → `404`. Ambele fără corp
+    și fără `Allow` (nici `OPTIONS` nu arată metodele).
 - **Provider:** `server/src/app.js`, `server/src/admin.js`.
 - **Consumers:** în viitor `dashboard/src/api.js` (PR-ul 2 al planului).
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
-  doar flag-uri boolean pentru rollout; presupunerile acceptate).
+  doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
+  PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`).
 - **Confirmed:** 2026-11-26
 
 ## Consumed

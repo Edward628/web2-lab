@@ -28,7 +28,8 @@ server/src/app.js    createApp({ pool, p1SdkKey, adminPasswordHash }): GET/OPTIO
                      P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015);
                      P1 responses: nosniff, X-Frame-Options DENY, CSP frame-ancestors 'none'; no X-Powered-By
 server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags); one REPEATABLE READ snapshot (D-020)
-server/src/admin.js  hashPassword, parseHash; adminRoutes(app, …): login / logout (in-memory session, 8 h, cookie ff_admin, D-019),
+server/src/admin.js  hashPassword, parseHash; adminRoutes(app, …): login / logout (in-memory session, 8 h, cookie ff_admin, D-019;
+                     one scrypt at a time, 10 failures a minute then 429, Q-038), any other /admin path 401 / 404,
                      GET /admin/flags?env=, PATCH /admin/flags/:key?env= {enabled} | {rollout}: one transaction, config_version + 1, audit_log row (D-020)
 server/src/stream.js streamTarget(pool, key), createStreams(pool).add: "version N" on connect and every 15 s, one timer per environment with open streams
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction

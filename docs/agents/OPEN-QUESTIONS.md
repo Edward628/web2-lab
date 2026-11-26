@@ -46,7 +46,7 @@
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 - Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
 - Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
-- Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită?
+- Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită? · _answered_
 - Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 
@@ -466,14 +466,23 @@
 - **Recorded as:**
 
 ## Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** primul deploy cu API-ul de administrare (C-007), după experiment (D-016)
 - **Who answers:** the user
 - **Proposed answer:** `POST /admin/login` nu are nicio limită; scrypt încetinește fiecare
   încercare, dar dashboard-ul e public pe Render. De exemplu: cel mult N încercări greșite pe minut
   (per IP sau în total), apoi `429` pentru un timp fix. Valorile sunt de stabilit.
-- **Answer:**
-- **Recorded as:**
+  Dovadă nouă, review-ul de securitate al PR-ului #20 (2026-11-26, constatarea 1): fără limită,
+  (a) parola se poate ghici online cu zeci de încercări pe secundă, fără nimic în log; (b) fiecare
+  login rulează scrypt (~16 MB, zeci de ms) pe threadpool-ul libuv (4 fire), pe care îl folosesc și
+  fișierele P1 (`sendFile`, `express.static`) și `dns.lookup` la conexiunile noi spre Neon, deci un
+  val de login-uri fără sesiune oprește P1, `/sdk/config` și `/sdk/stream` pe instanța de 512 MB.
+  `npm run hash-password` accepta orice parolă nevidă.
+- **Answer:** 2026-11-26 (user): o singură verificare scrypt o dată; cel mult 10 login-uri eșuate
+  pe minut, în total, apoi `429` până se încheie minutul; `hash-password` cere cel puțin 12
+  caractere. Construit în PR-ul #20, cu schimbarea C-007 aprobată.
+- **Recorded as:** C-007, D-019
+- **Confirmed:** 2026-11-26
 
 ## Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
 - **Status:** open
