@@ -20,6 +20,7 @@
 - D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
 - D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
+- D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
 
 ---
 
@@ -226,3 +227,19 @@
   creată de seed per bază de date, deci nu se scrie în repo. Restul, ca în D-012.
 - **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26; înlocuiește D-012.
 - **Confirmed:** 2026-11-26
+
+## D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
+- **Status:** approved
+- **Rule:** Experimentul `reserve-button-color` (P1, metrica `reserve_click`) rulează de la
+  2026-11-26 08:05 până la 2026-12-03 08:05, ora României (Europe/Bucharest; 06:05 UTC), pe
+  https://web2-lab-0c75.onrender.com/p1/. Până la final: niciun deploy care schimbă ceva în `p1/` sau `sdk/`
+  (serverul importă `sdk/src`, deci și un deploy al serverului cu schimbări în `sdk/` e oprit),
+  și nicio schimbare la flag-ul `reserve-button-color` sau la experimentul lui (setări, variante,
+  metrică), nici în cod, nici în baza de pe Neon. Schimbările pe aceste părți se pot construi și
+  merge-ui, dar nu se pun online până la final.
+- **Why:** o schimbare în pagină, în SDK sau în alocare în timpul experimentului ar amesteca două
+  variante ale testului și ar strica rezultatul (D-001, D-005).
+- **Evidence:** user, 2026-11-26: primul deploy făcut, experimentul pornit la 08:05, evenimentele de
+  test șterse în Neon înainte de start.
+- **Confirmed:** 2026-11-26
+

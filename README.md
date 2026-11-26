@@ -44,16 +44,16 @@ semnificație statistică.
 ## Variabilele mele
 | Variabilă | Valoare |
 |---|---|
-| Aplicația 1 (P1) | o aplicație mică de parcare, construită în acest proiect, pusă online |
+| Aplicația 1 (P1) | o aplicație mică de parcare, construită în acest proiect, pusă online: https://web2-lab-0c75.onrender.com/p1/ |
 | Aplicația 2 | proiectul unui coleg — necunoscut încă (Q-007) |
-| Experimentul | culoarea butonului de rezervare din P1; metrica: click pe rezervare |
+| Experimentul | culoarea butonului de rezervare din P1; metrica: click pe rezervare; rulează 7 zile, 2026-11-26 08:05 – 2026-12-03 08:05 (ora României), fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag până la final (D-016) |
 | Utilizatori | colegii de grupă |
 | Metoda statistică | frecventistă, test z pe două proporții, α = 0,05 (D-001) |
 | Formatul configurației și fallback-ul | JSON versionat, SSE + polling, cache local (D-003) |
 
 ## Stack
 Node.js cu JavaScript, Express, PostgreSQL, Docker Compose; UI în HTML + JavaScript
-simplu; teste cu `node --test` (D-002). Hosting: serverul pe Render, baza pe Neon, P1 servit de server (D-014).
+simplu; teste cu `node --test` (D-002). Hosting: serverul pe Render, baza pe Neon, P1 servit de server (D-014), la https://web2-lab-0c75.onrender.com/p1/.
 
 ## Timp
 Buget: 15–20 de ore (fișa estimează ~40). Data predării: necunoscută (Q-008).
