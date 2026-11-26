@@ -21,7 +21,16 @@ const staticOptions = { dotfiles: 'ignore', index: false, redirect: false };
 
 // P1 on the server's origin (D-014, D-015): the page, its stylesheet and scripts, the
 // SDK sources it imports, and /p1/config.js generated from P1_SDK_KEY (404 without it).
+// nosniff, and the page may not be framed (clickjacking on the reserve button).
+function p1Headers(req, res, next) {
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('Content-Security-Policy', "frame-ancestors 'none'");
+  next();
+}
+
 function serveP1(app, p1SdkKey) {
+  app.use(['/p1', '/sdk/src'], p1Headers);
   app.get('/p1', (req, res) => {
     if (!req.path.endsWith('/')) return res.redirect(301, '/p1/');
     res.sendFile('index.html', { root: p1Dir });
@@ -39,6 +48,7 @@ function serveP1(app, p1SdkKey) {
 export function createApp({ pool, p1SdkKey }) {
   const app = express();
   app.set('etag', false); // the ETag is the configuration version, set by hand below
+  app.disable('x-powered-by');
   serveP1(app, p1SdkKey);
 
   app.options('/sdk/config', cors, (req, res) => {

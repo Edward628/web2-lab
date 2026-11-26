@@ -22,7 +22,8 @@ sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
 server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY; migrate(); listen
 server/src/app.js    createApp({ pool, p1SdkKey }): GET/OPTIONS /sdk/config (C-002), POST/OPTIONS /sdk/events (C-003), CORS;
-                     P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015)
+                     P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015);
+                     P1 responses: nosniff, X-Frame-Options DENY, CSP frame-ancestors 'none'; no X-Powered-By
 server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags)
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction
 server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
