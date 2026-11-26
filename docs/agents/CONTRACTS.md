@@ -167,6 +167,7 @@
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
   doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
   PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`).
+- **Confirmed:** 2026-11-26
 
 ## Consumed
 None yet.
