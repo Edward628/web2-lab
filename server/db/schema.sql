@@ -58,6 +58,14 @@ CREATE TABLE IF NOT EXISTS experiments (
   UNIQUE (flag_id, environment_id)
 );
 
+-- The minimum sample of each experiment (D-001, D-021): baseline conversion rate and
+-- minimum detectable effect, both as fractions; defaults 20% and +10 points.
+ALTER TABLE experiments
+  ADD COLUMN IF NOT EXISTS baseline_rate double precision NOT NULL DEFAULT 0.2
+    CHECK (baseline_rate > 0 AND baseline_rate < 1),
+  ADD COLUMN IF NOT EXISTS mde double precision NOT NULL DEFAULT 0.1
+    CHECK (mde > 0 AND baseline_rate + mde < 1);
+
 -- Once per user and experiment; the first variant seen is kept (D-005).
 CREATE TABLE IF NOT EXISTS exposures (
   experiment_id integer NOT NULL REFERENCES experiments (id),

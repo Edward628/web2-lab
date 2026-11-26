@@ -8,6 +8,7 @@ import { randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:cry
 import { isDeepStrictEqual, promisify } from 'node:util';
 import express from 'express';
 import { readSnapshot, transaction } from './db.js';
+import { experimentResults } from './experiments.js';
 
 const scrypt = promisify(scryptCallback);
 const KEY_LENGTH = 64;
@@ -268,6 +269,29 @@ export function adminRoutes(app, { pool, adminPasswordHash }) {
       result = await listFlags(pool, env);
     } catch (err) {
       console.error('GET /admin/flags: database error', err);
+      return res.status(500).end();
+    }
+    if (result === null) return res.status(404).end();
+    res.json(result);
+  });
+
+  // The experiment results of one environment (D-001, D-021), from one snapshot.
+  app.get('/admin/experiments', requireAdmin, async (req, res) => {
+    const env = environmentName(req);
+    if (env === null) return res.status(400).end();
+    let result;
+    try {
+      result = await readSnapshot(pool, async (db) => {
+        const environment = await openEnvironment(db, env);
+        if (environment === null) return null;
+        return {
+          project: { id: environment.project_id, name: environment.project_name },
+          environment: env,
+          experiments: await experimentResults(db, environment.id),
+        };
+      });
+    } catch (err) {
+      console.error('GET /admin/experiments: database error', err);
       return res.status(500).end();
     }
     if (result === null) return res.status(404).end();
