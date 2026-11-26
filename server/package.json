@@ -4,7 +4,7 @@
   "scripts": {
     "start": "node src/index.js",
     "seed": "node scripts/seed.js",
-    "test": "node --test --test-concurrency=1 test/*.test.js"
+    "test": "node --experimental-eventsource --test --test-concurrency=1 test/*.test.js"
   },
   "dependencies": {
     "express": "^5.3.0",
