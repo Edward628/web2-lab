@@ -12,6 +12,7 @@
 - C-001 · Configurația unui mediu (JSON servit SDK-ului) · provided
 - C-002 · Endpoint-ul configurației pentru SDK · provided
 - C-003 · Endpoint-ul de evenimente pentru SDK · provided
+- C-006 · Stream-ul de versiuni pentru SDK (SSE) · provided
 - C-004 · Render (web service gratuit) · external
 - C-005 · Neon (PostgreSQL gratuit) · external
 
@@ -111,6 +112,23 @@
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
   (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).
+- **Confirmed:** 2026-11-26
+
+### C-006 · Stream-ul de versiuni pentru SDK (SSE)
+- **Status:** approved
+- **Interface:** `GET {baseUrl}/sdk/stream?key=<cheia SDK, URL-encoded>`. Fără `key` (sau gol) →
+  `400`; o cheie necunoscută (inclusiv una cu NUL) → `404`; o eroare de bază de date înainte de
+  pornirea stream-ului → `500`; toate fără corp. Altfel `200`, `Content-Type: text/event-stream`,
+  `Cache-Control: no-cache`, `X-Accel-Buffering: no`, `Access-Control-Allow-Origin: *`.
+  Mesajele: `event: version\ndata: <config_version>\n\n` (D-010), trimis la conectare și apoi
+  la 15 s cât timp e deschis un stream al acelui mediu; o citire eșuată sare peste acel tick (scrisă
+  în log), stream-ul rămâne deschis. Alte evenimente nu există; fără câmpul `id:`. Mesajul la
+  15 s ține loc și de confirmare (D-018, `stale` după 60 s).
+- **Provider:** `server/src/app.js`, `server/src/stream.js` (un timer per mediu, oprit odată cu
+  ultimul stream, deci nicio interogare când nu e nimeni conectat).
+- **Consumers:** `sdk/src/live.js`, pornit din `sdk/src/index.js` (`connect()`, D-018).
+- **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
+  state)”, 2026-11-26 (versiunea citită la 15 s, nu LISTEN/NOTIFY).
 - **Confirmed:** 2026-11-26
 
 ## Consumed

@@ -336,6 +336,7 @@
   `REPEATABLE READ`, pe un singur client. Azi nu se poate întâmpla: nu există scrieri.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-26
 
 ## Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
 - **Status:** open
@@ -435,6 +436,8 @@
   loc pentru legendă, ca lista să nu împingă conținutul (cere re-aprobarea mock-ului);
   (4) la hosting public (Q-005): `<meta name="robots" content="noindex">` și o meta description;
   (5) un mesaj `<noscript>` (cere re-aprobarea mock-ului). De reținut: cache-ul configurației în
-  `localStorage` din D-003 nu e construit în SDK, deci offline P1 arată mereu controlul.
+  `localStorage` din D-003 e construit (D-018, 2026-11-26): după deploy, offline P1 arată varianta
+  din cache dacă `refresh()` răspunde în 5 s (D-013), nu controlul.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-26

@@ -14,17 +14,20 @@ runs the `reserve-button-color` experiment through the SDK (D-006, D-015). Hoste
 (D-014): Render runs the image, Neon holds the database (C-004, C-005).
 
 ```text
-sdk/src/index.js     init({ sdkKey, baseUrl, config? }) → { identify, isEnabled, getVariant, refresh, track, flush } (D-011); refresh() times out at 10 s (D-013)
+sdk/src/index.js     init({ sdkKey, baseUrl, config?, storage? }) → { identify, isEnabled, getVariant, refresh, track, flush, connect, close, status } (D-018);
+                     refresh() times out at 10 s (D-013); config cache ff:config:<sdkKey>; status() 'stale' 60 s after the last confirmation
+sdk/src/live.js      createLive(…): EventSource on /sdk/stream (C-006), reconnect after 3 s, 3 failures → polling every 30 s
 sdk/src/events.js    createEventQueue({ sdkKey, baseUrl }): queue, 20 / 5 s, one request in flight, pagehide (C-003)
 sdk/src/validate.js  isValidConfig(config): the C-001 checks before a configuration is used
 sdk/src/evaluate.js  evaluateDetail → { value, fromVariant }, evaluate → value: rules, then variant ranges (D-004, C-001)
 sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
 server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY; migrate(); listen
-server/src/app.js    createApp({ pool, p1SdkKey }): GET/OPTIONS /sdk/config (C-002), POST/OPTIONS /sdk/events (C-003), CORS;
+server/src/app.js    createApp({ pool, p1SdkKey }): GET/OPTIONS /sdk/config (C-002), GET /sdk/stream (C-006), POST/OPTIONS /sdk/events (C-003), CORS;
                      P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015);
                      P1 responses: nosniff, X-Frame-Options DENY, CSP frame-ancestors 'none'; no X-Powered-By
 server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags)
+server/src/stream.js streamTarget(pool, key), createStreams(pool).add: "version N" on connect and every 15 s, one timer per environment with open streams
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction
 server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
 server/scripts/seed.js  `npm run seed`: migrate + seedParkingLot on DATABASE_URL, prints the keys
@@ -41,13 +44,16 @@ p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitigno
 ## Parts
 | Part | Path | Responsibility | Talks to |
 |---|---|---|---|
-| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init` or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003 |
+| SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init`, loaded from the `localStorage` cache, or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. `connect()` keeps it current over SSE (C-006), or by polling every 30 s after 3 failures (D-018); `status()` reports `stale`. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003, C-006 |
 | P1 | `p1/` | the parking page (DS-web2-parking): static HTML + ES modules, imports the SDK from `../sdk/src` (D-015), no backend of its own (D-006). Reservation and anonymous user id in `localStorage`. Without a config (`p1/config.js` locally, or `P1_SDK_KEY` on the server) it shows the control and logs to the console. Tests in `p1/test` (pure modules; the page itself is checked by hand) | `server/` via the SDK (C-002, C-003) |
-| Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
+| Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `GET /sdk/stream` sends the environment's `config_version` on connect and every 15 s while streams are open (C-006). `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
 
 ## Data flow
 SDK `refresh()` → `GET /sdk/config?key=…` (+ `If-None-Match`) → `sdk_keys` → environment
 → `flags` ⋈ `flag_environments` (⟕ `experiments`) → C-001 JSON → `isValidConfig` → 200 + ETag, 304, or 500.
+
+SDK `connect()` → `GET /sdk/stream?key=…` → `sdk_keys` → environment → `version N` now, then every 15 s
+(`SELECT config_version`) → SDK: N newer than its configuration → `refresh()`.
 
 SDK batch → `POST /sdk/events?key=…` → validate (400) → `sdk_keys` → environment (404) →
 one transaction, events in order: `ingested_events` (seen id → skip) → `exposures` /
@@ -57,6 +63,7 @@ one transaction, events in order: `ingested_events` (seen id → skip) → `expo
 | What | Where | Owner | Notes |
 |---|---|---|---|
 | `p1.userId`, `p1.reservation` (`{spotId, until}`) | browser `localStorage` | `p1/src/user-id.js`, `p1/src/reservation.js` | the reservation expires after 1 h |
+| `ff:config:<sdkKey>` (`{etag, config}`) | browser `localStorage` (or the `storage` given to `init`) | `sdk/src/index.js` | last configuration from the server, for offline use (D-018) |
 | projects, environments (dev/prod, `config_version`, D-010), sdk_keys, flags, flag_environments (enabled, default, rules, variants as JSONB, `last_evaluated_at`), experiments (flag + environment + metric), exposures, conversions, ingested_events | PostgreSQL `web2` (volume `db-data`) | `server/db/schema.sql` | `web2_test` is created by `server/db/init-test-db.sql` for the tests |
 
 ## Configuration

@@ -12,6 +12,7 @@
 - PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test` · candidate
 - PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate · candidate
 - PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch · candidate
+- PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server · candidate
 
 ---
 
@@ -41,7 +42,7 @@
   test nou pică cu „not implemented”, cele vechi trec), apoi stub-urile se șterg înainte de
   commit-ul `test(...)`.
 - **Example:** commit `e74e46c` (`sdk/test/evaluate.test.js`, `sdk/test/client.test.js`)
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## PATTERN-004 · Testele serverului rulează pe un PostgreSQL real, într-o bază `*_test`
 - **Status:** candidate
@@ -52,7 +53,7 @@
   fixe. Fișierele rulează unul câte unul (`--test-concurrency=1`). Aplicația primește pool-ul
   prin `createApp({ pool })` și ascultă pe un port aleator.
 - **Example:** `server/test/helpers.js`, `server/test/sdk-config.test.js`
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-26
 
 ## PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate
 - **Status:** candidate
@@ -63,6 +64,7 @@
   lasă răspunsurile să se termine. Comportamentul cap la cap rămâne în testul round-trip pe
   serverul real.
 - **Example:** `sdk/test/events.test.js`
+- **Confirmed:** 2026-11-26
 
 ## PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch
 - **Status:** candidate
@@ -72,3 +74,15 @@
   `localStorage` tot într-un try (accesul în sine poate arunca). Testele folosesc un storage în
   memorie și unul la care orice apel aruncă.
 - **Example:** `p1/src/user-id.js`, `p1/src/reservation.js`, `p1/test/helpers.js`
+- **Confirmed:** 2026-11-26
+
+## PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server
+- **Status:** candidate
+- **How:** În testele unitare ale SDK-ului, `globalThis.EventSource` e o clasă falsă care reține
+  instanțele, cu `emit(type, data)`; se șterge în `t.after`. Pe server, stream-ul se citește cu
+  `fetch` + `TextDecoderStream`, un mesaj întreg până la `\n\n`, și se închide cu un
+  `AbortController`. Doar `setInterval` e simulat (`t.mock.timers.enable({ apis: ['setInterval'] })`,
+  înainte de pornirea aplicației), ca PostgreSQL și socket-urile să meargă în timp real.
+  `listen().close()` închide întâi conexiunile deschise. Testul cap la cap folosește
+  `EventSource` din Node (`--experimental-eventsource` în `npm test`).
+- **Example:** `sdk/test/live.test.js`, `server/test/sdk-stream.test.js`
