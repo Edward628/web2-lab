@@ -278,12 +278,12 @@ test('changes at the same time each get their own version: +1 per change, one au
     patch('reserve-button-color', 'dev', { enabled: false }),
   ]);
   assert.deepEqual(results.map((r) => r.status), [200, 200, 200]);
-  const versions = (await Promise.all(results.map((r) => r.json()))).map((b) => b.version).sort();
+  const versions = (await Promise.all(results.map((r) => r.json()))).map((b) => b.version).sort((a, b) => a - b);
   assert.deepEqual(versions, [8, 9, 10]);
   assert.equal(await version(1), 10);
   const rows = await audit();
   assert.equal(rows.length, 3);
-  assert.deepEqual(rows.map((r) => r.config_version).sort(), [8, 9, 10]);
+  assert.deepEqual(rows.map((r) => r.config_version).sort((a, b) => a - b), [8, 9, 10]);
   const row = await flagRow(1, 1);
   assert.equal(row.enabled, false);
   assert.deepEqual(row.variants, [{ value: true, from: 0, to: 70 }]);
