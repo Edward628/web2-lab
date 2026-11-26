@@ -3,7 +3,8 @@
 // If-None-Match. GET /sdk/stream (C-006): "version N" to connected SDKs.
 // POST /sdk/events (C-003): the SDK's event batches. CORS for
 // browser SDKs on other origins. P1 itself is served here too (D-014, D-015).
-// /admin/* (C-007): the admin API, with a session (D-019); no CORS.
+// /admin/* (C-007): the admin API, with a session (D-019); no CORS. The dashboard's
+// pages are served here too, from a fixed list (D-007, D-014).
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 import { isValidConfig } from '../../sdk/src/validate.js';
@@ -20,6 +21,7 @@ function cors(req, res, next) {
 
 const p1Dir = fileURLToPath(new URL('../../p1/', import.meta.url));
 const sdkSrcDir = fileURLToPath(new URL('../../sdk/src/', import.meta.url));
+const dashboardDir = fileURLToPath(new URL('../../dashboard/', import.meta.url));
 // Only these files, never the repo root, .env, tests or package files (D-014).
 const staticOptions = { dotfiles: 'ignore', index: false, redirect: false };
 
@@ -49,11 +51,26 @@ function serveP1(app, p1SdkKey) {
   app.use('/sdk/src', express.static(sdkSrcDir, staticOptions));
 }
 
+// The dashboard (DS-web2-flags, DS-web2-login): its two pages, the stylesheet and
+// src/; never its tests or package.json. The pages are public; their data needs a
+// session (C-007). Same headers as P1: no sniffing, never framed.
+function serveDashboard(app) {
+  app.use('/dashboard', p1Headers);
+  app.get('/dashboard', (req, res) => {
+    if (!req.path.endsWith('/')) return res.redirect(301, '/dashboard/');
+    res.sendFile('index.html', { root: dashboardDir });
+  });
+  app.get('/dashboard/login.html', (req, res) => res.sendFile('login.html', { root: dashboardDir }));
+  app.get('/dashboard/styles.css', (req, res) => res.sendFile('styles.css', { root: dashboardDir }));
+  app.use('/dashboard/src', express.static(`${dashboardDir}src`, staticOptions));
+}
+
 export function createApp({ pool, p1SdkKey, adminPasswordHash }) {
   const app = express();
   app.set('etag', false); // the ETag is the configuration version, set by hand below
   app.disable('x-powered-by');
   serveP1(app, p1SdkKey);
+  serveDashboard(app);
   adminRoutes(app, { pool, adminPasswordHash });
 
   app.options('/sdk/config', cors, (req, res) => {

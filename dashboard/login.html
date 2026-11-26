@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Autentificare · Flag-uri</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="src/login.js"></script>
+</head>
+<body>
+<!-- DS-web2-login (approved 2026-11-26) -->
+<header>
+  <span class="brand">Flag-uri</span>
+</header>
+
+<main class="login">
+  <div class="card">
+    <h1>Autentificare</h1>
+    <p class="lead muted">Intră în dashboard-ul de flag-uri cu parola de admin.</p>
+
+    <div id="expired" class="notice warn" role="status" hidden>
+      <span class="icon" aria-hidden="true">⚠</span>
+      <div><strong>Sesiunea a expirat.</strong> Intră din nou ca să continui.</div>
+    </div>
+    <div id="limited" class="notice error" role="alert" hidden>
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Prea multe încercări greșite.</strong> Autentificarea e blocată pentru cel mult un minut. Așteaptă și încearcă din nou.</div>
+    </div>
+    <div id="unconfigured" class="notice error" role="alert" hidden>
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Autentificarea nu e configurată.</strong> Setează <code>ADMIN_PASSWORD_HASH</code> pe server (<code>npm run hash-password</code>) și repornește-l.</div>
+    </div>
+    <div id="error" class="notice error" role="alert" hidden>
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Nu am putut ajunge la server.</strong> Verifică conexiunea și încearcă din nou.</div>
+    </div>
+
+    <form id="form">
+      <div class="field">
+        <label for="password">Parolă</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+        <div id="wrong" class="field-error sm" role="alert" hidden>Parola nu e corectă. Încearcă din nou.</div>
+      </div>
+      <button id="submit" class="btn btn-primary" type="submit">Intră</button>
+    </form>
+  </div>
+</main>
+</body>
+</html>

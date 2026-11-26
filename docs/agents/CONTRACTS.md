@@ -163,11 +163,10 @@
     expirată) → `401`; cu o sesiune validă, o rută sau metodă necunoscută → `404`. Ambele fără corp
     și fără `Allow` (nici `OPTIONS` nu arată metodele).
 - **Provider:** `server/src/app.js`, `server/src/admin.js`.
-- **Consumers:** în viitor `dashboard/src/api.js` (PR-ul 2 al planului).
+- **Consumers:** `dashboard/src/api.js` (apelat din `dashboard/src/app.js` și `dashboard/src/login.js`).
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
   doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
   PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`).
-- **Confirmed:** 2026-11-26
 
 ## Consumed
 None yet.

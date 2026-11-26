@@ -7,7 +7,7 @@
 
 ## Overview
 A feature flags and A/B testing service with a browser SDK (README.md). Planned parts
-(D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. `sdk/`, `server/` and `p1/` exist so far:
+(D-007): `server/`, `dashboard/`, `sdk/`, `p1/`. All four exist:
 the SDK evaluates flags locally; the server serves each environment's configuration from
 PostgreSQL (C-002) and ingests the SDK's event batches (C-003); P1 is the parking page that
 runs the `reserve-button-color` experiment through the SDK (D-006, D-015). Hosted, the server also serves P1 from its own origin
@@ -24,7 +24,7 @@ sdk/src/bucket.js    murmur3_32, bucket(flagKey, userId) → 0..99, isInRollout
 
 server/src/index.js  reads DATABASE_URL, PORT, P1_SDK_KEY, ADMIN_PASSWORD_HASH; migrate(); listen
 server/src/app.js    createApp({ pool, p1SdkKey, adminPasswordHash }): GET/OPTIONS /sdk/config (C-002), GET /sdk/stream (C-006), POST/OPTIONS /sdk/events (C-003), CORS;
-                     /admin/* (C-007, no CORS);
+                     /admin/* (C-007, no CORS); the dashboard at /dashboard/ (fixed list: index.html, login.html, styles.css, src/; same headers as P1);
                      P1 at /p1/ (fixed list: index.html, styles.css, /p1/src, /sdk/src), /p1/config.js from p1SdkKey or 404 (D-014, D-015);
                      P1 responses: nosniff, X-Frame-Options DENY, CSP frame-ancestors 'none'; no X-Powered-By
 server/src/config.js buildConfig(pool, sdkKey) → C-001 object | null (experiment: true on experiment flags); one REPEATABLE READ snapshot (D-020)
@@ -44,6 +44,12 @@ p1/src/variant.js    firstVariant(ff, flagKey): waits ≤ 5 s for refresh(), the
 p1/src/user-id.js    getUserId(storage): 32 hex in localStorage; a new id per page load when storage is blocked
 p1/src/reservation.js SPOTS (6 fixed), loadReservation / reserve (1 h hold, track('reserve_click') only when valid) / cancel, variantOf
 p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitignored (D-015)
+
+dashboard/index.html DS-web2-flags: environment switch (opens on prod), list, switch with confirmation in prod both ways, undo, Ieși
+dashboard/login.html DS-web2-login: one password field; states for 401, 429, 503, network error, ?expired=1
+dashboard/src/api.js createApi({ fetch, onUnauthorized }): login / logout / listFlags / setEnabled on C-007; 10 s timeout
+dashboard/src/flags.js copy and summaries (plurals, targeting, confirm / success / error text), pure
+dashboard/src/app.js, login.js  the pages: DOM nodes and textContent only; a 401 goes to login.html (?expired=1 after the first load)
 ```
 
 ## Parts
@@ -51,6 +57,7 @@ p1/config.example.js sdkKey + baseUrl template; the real p1/config.js is gitigno
 |---|---|---|---|
 | SDK | `sdk/` | browser SDK: bucketing (D-004) and local evaluation (C-001, D-011) on a configuration passed to `init`, loaded from the `localStorage` cache, or fetched by `refresh()` with ETag (C-002, D-003); invalid configurations are rejected. `connect()` keeps it current over SSE (C-006), or by polling every 30 s after 3 failures (D-018); `status()` reports `stale`. Exposures, conversions and evaluation counts are batched to `POST /sdk/events` (C-003), one request at a time. ES modules, no dependencies; tests in `sdk/test` | `server/` via C-002, C-003, C-006 |
 | P1 | `p1/` | the parking page (DS-web2-parking): static HTML + ES modules, imports the SDK from `../sdk/src` (D-015), no backend of its own (D-006). Reservation and anonymous user id in `localStorage`. Without a config (`p1/config.js` locally, or `P1_SDK_KEY` on the server) it shows the control and logs to the console. Tests in `p1/test` (pure modules; the page itself is checked by hand) | `server/` via the SDK (C-002, C-003) |
+| Dashboard | `dashboard/` | the admin screens DS-web2-login and DS-web2-flags: static HTML + ES modules served by the server from a fixed list at `/dashboard/`; lists an environment's flags and flips the switch (the kill switch, confirmation in prod) through the admin API. Tests in `dashboard/test` (pure modules; the pages are checked by hand) | `server/` via C-007 |
 | Server | `server/` | Express API: `GET /sdk/config` builds the key's environment configuration from PostgreSQL, checks it with the SDK's `isValidConfig` (imported from `../sdk/src`), serves it with `ETag: "<version>"` / 304 and CORS. `GET /sdk/stream` sends the environment's `config_version` on connect and every 15 s while streams are open (C-006). `POST /sdk/events` stores exposures, conversions (only after a stored exposure) and `last_evaluated_at`, idempotent by event id (C-003, D-005). `/admin/*` (C-007): one admin with an in-memory session (D-019) lists an environment's flags and changes the switch or a boolean rollout; each change bumps `config_version` and writes `audit_log` in one transaction (D-020). Schema applied at start. Tests in `server/test` against a real `web2_test` database | PostgreSQL; SDK via C-002 |
 
 ## Data flow

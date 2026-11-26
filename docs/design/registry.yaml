@@ -9,13 +9,13 @@ designs:
     kind: screen
     name: Autentificare
     app: dashboard
-    status: approved   # confirmed by the user, 2026-11-26
+    status: implemented   # dashboard/login.html + src/login.js, 2026-11-26 (mock confirmed the same day)
     mock: docs/design/mocks/DS-web2-login.html
   - id: DS-web2-flags
     kind: screen
     name: Lista flag-urilor
     app: dashboard
-    status: approved   # re-confirmed by the user, 2026-11-18 (after Q-011 fixes) and 2026-11-26 (PR 2: Logout, confirm on in prod, toggle error, empty-state and success copy)
+    status: implemented   # dashboard/index.html + src/app.js, 2026-11-26; mock re-confirmed 2026-11-18 and 2026-11-26. Not built yet (hidden): create, search, filter, descriptions, tags, badges, results, archive, other nav links
     mock: docs/design/mocks/DS-web2-flags.html
   - id: DS-web2-flag-detail
     kind: screen
