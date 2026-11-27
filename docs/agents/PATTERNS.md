@@ -99,6 +99,7 @@
   și `textContent`, niciodată din string-uri HTML, deci o cheie de flag nu poate injecta markup.
   Comportamentul în browser rămâne verificat de mână până există o comandă de screenshot (Q-003).
 - **Example:** `dashboard/src/flags.js`, `dashboard/src/api.js`, `dashboard/src/app.js`, `dashboard/test/`
+- **Confirmed:** 2026-11-27
 
 ## PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile`
 - **Status:** candidate
@@ -109,3 +110,4 @@
   `docker compose up -d --build --wait server` și `curl` pe URL-ul paginii (200). Fișierele din `src/`
   intră automat (folderul e copiat întreg).
 - **Example:** `server/Dockerfile` (`dashboard/experiment.html`, PR-ul DS-web2-experiment)
+- **Confirmed:** 2026-11-27

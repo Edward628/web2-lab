@@ -124,6 +124,7 @@
 - **Answer:** partial, 2026-11-18 (user): tokens approved (one set for dashboard and P1;
   sober, technical; indigo accent; system font). No design board yet.
 - **Recorded as:** docs/design/DESIGN.md → Tokens
+- **Confirmed:** 2026-11-27
 
 ## Q-007 · Care e a doua aplicație reală (proiectul colegului) și e colegul de acord?
 - **Status:** open
@@ -536,3 +537,4 @@
   (`experiments.baseline_rate`, `experiments.mde`, implicit 0,20 și 0,10) și se afișează; editarea
   vine într-un plan ulterior.
 - **Recorded as:**
+- **Confirmed:** 2026-11-27

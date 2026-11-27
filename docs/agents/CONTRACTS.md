@@ -13,7 +13,7 @@
 - C-002 · Endpoint-ul configurației pentru SDK · provided
 - C-003 · Endpoint-ul de evenimente pentru SDK · provided
 - C-006 · Stream-ul de versiuni pentru SDK (SSE) · provided
-- C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor) · provided
+- C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor, jurnalul de audit) · provided
 - C-004 · Render (web service gratuit) · external
 - C-005 · Neon (PostgreSQL gratuit) · external
 
@@ -137,7 +137,7 @@
   open SSE streams”, 2026-11-27 (200 în total, `503` fără corp, ordinea 400 → 404/500 → 503).
 - **Confirmed:** 2026-11-27
 
-### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor)
+### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor, jurnalul de audit)
 - **Status:** approved
 - **Interface:** Fără CORS. Sesiunea: cookie-ul `ff_admin` (D-019). Toate răspunsurile de eroare
   sunt fără corp.
@@ -176,16 +176,27 @@
     și eșantionul atins; `peeking` = p < 0,05 înainte de el (D-001). `env` lipsă sau alt mediu → `400`;
     niciun proiect sau mediu → `404`; eroare de bază de date → `500`. Doar citire, dintr-un singur
     snapshot (D-020).
+  - `GET /admin/audit?env=dev|prod[&flag=<flag_key>][&before=<id>]` → `200`
+    `{project: {id, name}, environment, entries: [{id, at, flagKey, action, before, after, configVersion}], nextBefore}`:
+    rândurile din `audit_log` ale mediului proiectului deschis (Q-040), cele mai noi primele (după `id`,
+    descrescător), cel mult 50. `at` = ISO 8601 în UTC; `action` ∈ `enable` | `disable` | `rollout`;
+    `before` / `after` = obiectele salvate (`{enabled}` sau `{variants}`), neschimbate. `nextBefore` = id-ul
+    de dat ca `before` pentru pagina următoare (mai veche), `null` când nu mai sunt rânduri mai vechi.
+    `flag` păstrează doar rândurile acelui flag; o cheie necunoscută (sau cu NUL) → `200` fără intrări.
+    `env` lipsă sau alt mediu, `before` care nu e un întreg 1…2147483647, `flag` gol, sau un parametru dat
+    de două ori → `400`; niciun proiect sau mediu → `404`; eroare de bază de date → `500`. Doar citire,
+    dintr-un singur snapshot (D-020). Un singur admin (D-008), deci fiecare intrare e făcută de admin.
   - Orice altă rută sau metodă `/admin/*` decât login, fără o sesiune validă (lipsă, necunoscută sau
     expirată) → `401`; cu o sesiune validă, o rută sau metodă necunoscută → `404`. Ambele fără corp
     și fără `Allow` (nici `OPTIONS` nu arată metodele).
-- **Provider:** `server/src/app.js`, `server/src/admin.js`, `server/src/experiments.js`, `server/src/stats.js`.
-- **Consumers:** `dashboard/src/api.js` (apelat din `dashboard/src/app.js` și `dashboard/src/login.js`).
+- **Provider:** `server/src/app.js`, `server/src/admin.js`, `server/src/experiments.js`, `server/src/stats.js`, `server/src/audit.js`.
+- **Consumers:** `dashboard/src/api.js` (apelat din `dashboard/src/app.js`, `dashboard/src/login.js`, `dashboard/src/experiment.js` și `dashboard/src/audit.js`).
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (C-007 aprobat;
   doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
   PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`); user, plan
-  „Experiment results”, 2026-11-26 (`GET /admin/experiments` aprobat).
-- **Confirmed:** 2026-11-26
+  „Experiment results”, 2026-11-26 (`GET /admin/experiments` aprobat); user, plan „Audit log screen”,
+  2026-11-27 (`GET /admin/audit` aprobat: cursor `before`, 50 fix, filtrul `flag` pe server).
+- **Confirmed:** 2026-11-27
 
 ## Consumed
 None yet.

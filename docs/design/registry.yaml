@@ -33,8 +33,8 @@ designs:
     kind: screen
     name: Jurnal de audit
     app: dashboard
-    status: draft
-    mock: none
+    status: approved   # mock confirmed 2026-11-27 (subtitle: "făcută de admin (singurul rol)"; nav link "Jurnal de audit" on the other dashboard screens too). Times always in Europe/Bucharest
+    mock: docs/design/mocks/DS-web2-audit.html
   - id: DS-web2-settings
     kind: screen
     name: Proiect și medii
