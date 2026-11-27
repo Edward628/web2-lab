@@ -1,4 +1,5 @@
-/* The admin dashboard: DS-web2-login, DS-web2-flags and DS-web2-experiment (approved 2026-11-26).
+/* The admin dashboard: DS-web2-login, DS-web2-flags, DS-web2-experiment (approved 2026-11-26) and
+   DS-web2-audit (approved 2026-11-27).
    Tokens: docs/design/DESIGN.md, exactly; no value outside them. Theme follows the
    system (prefers-color-scheme), no switch. */
 :root {
@@ -131,6 +132,24 @@ td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-div
 .skeleton .bone { height:12px; border-radius:var(--radius-sm); background:var(--color-surface); margin:var(--space-2) 0; }
 .skeleton .tile .bone { background:var(--color-bg); }
 
+/* Audit log (DS-web2-audit): one table, the flag filter, "Mai vechi". */
+.filter { display:flex; gap:var(--space-2); align-items:center; }
+select.input { font:inherit; min-height:var(--control-h); max-width:100%; padding:var(--space-1) var(--space-3);
+  border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-text); }
+.audit { margin-bottom:var(--space-4); }
+.audit th { padding:var(--space-2) var(--space-3); }
+.audit th:first-child { width:auto; }
+.audit td { padding:var(--space-2) var(--space-3); font-variant-numeric:tabular-nums; }
+.audit code { overflow-wrap:anywhere; }
+.audit td.when { white-space:nowrap; }
+.act { font-weight:600; white-space:nowrap; }
+.act.on { color:var(--color-success); }
+.act.off { color:var(--color-danger); }
+.change { display:inline-flex; flex-wrap:wrap; gap:var(--space-1); align-items:baseline; }
+.more { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; justify-content:space-between; }
+.more p { margin:0; }
+.more .notice { flex:1 1 100%; margin-bottom:0; }
+.empty h2 code { font:inherit; font-family:var(--font-mono); overflow-wrap:anywhere; }
 /* Login (DS-web2-login): a narrow card, 12 × space-8 = 384 px. */
 .login { max-width:calc(var(--space-8) * 12); padding-top:var(--space-8); }
 .login .card { padding:var(--space-6); }
@@ -158,4 +177,7 @@ td { padding:var(--space-3) var(--space-4); border-top:1px solid var(--color-div
   td[data-label]::before { content:attr(data-label) " · "; color:var(--color-text-muted); font:var(--text-sm); }
   .exp tr:first-child { border-top:0; }
   .exp td { padding:var(--space-1) var(--space-3); }
+  .audit tr:first-child { border-top:0; }
+  .audit td { padding:var(--space-1) var(--space-3); }
+  .filter, select.input { width:100%; }
 }

@@ -98,6 +98,41 @@ test('listExperiments: 401 calls onUnauthorized once; other failures and network
   }
 });
 
+test('listAudit gets /admin/audit?env=… and returns the data (DS-web2-audit)', async () => {
+  const data = { project: { id: 1, name: 'ParkingLot' }, environment: 'prod', entries: [], nextBefore: null };
+  const t = api(status(200, data));
+  assert.deepEqual(await t.api.listAudit('prod'), { ok: true, data });
+  assert.equal(t.calls[0].url, '/admin/audit?env=prod');
+  assert.equal(t.calls[0].method, 'GET');
+  assert.equal(t.calls[0].credentials, 'same-origin');
+  assert.ok(t.calls[0].signal instanceof AbortSignal);
+});
+
+test('listAudit adds the encoded flag and the before cursor only when given', async () => {
+  for (const [options, url] of [
+    [{}, '/admin/audit?env=dev'],
+    [{ flag: null, before: null }, '/admin/audit?env=dev'],
+    [{ flag: 'a b/c&d' }, '/admin/audit?env=dev&flag=a%20b%2Fc%26d'],
+    [{ before: 71 }, '/admin/audit?env=dev&before=71'],
+    [{ flag: 'new-checkout', before: 11 }, '/admin/audit?env=dev&flag=new-checkout&before=11'],
+  ]) {
+    const t = api(status(200, {}));
+    await t.api.listAudit('dev', options);
+    assert.equal(t.calls[0].url, url, JSON.stringify(options));
+  }
+});
+
+test('listAudit: 401 calls onUnauthorized once; other failures and network errors are errors', async () => {
+  const t = api(status(401));
+  assert.deepEqual(await t.api.listAudit('dev'), { ok: false, error: 'unauthorized' });
+  assert.equal(t.unauthorized.length, 1);
+  for (const answer of [status(500), status(404), status(400), offline]) {
+    const u = api(answer);
+    assert.deepEqual(await u.api.listAudit('dev', { before: 5 }), { ok: false, error: 'error' });
+    assert.equal(u.unauthorized.length, 0);
+  }
+});
+
 test('setEnabled patches the encoded key with {enabled} as JSON and returns {flag, version}', async () => {
   const data = { flag: { key: 'a b/c', enabled: false }, version: 8 };
   const t = api(status(200, data));

@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-audit · Jurnal de audit (mock, approved)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --layout-max:1100px;
+  --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
+  --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  --control-h:36px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:var(--text-base); }
+code { font:var(--text-sm); font-family:var(--font-mono); overflow-wrap:anywhere; }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.sm { font:var(--text-sm); }
+.muted { color:var(--color-text-muted); }
+.sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+
+/* Bara de control a mock-ului (nu face parte din ecran) */
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font:var(--text-sm); color:var(--color-text-muted); }
+
+/* Header, nav, titlu, mediu: la fel ca DS-web2-flags și DS-web2-experiment */
+header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-divider); }
+.brand { font-weight:600; }
+nav { display:flex; gap:var(--space-1); flex-wrap:wrap; }
+nav a { color:var(--color-text-muted); text-decoration:none; padding:var(--space-2) var(--space-3); border-radius:var(--radius-sm); }
+nav a[aria-current="page"] { color:var(--color-text); background:var(--color-surface); font-weight:600; }
+nav a:hover { color:var(--color-text); }
+.account { display:flex; align-items:center; gap:var(--space-3); margin-left:auto; }
+main { max-width:var(--layout-max); margin:0 auto; padding:var(--space-6); }
+.titlebar { margin-bottom:var(--space-4); }
+h1 { font:var(--text-xl); margin:0; }
+h2 { font:var(--text-lg); margin:0; overflow-wrap:anywhere; }
+.btn { font:inherit; min-height:var(--control-h); padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm); cursor:pointer;
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);
+  transition:background var(--duration-fast); white-space:nowrap; }
+.btn:hover { background:var(--color-surface); }
+.btn[disabled] { cursor:default; color:var(--color-text-muted); }
+.toolbar { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; margin-bottom:var(--space-4); }
+.seg { display:inline-flex; border:1px solid var(--color-border); border-radius:var(--radius-sm); overflow:hidden; }
+.seg button { font:inherit; border:0; background:var(--color-bg); color:var(--color-text); padding:var(--space-1) var(--space-4); min-height:var(--control-h); cursor:pointer; }
+.seg button[aria-pressed="true"] { background:var(--color-accent); color:var(--color-on-accent); font-weight:600; }
+.field { display:flex; gap:var(--space-2); align-items:center; }
+select.input { font:inherit; min-height:var(--control-h); max-width:100%; padding:var(--space-1) var(--space-3);
+  border:1px solid var(--color-border); border-radius:var(--radius-sm); background:var(--color-bg); color:var(--color-text); }
+
+.card { background:var(--color-bg); border:1px solid var(--color-divider); border-radius:var(--radius-md); overflow:hidden; margin-bottom:var(--space-4); }
+.notice { display:flex; gap:var(--space-3); align-items:flex-start; padding:var(--space-3) var(--space-4); border-radius:var(--radius-sm);
+  border:1px solid var(--color-divider); background:var(--color-surface); }
+.notice .icon { font-weight:600; flex:none; }
+.notice.error { border-color:var(--color-danger); } .notice.error .icon { color:var(--color-danger); }
+.notice-actions { margin-top:var(--space-2); }
+.empty { text-align:center; padding:var(--space-8) var(--space-6); }
+.empty p { max-width:60ch; margin:var(--space-2) auto 0; }
+
+/* Tabelul jurnalului */
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; font:var(--text-sm); font-weight:600; color:var(--color-text-muted); background:var(--color-surface); padding:var(--space-2) var(--space-3); }
+td { padding:var(--space-2) var(--space-3); border-top:1px solid var(--color-divider); vertical-align:top; font-variant-numeric:tabular-nums; }
+td.when { white-space:nowrap; }
+.act { font-weight:600; white-space:nowrap; }
+.act.off { color:var(--color-danger); }
+.act.on { color:var(--color-success); }
+.change { display:inline-flex; flex-wrap:wrap; gap:var(--space-1); align-items:baseline; }
+.more { display:flex; flex-wrap:wrap; gap:var(--space-3); align-items:center; justify-content:space-between; }
+.more .notice { flex:1 1 100%; }
+
+.skeleton td div { height:12px; border-radius:var(--radius-sm); background:var(--color-surface); margin:var(--space-1) 0; }
+
+.state { display:none; }
+body[data-state="list"] .s-list, body[data-state="filtered"] .s-filtered, body[data-state="one"] .s-one,
+body[data-state="end"] .s-end, body[data-state="loading-more"] .s-loading-more, body[data-state="more-error"] .s-more-error,
+body[data-state="long"] .s-long, body[data-state="empty"] .s-empty, body[data-state="empty-flag"] .s-empty-flag,
+body[data-state="loading"] .s-loading, body[data-state="error"] .s-error { display:block; }
+
+@media (max-width:767px) {
+  :root { --control-h:44px; }
+  header, main { padding-left:var(--space-4); padding-right:var(--space-4); }
+  thead { display:none; }
+  table, tbody, tr, td { display:block; width:100%; }
+  tr { border-top:1px solid var(--color-divider); padding:var(--space-2) 0; }
+  tr:first-child { border-top:0; }
+  td { border:0; padding:var(--space-1) var(--space-3); }
+  td[data-label]::before { content:attr(data-label) " · "; color:var(--color-text-muted); font:var(--text-sm); }
+  .field, select.input { width:100%; }
+}
+</style>
+</head>
+<body data-state="list">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-audit · approved 2026-11-27</strong>
+  <label>Stare:
+    <select id="state">
+      <option value="list">Listă (prima pagină, mai sunt schimbări)</option>
+      <option value="filtered">Filtrat pe un flag</option>
+      <option value="one">O singură schimbare</option>
+      <option value="end">Ultima pagină (după „Mai vechi”)</option>
+      <option value="loading-more">Se încarcă „Mai vechi”</option>
+      <option value="more-error">Eroare la „Mai vechi”</option>
+      <option value="long">Cheie lungă și intervale personalizate</option>
+      <option value="empty">Nicio schimbare în mediu</option>
+      <option value="empty-flag">Nicio schimbare pentru flag-ul ales</option>
+      <option value="loading">Încărcare</option>
+      <option value="error">Eroare</option>
+    </select>
+  </label>
+  <label>Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<header>
+  <span class="brand">Flag-uri</span>
+  <nav aria-label="Principal">
+    <a href="#">Flag-uri</a>
+    <a href="#">Experimente</a>
+    <a href="#" aria-current="page">Jurnal de audit</a>
+  </nav>
+  <div class="account">
+    <span class="sm muted">admin</span>
+    <button class="btn" type="button">Ieși</button>
+  </div>
+</header>
+
+<main>
+  <div class="titlebar">
+    <h1>Jurnal de audit</h1>
+    <div class="sm muted">Proiect: ParkingLot · fiecare schimbare din dashboard, făcută de admin (singurul rol), cea mai nouă prima. Ora României.</div>
+  </div>
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Mediu">
+      <button type="button" aria-pressed="false">dev</button>
+      <button type="button" aria-pressed="true">prod</button>
+    </div>
+    <label class="field"><span class="sm muted">Flag</span>
+      <select class="input" id="flag">
+        <option>Toate flag-urile</option>
+        <option>new-checkout</option>
+        <option>reserve-button-color</option>
+        <option>search-v2</option>
+      </select>
+    </label>
+  </div>
+
+  <!-- ================= Listă: prima pagină, mai sunt schimbări ================= -->
+  <div class="state s-list">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-27T12:41:09Z" title="2026-11-27T12:41:09Z">27 nov. 2026, 14:41:09</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v12</td></tr>
+          <tr><td class="when"><time datetime="2026-11-27T12:38:52Z" title="2026-11-27T12:38:52Z">27 nov. 2026, 14:38:52</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act off"><span aria-hidden="true">■</span> Oprit (kill switch)</span></td>
+            <td data-label="Înainte → după"><span class="change">Pornit <span aria-hidden="true">→</span><span class="sr">devine</span> Oprit</span></td>
+            <td data-label="Versiunea configurației">v11</td></tr>
+          <tr><td class="when"><time datetime="2026-11-27T09:15:03Z" title="2026-11-27T09:15:03Z">27 nov. 2026, 11:15:03</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act"><span aria-hidden="true">%</span> Rollout</span></td>
+            <td data-label="Înainte → după"><span class="change">20% <span aria-hidden="true">→</span><span class="sr">devine</span> 50%</span></td>
+            <td data-label="Versiunea configurației">v10</td></tr>
+          <tr><td class="when"><time datetime="2026-11-26T16:02:47Z" title="2026-11-26T16:02:47Z">26 nov. 2026, 18:02:47</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act"><span aria-hidden="true">%</span> Rollout</span></td>
+            <td data-label="Înainte → după"><span class="change">0% <span aria-hidden="true">→</span><span class="sr">devine</span> 10%</span></td>
+            <td data-label="Versiunea configurației">v9</td></tr>
+          <tr><td class="when"><time datetime="2026-11-26T16:01:30Z" title="2026-11-26T16:01:30Z">26 nov. 2026, 18:01:30</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more">
+      <p class="sm muted">50 de schimbări afișate în prod (mock: 5 rânduri)</p>
+      <button class="btn" type="button">Mai vechi</button>
+    </div>
+  </div>
+
+  <!-- ================= Filtrat pe un flag ================= -->
+  <div class="state s-filtered">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările flag-ului search-v2 în prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-26T16:02:47Z" title="2026-11-26T16:02:47Z">26 nov. 2026, 18:02:47</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act"><span aria-hidden="true">%</span> Rollout</span></td>
+            <td data-label="Înainte → după"><span class="change">0% <span aria-hidden="true">→</span><span class="sr">devine</span> 10%</span></td>
+            <td data-label="Versiunea configurației">v9</td></tr>
+          <tr><td class="when"><time datetime="2026-11-26T16:01:30Z" title="2026-11-26T16:01:30Z">26 nov. 2026, 18:01:30</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more"><p class="sm muted">Toate cele 2 schimbări ale flag-ului <code>search-v2</code> în prod</p></div>
+  </div>
+
+  <!-- ================= O singură schimbare ================= -->
+  <div class="state s-one">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-27T09:15:03Z" title="2026-11-27T09:15:03Z">27 nov. 2026, 11:15:03</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act off"><span aria-hidden="true">■</span> Oprit (kill switch)</span></td>
+            <td data-label="Înainte → după"><span class="change">Pornit <span aria-hidden="true">→</span><span class="sr">devine</span> Oprit</span></td>
+            <td data-label="Versiunea configurației">v4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more"><p class="sm muted">O singură schimbare în prod</p></div>
+  </div>
+
+  <!-- ================= Ultima pagină, după „Mai vechi” ================= -->
+  <div class="state s-end">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-20T08:30:00Z" title="2026-11-20T08:30:00Z">20 nov. 2026, 10:30:00</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act"><span aria-hidden="true">%</span> Rollout</span></td>
+            <td data-label="Înainte → după"><span class="change">0% <span aria-hidden="true">→</span><span class="sr">devine</span> 20%</span></td>
+            <td data-label="Versiunea configurației">v3</td></tr>
+          <tr><td class="when"><time datetime="2026-11-20T08:29:12Z" title="2026-11-20T08:29:12Z">20 nov. 2026, 10:29:12</time></td>
+            <td data-label="Flag"><code>new-checkout</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more"><p class="sm muted">Toate cele 52 de schimbări din prod. Mai vechi nu există.</p></div>
+  </div>
+
+  <!-- ================= Se încarcă „Mai vechi” ================= -->
+  <div class="state s-loading-more">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-26T16:01:30Z" title="2026-11-26T16:01:30Z">26 nov. 2026, 18:01:30</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v8</td></tr>
+        </tbody>
+        <tbody class="skeleton" aria-busy="true" aria-label="Se încarcă schimbările mai vechi">
+          <tr><td><div style="width:80%"></div></td><td><div style="width:60%"></div></td><td><div style="width:50%"></div></td><td><div style="width:70%"></div></td><td><div style="width:30%"></div></td></tr>
+          <tr><td><div style="width:80%"></div></td><td><div style="width:60%"></div></td><td><div style="width:50%"></div></td><td><div style="width:70%"></div></td><td><div style="width:30%"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more">
+      <p class="sm muted">50 de schimbări afișate în prod</p>
+      <button class="btn" type="button" disabled aria-busy="true">Se încarcă…</button>
+    </div>
+  </div>
+
+  <!-- ================= Eroare la „Mai vechi” ================= -->
+  <div class="state s-more-error">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din prod, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-26T16:01:30Z" title="2026-11-26T16:01:30Z">26 nov. 2026, 18:01:30</time></td>
+            <td data-label="Flag"><code>search-v2</code></td>
+            <td data-label="Acțiune"><span class="act on"><span aria-hidden="true">●</span> Pornit</span></td>
+            <td data-label="Înainte → după"><span class="change">Oprit <span aria-hidden="true">→</span><span class="sr">devine</span> Pornit</span></td>
+            <td data-label="Versiunea configurației">v8</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more">
+      <div class="notice error" role="alert">
+        <span class="icon" aria-hidden="true">!</span>
+        <div><strong>Nu am putut încărca schimbările mai vechi.</strong> Cele de mai sus rămân. Verifică conexiunea și încearcă din nou.
+          <div class="notice-actions"><button class="btn" type="button">Încearcă din nou</button></div></div>
+      </div>
+      <p class="sm muted">50 de schimbări afișate în prod</p>
+    </div>
+  </div>
+
+  <!-- ================= Cheie lungă și intervale personalizate ================= -->
+  <div class="state s-long">
+    <div class="card">
+      <table>
+        <caption class="sr">Schimbările din dev, cea mai nouă prima</caption>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody>
+          <tr><td class="when"><time datetime="2026-11-27T10:00:00Z" title="2026-11-27T10:00:00Z">27 nov. 2026, 12:00:00</time></td>
+            <td data-label="Flag"><code>parking-spot-recommendation-based-on-previous-reservations-and-time-of-day</code></td>
+            <td data-label="Acțiune"><span class="act"><span aria-hidden="true">%</span> Rollout</span></td>
+            <td data-label="Înainte → după"><span class="change"><span>intervale personalizate <code>[{"value":true,"from":10,"to":60}]</code></span>
+              <span aria-hidden="true">→</span><span class="sr">devine</span> 25%</span></td>
+            <td data-label="Versiunea configurației">v1204</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="more"><p class="sm muted">O singură schimbare în dev</p></div>
+  </div>
+
+  <!-- ================= Nicio schimbare în mediu ================= -->
+  <div class="state s-empty">
+    <div class="card empty">
+      <h2>Nicio schimbare în prod</h2>
+      <p class="muted">Aici apare fiecare pornire, oprire și schimbare de rollout făcută din dashboard, cu ora, valoarea dinainte și
+        de după și versiunea configurației pe care a creat-o.</p>
+      <p class="sm muted"><a href="#">Mergi la flag-uri</a> ca să faci o schimbare.</p>
+    </div>
+  </div>
+
+  <!-- ================= Nicio schimbare pentru flag-ul ales ================= -->
+  <div class="state s-empty-flag">
+    <div class="card empty">
+      <h2>Nicio schimbare pentru <code>search-v2</code> în prod</h2>
+      <p class="muted">Flag-ul n-a fost pornit, oprit sau schimbat din dashboard în acest mediu.</p>
+      <p class="notice-actions"><button class="btn" type="button">Arată toate flag-urile</button></p>
+    </div>
+  </div>
+
+  <!-- ================= Încărcare ================= -->
+  <div class="state s-loading">
+    <div class="card">
+      <table>
+        <thead><tr><th>Ora</th><th>Flag</th><th>Acțiune</th><th>Înainte → după</th><th>Versiunea configurației</th></tr></thead>
+        <tbody class="skeleton" aria-busy="true" aria-label="Se încarcă jurnalul">
+          <tr><td><div style="width:80%"></div></td><td><div style="width:60%"></div></td><td><div style="width:50%"></div></td><td><div style="width:70%"></div></td><td><div style="width:30%"></div></td></tr>
+          <tr><td><div style="width:80%"></div></td><td><div style="width:60%"></div></td><td><div style="width:50%"></div></td><td><div style="width:70%"></div></td><td><div style="width:30%"></div></td></tr>
+          <tr><td><div style="width:80%"></div></td><td><div style="width:60%"></div></td><td><div style="width:50%"></div></td><td><div style="width:70%"></div></td><td><div style="width:30%"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ================= Eroare ================= -->
+  <div class="state s-error">
+    <div class="notice error" role="alert">
+      <span class="icon" aria-hidden="true">!</span>
+      <div><strong>Nu am putut încărca jurnalul.</strong> Serverul nu răspunde. Verifică conexiunea și încearcă din nou.
+        <div class="notice-actions"><button class="btn" type="button">Încearcă din nou</button></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+document.getElementById('state').onchange = e => document.body.dataset.state = e.target.value;
+// Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+document.querySelectorAll('.seg button').forEach(b => b.onclick = () =>
+  document.querySelectorAll('.seg button').forEach(x => x.setAttribute('aria-pressed', x === b)));
+</script>
+</body>
+</html>

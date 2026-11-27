@@ -1,6 +1,6 @@
 // The admin API (C-007): login with the one admin password (D-008), an in-memory
-// session (D-019), the flag list of an environment, the switch (the kill switch, D-004)
-// and rollout on boolean flags. Every real change is one transaction with the
+// session (D-019), the flag list of an environment, the switch (the kill switch, D-004),
+// rollout on boolean flags, the experiment results and the audit log. Every real change is one transaction with the
 // config_version bump (D-010) and an audit row (D-020). No CORS: the dashboard is
 // served from this origin; writes must be application/json, so a cross-site form
 // cannot send them.
@@ -9,6 +9,7 @@ import { isDeepStrictEqual, promisify } from 'node:util';
 import express from 'express';
 import { readSnapshot, transaction } from './db.js';
 import { experimentResults } from './experiments.js';
+import { auditEntries } from './audit.js';
 
 const scrypt = promisify(scryptCallback);
 const KEY_LENGTH = 64;
@@ -16,6 +17,7 @@ const SESSION_MS = 8 * 60 * 60 * 1000;
 const COOKIE = 'ff_admin';
 const COOKIE_ATTRIBUTES = 'HttpOnly; Secure; SameSite=Strict; Path=/';
 const ENVIRONMENTS = new Set(['dev', 'prod']);
+const MAX_SERIAL = 2147483647; // the largest audit_log id (serial)
 const MAX_FAILURES = 10;
 const FAILURE_WINDOW_MS = 60 * 1000;
 export const MIN_PASSWORD_LENGTH = 12;
@@ -292,6 +294,35 @@ export function adminRoutes(app, { pool, adminPasswordHash }) {
       });
     } catch (err) {
       console.error('GET /admin/experiments: database error', err);
+      return res.status(500).end();
+    }
+    if (result === null) return res.status(404).end();
+    res.json(result);
+  });
+
+  // The audit log of one environment (C-007): 50 a page, newest first, from one snapshot.
+  // A repeated parameter arrives as an array, so it is not a string and gets 400.
+  app.get('/admin/audit', requireAdmin, async (req, res) => {
+    const env = environmentName(req);
+    const { flag = null, before: cursor = null } = req.query;
+    if (env === null) return res.status(400).end();
+    if (flag !== null && (typeof flag !== 'string' || flag === '')) return res.status(400).end();
+    if (cursor !== null && (typeof cursor !== 'string' || !/^\d+$/.test(cursor))) return res.status(400).end();
+    const before = cursor === null ? null : Number(cursor);
+    if (before !== null && (before < 1 || before > MAX_SERIAL)) return res.status(400).end();
+    let result;
+    try {
+      result = await readSnapshot(pool, async (db) => {
+        const environment = await openEnvironment(db, env);
+        if (environment === null) return null;
+        // A key with a NUL cannot be stored, so it has no entries; PostgreSQL would refuse it.
+        const page = flag?.includes('\u0000')
+          ? { entries: [], nextBefore: null }
+          : await auditEntries(db, environment.id, { flag, before });
+        return { project: { id: environment.project_id, name: environment.project_name }, environment: env, ...page };
+      });
+    } catch (err) {
+      console.error('GET /admin/audit: database error', err);
       return res.status(500).end();
     }
     if (result === null) return res.status(404).end();

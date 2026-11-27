@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { createApp } from '../src/app.js';
 
 // The dashboard served from the server's origin (D-007, D-014): a fixed list of files
-// (the three pages, the stylesheet, src/), never its tests or package.json. The pages
+// (the four pages, the stylesheet, src/), never its tests or package.json. The pages
 // themselves are public; the data behind them needs a session (C-007). No database.
 let app;
 before(async () => {
@@ -35,10 +35,11 @@ test('GET /dashboard/ serves the flags page (DS-web2-flags); /dashboard redirect
   assert.equal(redirect.headers.get('location'), '/dashboard/');
 });
 
-test('the login and experiment pages, the stylesheet and the scripts are served with their content types and headers', async () => {
+test('the login, experiment and audit pages, the stylesheet and the scripts are served with their content types and headers', async () => {
   for (const [path, file, type] of [
     ['/dashboard/login.html', 'dashboard/login.html', /^text\/html/],
     ['/dashboard/experiment.html', 'dashboard/experiment.html', /^text\/html/],
+    ['/dashboard/audit.html', 'dashboard/audit.html', /^text\/html/],
     ['/dashboard/styles.css', 'dashboard/styles.css', /^text\/css/],
     ['/dashboard/src/app.js', 'dashboard/src/app.js', /^text\/javascript/],
     ['/dashboard/src/login.js', 'dashboard/src/login.js', /^text\/javascript/],
@@ -46,6 +47,8 @@ test('the login and experiment pages, the stylesheet and the scripts are served 
     ['/dashboard/src/flags.js', 'dashboard/src/flags.js', /^text\/javascript/],
     ['/dashboard/src/experiment.js', 'dashboard/src/experiment.js', /^text\/javascript/],
     ['/dashboard/src/results.js', 'dashboard/src/results.js', /^text\/javascript/],
+    ['/dashboard/src/audit.js', 'dashboard/src/audit.js', /^text\/javascript/],
+    ['/dashboard/src/audit-text.js', 'dashboard/src/audit-text.js', /^text\/javascript/],
   ]) {
     const res = await get(path);
     assert.equal(res.status, 200, path);

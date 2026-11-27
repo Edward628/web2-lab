@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jurnal de audit · Flag-uri</title>
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="src/audit.js"></script>
+</head>
+<body>
+<!-- DS-web2-audit (approved 2026-11-27): every change made from the dashboard in one
+     environment, newest first, 50 a page (C-007 GET /admin/audit). -->
+<header>
+  <span class="brand">Flag-uri</span>
+  <nav aria-label="Principal">
+    <a href="./">Flag-uri</a>
+    <a href="experiment.html">Experimente</a>
+    <a href="audit.html" aria-current="page">Jurnal de audit</a>
+  </nav>
+  <div class="account">
+    <span class="sm muted">admin</span>
+    <button id="logout" class="btn" type="button">Ieși</button>
+  </div>
+</header>
+
+<main>
+  <div class="titlebar">
+    <div>
+      <h1>Jurnal de audit</h1>
+      <div id="project" class="sm muted"></div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="seg" role="group" aria-label="Mediu">
+      <button type="button" data-env="dev" aria-pressed="false">dev</button>
+      <button type="button" data-env="prod" aria-pressed="true">prod</button>
+    </div>
+    <label class="filter"><span class="sm muted">Flag</span>
+      <select id="flag" class="input"><option value="">Toate flag-urile</option></select>
+    </label>
+  </div>
+
+  <div id="content"></div>
+  <div id="more" class="more" hidden></div>
+</main>
+</body>
+</html>
