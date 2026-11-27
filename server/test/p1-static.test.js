@@ -78,9 +78,10 @@ test('without P1_SDK_KEY, /p1/config.js is 404 (P1 then shows the control)', asy
   assert.equal((await get(withoutKey, '/p1/')).status, 200);
 });
 
+// '/' is no longer here: it serves the start page, and dashboard-static.test.js checks that GET /
+// returns exactly dashboard/home.html, never the repo root (user, 2026-11-27).
 test('nothing outside the fixed list is served: repo root, .env, tests, package files, server code', async () => {
   for (const path of [
-    '/',
     '/.env',
     '/.env.example',
     '/p1/test/helpers.js',

@@ -1,5 +1,5 @@
-/* The admin dashboard: DS-web2-login, DS-web2-flags, DS-web2-experiment (approved 2026-11-26) and
-   DS-web2-audit (approved 2026-11-27).
+/* The admin dashboard: DS-web2-login, DS-web2-flags, DS-web2-experiment (approved 2026-11-26),
+   DS-web2-audit and the start page DS-web2-home (approved 2026-11-27).
    Tokens: docs/design/DESIGN.md, exactly; no value outside them. Theme follows the
    system (prefers-color-scheme), no switch. */
 :root {
@@ -164,12 +164,23 @@ select.input { font:inherit; min-height:var(--control-h); max-width:100%; paddin
 .field-error { color:var(--color-danger); margin-top:var(--space-1); }
 .login .btn-primary { width:100%; }
 
+/* Start page (DS-web2-home), at /: a column of 20 × space-8 = 640 px; the buttons are links. */
+.home { max-width:calc(var(--space-8) * 20); padding-top:var(--space-8); padding-bottom:var(--space-8); }
+.home h1 { margin-bottom:var(--space-3); overflow-wrap:anywhere; }
+.eyebrow { font:var(--text-sm); color:var(--color-text-muted); margin:0 0 var(--space-2); }
+.actions { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+.choice { display:flex; flex-direction:column; gap:var(--space-2); min-width:0; }
+.home .btn { display:inline-flex; align-items:center; justify-content:center; text-decoration:none; white-space:normal; }
+.hint { font:var(--text-sm); color:var(--color-text-muted); margin:0; }
+
 /* Mobile: the table becomes cards; touch targets ≥ 44 × 44 px. */
 @media (max-width:767px) {
   :root { --control-h:44px; }
   header, main { padding-left:var(--space-4); padding-right:var(--space-4); }
   .login { padding-top:var(--space-6); }
   .login .card { padding:var(--space-4); }
+  .home { padding-top:var(--space-6); padding-bottom:var(--space-6); }
+  .actions { grid-template-columns:1fr; }
   thead { display:none; }
   table, tbody, tr, td { display:block; width:100%; }
   tr { border-top:1px solid var(--color-divider); padding:var(--space-2) 0; }

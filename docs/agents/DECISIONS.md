@@ -114,7 +114,7 @@
   în header. SDK-ul se publică drept tarball făcut cu `npm pack` în `sdk/`, fără cont npm.
 - **Why:** granițe clare între server, UI, SDK și P1; publicarea pe npm nu e necesară.
 - **Evidence:** user, 2026-11-18; Q-004, Q-022, Q-023.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-27
 
 ## D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune
 - **Status:** approved

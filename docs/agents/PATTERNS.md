@@ -14,7 +14,7 @@
 - PATTERN-006 · `localStorage` se primește ca parametru și orice acces e în try/catch · candidate
 - PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server · candidate
 - PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML · candidate
-- PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile` · candidate
+- PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile` · approved
 - PATTERN-010 · O listă paginată din API-ul de administrare: cursor pe `id`, `LIMIT n + 1`, `nextBefore` · candidate
 
 ---
@@ -26,7 +26,7 @@
   eroare, succes, confirmare) și un selector light / dark. Stările sunt blocuri `.state`
   afișate după `body[data-state]`; tokens-urile sunt variabile CSS din `DESIGN.md`.
 - **Example:** `docs/design/mocks/DS-web2-flags.html`
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## PATTERN-002 · Vectorii de referință vin dintr-o implementare independentă, nu din codul testat
 - **Status:** candidate
@@ -103,7 +103,7 @@
 - **Confirmed:** 2026-11-27
 
 ## PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile`
-- **Status:** candidate
+- **Status:** approved
 - **How:** Serverul servește P1 și dashboard-ul dintr-o listă fixă (D-014), iar imaginea Docker copiază tot
   o listă fixă. O pagină nouă (de exemplu `dashboard/experiment.html`) primește: ruta în `serveDashboard`
   / `serveP1` (`server/src/app.js`), o linie în testul static (`server/test/dashboard-static.test.js`) și
@@ -111,6 +111,7 @@
   `docker compose up -d --build --wait server` și `curl` pe URL-ul paginii (200). Fișierele din `src/`
   intră automat (folderul e copiat întreg).
 - **Example:** `server/Dockerfile` (`dashboard/experiment.html`, PR-ul DS-web2-experiment)
+- **Evidence:** user, plan „Start page at /” (DS-web2-home), 2026-11-27: promovat din candidate.
 - **Confirmed:** 2026-11-27
 
 ## PATTERN-010 · O listă paginată din API-ul de administrare: cursor pe `id`, `LIMIT n + 1`, `nextBefore`

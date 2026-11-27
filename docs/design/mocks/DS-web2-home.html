@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DS-web2-home · Pagina de start (mock, approved)</title>
+<style>
+/* Tokens: docs/design/DESIGN.md (aprobate 2026-11-18). Nicio valoare în afara lor. */
+:root {
+  --color-bg:#FFFFFF; --color-surface:#F6F7F9; --color-text:#1F2328; --color-text-muted:#59636E;
+  --color-border:#818B98; --color-divider:#D0D7DE; --color-accent:#4F46E5; --color-accent-hover:#4338CA;
+  --color-on-accent:#FFFFFF; --color-success:#1A7F37; --color-warning:#9A6700; --color-danger:#CF222E;
+  --font-sans:system-ui, "Segoe UI", sans-serif; --font-mono:ui-monospace, Consolas, monospace;
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-6:24px; --space-8:32px;
+  --radius-sm:6px; --radius-md:12px; --duration-fast:150ms; --layout-max:1100px;
+  --text-sm:400 13px/20px var(--font-sans); --text-base:400 15px/24px var(--font-sans);
+  --text-lg:600 18px/28px var(--font-sans); --text-xl:600 24px/32px var(--font-sans);
+  --control-h:36px; /* ≥ 24 px cu pointer; 44 px pe mobil (mai jos) */
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}}
+:root[data-theme="dark"] {
+  --color-bg:#0D1117; --color-surface:#161B22; --color-text:#E6EDF3; --color-text-muted:#9198A1;
+  --color-border:#6E7681; --color-divider:#30363D; --color-accent:#818CF8; --color-accent-hover:#A5B4FC;
+  --color-on-accent:#0D1117; --color-success:#3FB950; --color-warning:#D29922; --color-danger:#F85149;
+}
+@media (prefers-reduced-motion: reduce) { :root { --duration-fast:0ms; } }
+
+* { box-sizing:border-box; }
+body { margin:0; background:var(--color-bg); color:var(--color-text); font:var(--text-base); }
+:focus-visible { outline:2px solid var(--color-accent); outline-offset:2px; }
+.muted { color:var(--color-text-muted); }
+
+/* Bara de control a mock-ului (nu face parte din ecran) */
+.mockbar { display:flex; flex-wrap:wrap; gap:var(--space-2); align-items:center; padding:var(--space-2) var(--space-4);
+  border-bottom:1px dashed var(--color-divider); font:var(--text-sm); color:var(--color-text-muted); }
+.mockbar label { display:inline; }
+
+/* Ecranul. Lățimea „mobil 360 px” e doar o ramă a mock-ului, ca să se vadă împachetarea. */
+.frame { margin:0 auto; }
+body[data-width="mobile"] .frame { max-width:calc(var(--space-8) * 11 + var(--space-2)); /* 360 px */
+  border-left:1px dashed var(--color-divider); border-right:1px dashed var(--color-divider); }
+
+/* Același header ca DS-web2-login: doar numele, fără navigare (pagina nu cere sesiune). */
+header { display:flex; align-items:center; gap:var(--space-4); padding:var(--space-3) var(--space-6);
+  border-bottom:1px solid var(--color-divider); }
+.brand { font-weight:600; }
+
+/* Conținutul: o coloană îngustă, 20 × space-8 = 640 px, fără o valoare nouă. */
+main { max-width:calc(var(--space-8) * 20); margin:0 auto; padding:var(--space-8) var(--space-6); }
+.eyebrow { font:var(--text-sm); color:var(--color-text-muted); margin:0 0 var(--space-2); }
+h1 { font:var(--text-xl); margin:0 0 var(--space-3); overflow-wrap:anywhere; }
+.lead { margin:0 0 var(--space-6); }
+.actions { display:grid; grid-template-columns:1fr 1fr; gap:var(--space-4); }
+.choice { display:flex; flex-direction:column; gap:var(--space-2); min-width:0; }
+.hint { font:var(--text-sm); color:var(--color-text-muted); margin:0; }
+
+/* Butoanele sunt linkuri (navighează), cu stilul .btn din dashboard. */
+.btn { display:inline-flex; align-items:center; justify-content:center; font:inherit; min-height:var(--control-h);
+  padding:var(--space-1) var(--space-4); border-radius:var(--radius-sm); text-decoration:none;
+  border:1px solid var(--color-border); background:var(--color-bg); color:var(--color-text);
+  transition:background var(--duration-fast); }
+.btn:hover { background:var(--color-surface); }
+.btn-primary { background:var(--color-accent); color:var(--color-on-accent); border-color:var(--color-accent); font-weight:600; }
+.btn-primary:hover { background:var(--color-accent-hover); border-color:var(--color-accent-hover); }
+
+/* Pe mobil: țintă tactilă ≥ 44 px, butoanele unul sub altul, pe toată lățimea. */
+@media (max-width:767px) {
+  :root { --control-h:44px; }
+  header { padding-left:var(--space-4); padding-right:var(--space-4); }
+  main { padding:var(--space-6) var(--space-4); }
+  .actions { grid-template-columns:1fr; }
+}
+body[data-width="mobile"] { --control-h:44px; }
+body[data-width="mobile"] header { padding-left:var(--space-4); padding-right:var(--space-4); }
+body[data-width="mobile"] main { padding:var(--space-6) var(--space-4); }
+body[data-width="mobile"] .actions { grid-template-columns:1fr; }
+</style>
+</head>
+<body data-width="desktop">
+
+<div class="mockbar" role="region" aria-label="Controale mock">
+  <strong>Mock DS-web2-home · approved (2026-11-27)</strong>
+  <span>Stare: Implicit (pagină statică, fără date, deci fără încărcare, gol sau eroare)</span>
+  <label>Lățime:
+    <select id="width"><option value="desktop">desktop</option><option value="mobile">mobil 360 px</option></select>
+  </label>
+  <label>Temă:
+    <select id="theme"><option value="light">light</option><option value="dark">dark</option></select>
+  </label>
+</div>
+
+<div class="frame">
+  <header>
+    <span class="brand">Flag-uri</span>
+  </header>
+
+  <main>
+    <p class="eyebrow">web2-lab · Tehnologii Web II</p>
+    <h1>Feature flags și experimente A/B</h1>
+    <p class="lead muted">Un serviciu de feature flags și experimente A/B, cu un SDK JavaScript.
+      Aplicațiile primesc configurația, o evaluează local și trimit expuneri și conversii;
+      dashboard-ul arată rezultatele experimentului, cu semnificație statistică.</p>
+    <div class="actions">
+      <div class="choice">
+        <a class="btn btn-primary" href="/p1/" aria-describedby="hint-p1">Aplicația demo (P1)</a>
+        <p id="hint-p1" class="hint">Rezervă un loc de parcare. Butonul face parte din experimentul A/B.</p>
+      </div>
+      <div class="choice">
+        <a class="btn" href="/dashboard/" aria-describedby="hint-dash">Dashboard admin</a>
+        <p id="hint-dash" class="hint">Flag-uri, kill switch, rezultate și jurnal de audit. Necesită parola de admin.</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+document.getElementById('width').onchange = e => document.body.dataset.width = e.target.value;
+// Aplicația urmează tema sistemului, fără buton. Selectorul e doar pentru comparare în mock.
+const themeSel = document.getElementById('theme');
+themeSel.value = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+themeSel.onchange = e => document.documentElement.dataset.theme = e.target.value;
+</script>
+</body>
+</html>
