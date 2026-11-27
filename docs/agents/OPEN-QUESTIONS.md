@@ -80,7 +80,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## Q-004 · How are the labs laid out in the repo (one folder per lab, one shared app, …)?
 - **Status:** answered
