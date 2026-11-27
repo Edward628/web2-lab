@@ -88,11 +88,13 @@ test('footer while older changes remain: how many are shown', () => {
   assert.equal(text(footerParts({ count: 1, env: 'dev', flag: null, more: true, pages: 1 })), '1 schimbare afișată în dev');
 });
 
-test('footer at the end: all of them, and "Mai vechi nu există." once older pages were loaded', () => {
+// "Toate cele N schimbări din <env>. Mai vechi nu există." on every last page of the whole log,
+// as in the approved mock (user, 2026-11-27, after checking 11 real changes on one page).
+test('footer at the end: all of them, and "Mai vechi nu există." on the whole log', () => {
   assert.equal(text(footerParts({ count: 1, env: 'prod', flag: null, more: false, pages: 1 })), 'O singură schimbare în prod');
-  assert.equal(text(footerParts({ count: 2, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 2 schimbări din prod');
-  assert.equal(text(footerParts({ count: 19, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 19 schimbări din prod');
-  assert.equal(text(footerParts({ count: 20, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 20 de schimbări din prod');
+  assert.equal(text(footerParts({ count: 2, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 2 schimbări din prod. Mai vechi nu există.');
+  assert.equal(text(footerParts({ count: 19, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 19 schimbări din prod. Mai vechi nu există.');
+  assert.equal(text(footerParts({ count: 20, env: 'prod', flag: null, more: false, pages: 1 })), 'Toate cele 20 de schimbări din prod. Mai vechi nu există.');
   assert.equal(
     text(footerParts({ count: 52, env: 'prod', flag: null, more: false, pages: 2 })),
     'Toate cele 52 de schimbări din prod. Mai vechi nu există.',
