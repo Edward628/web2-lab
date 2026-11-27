@@ -41,6 +41,13 @@ designs:
     app: dashboard
     status: draft
     mock: none
+  # Pagina de start (publică, la /)
+  - id: DS-web2-home
+    kind: screen
+    name: Pagina de start
+    app: dashboard   # dashboard/home.html (proposed), served at / by the server
+    status: approved   # mock confirmed 2026-11-27, with a short hint under each button
+    mock: docs/design/mocks/DS-web2-home.html
   # P1 (colegii de grupă)
   - id: DS-web2-parking
     kind: screen
