@@ -60,7 +60,8 @@ export function footerParts({ count, env, flag, more, pages }) {
   if (more) return [`${count === 1 ? '1 schimbare afișată' : `${changes(count)} afișate`} în ${env}`];
   const end = pages > 1 ? '. Mai vechi nu există.' : '';
   if (flag === null) {
-    return [count === 1 ? `O singură schimbare în ${env}${end}` : `Toate cele ${changes(count)} din ${env}${end}`];
+    // The whole log always ends with the sentence (the mock); one change does not.
+    return [count === 1 ? `O singură schimbare în ${env}${end}` : `Toate cele ${changes(count)} din ${env}. Mai vechi nu există.`];
   }
   const head = count === 1 ? 'O singură schimbare a flag-ului ' : `Toate cele ${changes(count)} ale flag-ului `;
   return [head, { code: flag }, ` în ${env}${end}`];
