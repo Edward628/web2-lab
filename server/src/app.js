@@ -52,9 +52,10 @@ function serveP1(app, p1SdkKey) {
 }
 
 // The dashboard (DS-web2-flags, DS-web2-login, DS-web2-experiment, DS-web2-audit): its four pages, the stylesheet and
-// src/; never its tests or package.json. The pages are public; their data needs a
+// src/; never its tests or package.json. The start page (DS-web2-home) lives there too and is served only at /. The pages are public; their data needs a
 // session (C-007). Same headers as P1: no sniffing, never framed.
 function serveDashboard(app) {
+  app.get('/', p1Headers, (req, res) => res.sendFile('home.html', { root: dashboardDir }));
   app.use('/dashboard', p1Headers);
   app.get('/dashboard', (req, res) => {
     if (!req.path.endsWith('/')) return res.redirect(301, '/dashboard/');

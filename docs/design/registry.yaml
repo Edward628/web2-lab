@@ -45,8 +45,8 @@ designs:
   - id: DS-web2-home
     kind: screen
     name: Pagina de start
-    app: dashboard   # dashboard/home.html (proposed), served at / by the server
-    status: approved   # mock confirmed 2026-11-27, with a short hint under each button
+    app: dashboard   # dashboard/home.html, served only at / by the server
+    status: implemented   # dashboard/home.html, 2026-11-27; mock confirmed the same day, with a short hint under each button. Static, no script
     mock: docs/design/mocks/DS-web2-home.html
   # P1 (colegii de grupă)
   - id: DS-web2-parking

@@ -98,6 +98,7 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 (cd sdk && npm test)                              # SDK unit tests (node --test)
 (cd p1 && npm test)                               # P1 unit tests (node --test)
 (cd dashboard && npm test)                        # dashboard unit tests (node --test)
+#   start page: http://127.0.0.1:3000/ (DS-web2-home; links P1 and the dashboard)
 #   dashboard: http://127.0.0.1:3000/dashboard/ (served by the server; set ADMIN_PASSWORD_HASH in .env)
 #   experiment results: http://127.0.0.1:3000/dashboard/experiment.html (DS-web2-experiment)
 #   audit log: http://127.0.0.1:3000/dashboard/audit.html (DS-web2-audit)
