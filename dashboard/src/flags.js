@@ -80,3 +80,20 @@ export const undoOf = (change) => ({ key: change.key, env: change.env, enabled: 
 export const footerText = (count, env, version) => `${countRo(count, 'flag', 'flag-uri')} în ${env} · configurația v${version}`;
 
 export const emptyTitle = (env) => `Niciun flag în ${env}`;
+
+// D-022: the server decides whether a flag is stale or 100% într-o direcție; the badge
+// only counts the whole days since then, on this browser's clock.
+const DAY_MS = 24 * 60 * 60 * 1000;
+const daysSince = (iso, now) => countRo(Math.floor((now - Date.parse(iso)) / DAY_MS), 'zi', 'zile');
+
+export function badges(flag, now = Date.now()) {
+  const out = [];
+  if (flag.stale) {
+    out.push(flag.lastEvaluatedAt === null ? '⚠ Stale · neevaluat niciodată' : `⚠ Stale · neevaluat de ${daysSince(flag.lastEvaluatedAt, now)}`);
+  }
+  if (flag.oneDirection !== null) {
+    const state = flag.oneDirection.value === true ? 'pornit' : 'oprit';
+    out.push(`⚠ 100% ${state} de ${daysSince(flag.oneDirection.since, now)} · poate fi arhivat`);
+  }
+  return out;
+}

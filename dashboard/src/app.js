@@ -13,6 +13,7 @@ import {
   undoOf,
   footerText,
   emptyTitle,
+  badges,
 } from './flags.js';
 
 const $ = (id) => document.getElementById(id);
@@ -97,11 +98,17 @@ function switchFor(flag, busy) {
   return button;
 }
 
+// Stale and 100% într-o direcție (D-022), under the flag name as in the mock; nothing when neither.
+function badgesFor(flag) {
+  const texts = badges(flag);
+  return texts.length === 0 ? null : el('div', { class: 'tags' }, ...texts.map((t) => el('span', { class: 'tag warn' }, t)));
+}
+
 function showList(version, busyKey = null) {
   if (flags.length === 0) return showEmpty();
   const rows = flags.map((flag) =>
     el('tr', {},
-      el('td', {}, el('div', { class: 'flagname' }, el('code', {}, flag.key))),
+      el('td', {}, el('div', { class: 'flagname' }, el('code', {}, flag.key)), badgesFor(flag)),
       el('td', { 'data-label': 'Tip' }, typeLabel(flag)),
       el('td', { 'data-label': 'Targetare' }, targetingSummary(flag)),
       el('td', { 'data-label': 'Stare' }, switchFor(flag, flag.key === busyKey)),
