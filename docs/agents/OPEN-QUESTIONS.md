@@ -34,7 +34,7 @@
 - Q-021 · Ce operatori au regulile de targetare? · _answered_
 - Q-022 · Gestionează dashboard-ul mai multe proiecte? · _answered_
 - Q-023 · Cum se publică SDK-ul? · _answered_
-- Q-024 · După câte zile e semnalat un flag „100% într-o direcție”?
+- Q-024 · După câte zile e semnalat un flag „100% într-o direcție”? · _answered_
 - Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
 - Q-028 · Cum citește serverul versiunea și flag-urile unui mediu consistent, când există scrieri? · _answered_
 - Q-029 · Ce are voie să conțină configurația publică, și cât de aleatoare sunt cheile SDK?
@@ -326,13 +326,15 @@
 - **Recorded as:** D-007
 
 ## Q-024 · După câte zile e semnalat un flag „100% într-o direcție”?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** detecția flag-urilor 100% într-o direcție (mock-ul arată „de 45 de zile” doar ca exemplu)
 - **Who answers:** the user
 - **Proposed answer:** 30 de zile, ca la flag-urile stale; „100%” = rollout 100% pornit,
   0% (oprit) sau o variantă cu intervalul întreg.
-- **Answer:**
-- **Recorded as:**
+- **Answer:** 2026-11-27 (user): 30 de zile, de la cel mai nou rând din `audit_log` al flag-ului în acel
+  mediu; fără rând de audit, fără semnal. Doar flag-uri boolean la care toți primesc aceeași valoare
+  (oprit, sau pornit fără reguli cu rollout 0 ori 100). Un flag neevaluat niciodată e stale.
+- **Recorded as:** D-022; C-007
 - **Confirmed:** 2026-11-27
 
 ## Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?

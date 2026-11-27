@@ -15,7 +15,7 @@ conversie, iar dashboard-ul arată rezultatele experimentului, cu semnificație 
 | Pagina de start (`/`) | Prezintă proiectul și duce la P1 și la dashboard. |
 | P1 (`/p1/`) | Aplicația de parcare: locuri simulate și butonul „Rezervă locul”, pe care rulează experimentul `reserve-button-color` (`blue` / `green`, metrica `reserve_click`). Utilizator anonim, fără date personale (D-006). |
 | Dashboard — Autentificare | Un singur admin, parolă verificată cu hash scrypt, sesiune de 8 h (D-019). |
-| Dashboard — Lista flag-urilor | Comutatorul Pornit / Oprit pe mediul ales (este kill switch-ul, cu confirmare în prod) și rollout-ul la flag-urile boolean (D-004). |
+| Dashboard — Lista flag-urilor | Comutatorul Pornit / Oprit pe mediul ales (este kill switch-ul, cu confirmare în prod) și rollout-ul la flag-urile boolean (D-004); semnalează flag-urile stale (neevaluate de 30 de zile) și pe cele 100% într-o direcție de 30 de zile (D-022). |
 | Dashboard — Rezultatele experimentului | Expuneri, conversii și rata per variantă, interval de încredere 95%, p-value (test z), eșantion minim, „nu e semnificativ încă” și avertisment de peeking (D-001, D-021). |
 | Dashboard — Jurnal de audit | Fiecare schimbare a unui flag: ce s-a schimbat, când (ora României), valoarea dinainte și de după. |
 | SDK (`sdk/`) | `init`, `identify`, `isEnabled`, `getVariant`, `track`, `flush`, `refresh`, `connect`, `close`, `status`. Evaluare locală cu bucketing determinist (MurmurHash3), actualizări prin SSE cu fallback la polling, cache în `localStorage`, starea `stale`, evenimente trimise în batch (D-003, D-018). |
@@ -87,8 +87,6 @@ de `127.0.0.1` și `localhost`. Metoda, comanda și rezultatele: `docs/LOAD-TEST
 | Istoricul configurației | doar jurnalul de audit, fără revenire la o versiune anterioară |
 
 ### Neconstruit încă
-- Detecția flag-urilor stale (neevaluate de 30 de zile) și a celor 100% într-o direcție:
-  serverul salvează doar `last_evaluated_at` (Q-024).
 - Din dashboard: crearea flag-urilor, regulile de targetare, descrierile, etichetele și arhivarea.
   Singurul flag, `reserve-button-color`, e creat de seed.
 - Ecranele „Detaliul unui flag” și „Proiect și medii” (Q-040).

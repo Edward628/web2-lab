@@ -113,7 +113,21 @@ function rolloutOf(type, variants) {
   return variants.length === 1 && v.value === true && v.from === 0 ? v.to : null;
 }
 
+// The value every user gets from a boolean flag, or undefined when users can get different
+// ones (D-022): off serves the default (D-004); on with no rules, rollout 0 serves the default
+// and rollout 100 serves true.
+function singleValue(row) {
+  if (row.type !== 'boolean') return undefined;
+  if (!row.enabled) return row.default;
+  if (row.rules.length > 0) return undefined;
+  const rollout = rolloutOf(row.type, row.variants);
+  if (rollout === 0) return row.default;
+  if (rollout === 100) return true;
+  return undefined;
+}
+
 function flagView(row) {
+  const value = singleValue(row);
   return {
     key: row.key,
     type: row.type,
@@ -122,6 +136,9 @@ function flagView(row) {
     ruleCount: row.rules.length,
     variants: row.variants,
     rollout: rolloutOf(row.type, row.variants),
+    lastEvaluatedAt: row.last_evaluated_at?.toISOString() ?? null,
+    stale: row.stale,
+    oneDirection: value !== undefined && row.unchanged_30_days ? { value, since: row.last_changed_at.toISOString() } : null,
   };
 }
 
@@ -147,14 +164,20 @@ async function openEnvironment(db, name) {
   return r.rowCount === 0 || r.rows[0].id === null ? null : r.rows[0];
 }
 
-const FLAG_COLUMNS = 'f.id, f.key, f.type, fe.enabled, fe."default", fe.rules, fe.variants';
+// D-022: stale = never evaluated or not in 30 days; last_changed_at = the newest audit row of
+// the flag in that environment (null with none), against the database clock.
+const FLAG_COLUMNS = `f.id, f.key, f.type, fe.enabled, fe."default", fe.rules, fe.variants, fe.last_evaluated_at,
+  (fe.last_evaluated_at IS NULL OR fe.last_evaluated_at < now() - interval '30 days') AS stale,
+  lc.at AS last_changed_at, coalesce(lc.at < now() - interval '30 days', false) AS unchanged_30_days`;
+const LAST_CHANGE = `LEFT JOIN LATERAL (SELECT max(a.at) AS at FROM audit_log a
+  WHERE a.flag_id = fe.flag_id AND a.environment_id = fe.environment_id) lc ON true`;
 
 async function listFlags(pool, envName) {
   return readSnapshot(pool, async (db) => {
     const env = await openEnvironment(db, envName);
     if (env === null) return null;
     const rows = await db.query(
-      `SELECT ${FLAG_COLUMNS} FROM flag_environments fe JOIN flags f ON f.id = fe.flag_id
+      `SELECT ${FLAG_COLUMNS} FROM flag_environments fe JOIN flags f ON f.id = fe.flag_id ${LAST_CHANGE}
         WHERE fe.environment_id = $1 ORDER BY f.key`,
       [env.id],
     );
@@ -174,7 +197,7 @@ async function updateFlag(pool, envName, key, change) {
     const env = await openEnvironment(db, envName);
     if (env === null) return 'not-found';
     const r = await db.query(
-      `SELECT ${FLAG_COLUMNS} FROM flag_environments fe JOIN flags f ON f.id = fe.flag_id
+      `SELECT ${FLAG_COLUMNS} FROM flag_environments fe JOIN flags f ON f.id = fe.flag_id ${LAST_CHANGE}
         WHERE fe.environment_id = $1 AND f.key = $2 FOR UPDATE OF fe`,
       [env.id, key],
     );
@@ -192,7 +215,8 @@ async function updateFlag(pool, envName, key, change) {
       before = { variants: row.variants };
       after = { variants: [{ value: true, from: 0, to: change.rollout }] };
     }
-    const updated = { ...row, ...after };
+    // A real change is the newest audit row, written now (D-022).
+    const updated = { ...row, ...after, unchanged_30_days: false };
 
     // Deep equality, not JSON text: JSONB returns object keys in its own order.
     if (isDeepStrictEqual(before, after)) {

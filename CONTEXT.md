@@ -61,5 +61,8 @@ _Avoid_: panic button
 **Flag stale** (substantiv) — un flag neevaluat de 30 de zile.
 _Avoid_: flag vechi, flag mort
 
+**Flag 100% într-o direcție** (substantiv) — un flag boolean la care toți utilizatorii primesc aceeași valoare, neschimbat de 30 de zile (D-022).
+_Avoid_: flag fix, flag blocat
+
 **Configurație** (substantiv) — setul versionat de flag-uri și reguli al unui mediu, servit SDK-ului.
 _Avoid_: setări, config (în UI)
