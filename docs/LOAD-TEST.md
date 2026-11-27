@@ -4,7 +4,9 @@ Cerința din fișă: ingestia trebuie să reziste la **1.000 de evenimente/s**, 
 încărcare documentat (README → „Ingestie de evenimente în batch”).
 
 **Rezultat (2026-11-27, stack-ul local): PASS.** 60.000 de evenimente în 60 s, toate acceptate,
-0 erori, p99 25 ms, numărul de rânduri din bază exact cel așteptat.
+0 erori, p99 25 ms, numărul de rânduri din bază exact cel așteptat. **Rezervă:** o a doua
+rulare de 60 s la 1.200 de evenimente/s (+20 %) a trecut la fel (72.000 acceptate, 0 erori, p99
+24 ms).
 
 ## Metoda
 
@@ -52,7 +54,8 @@ DATABASE_URL="postgres://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/web2" npm 
 docker compose logs server --since <ora de start, UTC>                                                             # erori?
 ```
 
-Opțiuni: `--duration <s>` (implicit 60), `--rate <evenimente/s>` (implicit 1000). Raportul e
+Opțiuni: `--duration <s>` (implicit 60), `--rate <evenimente/s>` (implicit 1000; rularea de
+rezervă: `--rate 1200`, adică un batch la 16,7 ms). Raportul e
 un JSON pe stdout. Rândurile rămân în baza locală `web2` (~65.000 de rânduri pe rulare);
 `docker compose down -v` șterge volumul bazei locale, iar după el se rulează din nou seed-ul.
 Codul: `server/scripts/load-test.js`, cu părțile pure în `server/scripts/load-test-lib.js`,
@@ -68,21 +71,21 @@ limitele planurilor gratuite Render și Neon (C-004, C-005), care nu sunt testat
 
 ## Rezultate — 2026-11-27
 
-| | Smoke (5 s) | Rularea de 60 s |
-|---|---|---|
-| Run id | `b8736fe9f812a3d6` | `582eee32de3f5df4` |
-| Batch-uri / evenimente trimise | 250 / 5.000 | 3.000 / 60.000 |
-| Evenimente acceptate (`204`) | 5.000 | **60.000** |
-| Throughput (evenimente/s) | 999,9 | **1.000** |
-| Erori / error rate | 0 / 0 % | **0 / 0 %** |
-| Latență p50 / p95 / p99 / max (ms) | 17,3 / 22,5 / 38,7 / 61,0 | **16,2 / 18,8 / 25,2 / 68,4** |
-| Send lag maxim (ms) | 3,3 | 4,7 |
-| `GET /sdk/config` p50 / p95 / p99 (ms) | 2,9 / 52,3 / 52,3 (5 cereri) | 2,3 / 3,8 / 40,3 (60 de cereri, toate `200`) |
-| `ingested_events` / `exposures` / `conversions` (creștere) | +5.000 / +2.500 / +2.250 (exact) | **+60.000 / +30.000 / +27.000 (exact)** |
-| `ingested_events` pe disc | 157 B / eveniment | 152 B / eveniment (+8,7 MB) |
-| `last_evaluated_at` actualizat | da | da |
-| Logul serverului | — | gol (fără `500`, fără `40P01`) |
-| Verdict | FAIL (doar throughput, vezi mai jos) | **PASS** |
+| | Smoke (5 s, 1.000/s) | Rularea de 60 s, 1.000/s | Rezervă: 60 s, 1.200/s |
+|---|---|---|---|
+| Run id | `b8736fe9f812a3d6` | `582eee32de3f5df4` | `8dc74cafefd0ee28` |
+| Batch-uri / evenimente trimise | 250 / 5.000 | 3.000 / 60.000 | 3.600 / 72.000 |
+| Evenimente acceptate (`204`) | 5.000 | **60.000** | **72.000** |
+| Throughput (evenimente/s) | 999,9 | **1.000** | **1.200** |
+| Erori / error rate | 0 / 0 % | **0 / 0 %** | **0 / 0 %** |
+| Latență p50 / p95 / p99 / max (ms) | 17,3 / 22,5 / 38,7 / 61,0 | **16,2 / 18,8 / 25,2 / 68,4** | **16,0 / 18,5 / 23,6 / 41,7** |
+| Send lag maxim (ms) | 3,3 | 4,7 | 1,9 |
+| `GET /sdk/config` p50 / p95 / p99 (ms) | 2,9 / 52,3 / 52,3 (5 cereri) | 2,3 / 3,8 / 40,3 (60 de cereri, toate `200`) | 2,3 / 5,0 / 48,4 (60 de cereri, toate `200`) |
+| `ingested_events` / `exposures` / `conversions` (creștere) | +5.000 / +2.500 / +2.250 (exact) | **+60.000 / +30.000 / +27.000 (exact)** | **+72.000 / +36.000 / +32.400 (exact)** |
+| `ingested_events` pe disc | 157 B / eveniment | 152 B / eveniment (+8,7 MB) | 152 B / eveniment (+10,4 MB) |
+| `last_evaluated_at` actualizat | da | da | da |
+| Logul serverului | — | gol (fără `500`, fără `40P01`) | gol (fără `500`, fără `40P01`) |
+| Verdict | FAIL (doar throughput, vezi mai jos) | **PASS** | **PASS** |
 
 **Despre throughput-ul de 999,9 din smoke run.** Scriptul trimite exact 1.000 de evenimente/s.
 Când ultimul batch pleacă cu câteva zecimi de milisecundă mai târziu decât primul (jitter-ul
@@ -92,9 +95,14 @@ timerelor), fereastra devine puțin mai lungă de 5 s, iar throughput-ul măsura
 limita măsurătorii. Celelalte condiții au o marjă mare: 0 erori, p99 de 40 de ori sub 1 s și
 send lag sub 5 ms. Cu ele, verdictul nu depinde de acest jitter.
 
+**Rezerva peste cerință.** Rularea la 1.200 de evenimente/s (rata trimisă e cu 20 % peste
+1.000) acceptă 1.200 de evenimente/s, deci condiția „≥ 1.000” trece cu marjă, fără să mai
+depindă de jitter. Latența a rămas aceeași ca la 1.000/s (p99 23,6 ms), iar baza a primit exact
+rândurile așteptate. Limita superioară a stack-ului local nu a fost căutată.
+
 ## Ce arată pentru întrebările deschise
 
-- **Q-031 (blocarea pe `flag_environments`):** la 50 de batch-uri/s, fiecare cu un `UPDATE`
+- **Q-031 (blocarea pe `flag_environments`):** la 50 de batch-uri/s (și la 60/s, în rularea de 1.200/s), fiecare cu un `UPDATE`
   `evaluations` pe același rând, latența ingestiei a rămas plată (p99 25 ms). Citirile
   configurației au p50 2,3 ms și p99 40 ms, deci nu au așteptat după ingestie. Pool-ul de 10
   conexiuni nu a fost epuizat la această încărcare. Pe Render și Neon (rețea, compute mai mic)
