@@ -16,6 +16,7 @@
 - PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML · candidate
 - PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile` · approved
 - PATTERN-010 · O listă paginată din API-ul de administrare: cursor pe `id`, `LIMIT n + 1`, `nextBefore` · candidate
+- PATTERN-011 · Un script care scrie date multe rulează doar pe loopback și refuză orice alt host · candidate
 
 ---
 
@@ -124,3 +125,12 @@
   rânduri noi între pagini. În pagină, „Mai vechi” adaugă rândurile; o schimbare de mediu sau de filtru
   pornește lista de la capăt, iar un răspuns întârziat la lista veche se ignoră (un contor `view`).
 - **Example:** `server/src/audit.js`, `server/test/admin-audit.test.js`, `dashboard/src/audit.js`
+
+## PATTERN-011 · Un script care scrie date multe rulează doar pe loopback și refuză orice alt host
+- **Status:** candidate
+- **How:** Un tool care scrie volum mare de date (test de încărcare) verifică, înainte de orice
+  cerere, că fiecare URL țintă (serverul și `DATABASE_URL`) are hostul `127.0.0.1`, `localhost`
+  sau `[::1]` (`new URL(url).hostname`); altfel iese cu cod 2. Mesajul de eroare numește doar
+  hostul, niciodată parola din URL. Testul unitar acoperă URL-uri Neon și Render, un IP din LAN,
+  un host care doar începe cu `127.0.0.1` și numele serviciului Docker (`db`).
+- **Example:** `server/scripts/load-test-lib.js` (`assertLocal`), `server/test/load-test.test.js`

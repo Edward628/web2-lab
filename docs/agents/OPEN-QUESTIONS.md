@@ -382,6 +382,11 @@
   (inclusiv `GET /sdk/config`) așteaptă fără limită. De măsurat întâi; apoi, de exemplu, un singur
   `UPDATE` la sfârșitul tranzacției, cu cheile sortate, plus `connectionTimeoutMillis` și
   `lock_timeout`.
+  Măsurat, 2026-11-27 (`docs/LOAD-TEST.md`, stack-ul local): 50 de batch-uri/s, fiecare cu un
+  `UPDATE` `evaluations` pe același rând, timp de 60 s: 0 erori, latența ingestiei p99 25 ms,
+  `GET /sdk/config` p50 2,3 ms / p99 40 ms. Blocarea nu se vede la 1.000 de evenimente/s pe
+  localhost. Propunere: nicio schimbare acum; timeout-urile rămân o protecție de discutat pentru
+  Render + Neon, unde nu s-a măsurat.
 - **Answer:**
 - **Recorded as:**
 
@@ -394,6 +399,9 @@
   `UPDATE`-ul `evaluations`), deci PostgreSQL abandonează un batch cu `40P01` → `500`, iar SDK-ul
   îl retrimite. Nu se pierd date. Opțiuni: scrierile sortate după cheie în tranzacție, sau
   acceptat și documentat.
+  Testul de încărcare, 2026-11-27 (`docs/LOAD-TEST.md`): nu exercită cazul (fiecare utilizator
+  într-un singur batch, un singur flag); 0 erori `500`, niciun `40P01` în log, ceea ce nu
+  dovedește că deadlock-ul nu apare. Încă nemăsurat.
 - **Answer:**
 - **Recorded as:**
 
@@ -405,9 +413,11 @@
   pe zi la 1.000 de evenimente/s), iar fiecare insert devine mai lent. O fereastră de păstrare
   (de exemplu ștergerea id-urilor mai vechi decât cel mai lung interval de retrimitere al SDK-ului)
   păstrează idempotența pentru retrimiteri.
+  Măsurat, 2026-11-27 (`docs/LOAD-TEST.md`): ~152 B pe eveniment cu indexul, deci ~13 GB pe zi
+  la 1.000 de evenimente/s; cei 0,5 GB din Neon (C-005) s-ar umple în ~1 h la această rată. La
+  traficul real (zeci de utilizatori) creșterea e neglijabilă.
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-26
 
 ## Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
 - **Status:** answered
