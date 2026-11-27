@@ -152,10 +152,12 @@
     memorie (un restart o pornește de la zero).
   - `POST /admin/logout` → `204`, șterge sesiunea și cookie-ul (`Max-Age=0`).
   - `GET /admin/flags?env=dev|prod` → `200`
-    `{project: {id, name}, environment, version, flags: [{key, type, enabled, default, ruleCount, variants, rollout}]}`,
+    `{project: {id, name}, environment, version, flags: [{key, type, enabled, default, ruleCount, variants, rollout, lastEvaluatedAt, stale, oneDirection}]}`,
     flag-urile cu rând în acel mediu, ordonate după cheie. Proiectul e cel cu id-ul cel mai mic
     (Q-040). `rollout` = N când flag-ul e boolean și `variants` e `[]` (0) sau
-    `[{value: true, from: 0, to: N}]`; altfel `null`. `env` lipsă sau alt mediu → `400`; niciun
+    `[{value: true, from: 0, to: N}]`; altfel `null`. `lastEvaluatedAt` = ISO 8601 în UTC sau `null` (neevaluat
+    niciodată); `stale` = boolean; `oneDirection` = `{value, since}` (valoarea primită de toți și data, ISO 8601,
+    a celui mai nou rând de audit) sau `null` (D-022). `env` lipsă sau alt mediu → `400`; niciun
     proiect sau mediu → `404`.
   - `PATCH /admin/flags/<flag_key>?env=dev|prod`, `Content-Type: application/json`, corpul exact unul
     dintre `{"enabled": <boolean>}` și `{"rollout": <întreg 0–100>}` → `200 {flag, version}` (`flag`
@@ -195,7 +197,8 @@
   doar flag-uri boolean pentru rollout; presupunerile acceptate); user, review-ul de securitate al
   PR-ului #20, 2026-11-26 (limita de login cu `429` aprobată; `401` pe orice altă rută `/admin`); user, plan
   „Experiment results”, 2026-11-26 (`GET /admin/experiments` aprobat); user, plan „Audit log screen”,
-  2026-11-27 (`GET /admin/audit` aprobat: cursor `before`, 50 fix, filtrul `flag` pe server).
+  2026-11-27 (`GET /admin/audit` aprobat: cursor `before`, 50 fix, filtrul `flag` pe server); user, plan „Stale and
+  100%-într-o-direcție badges in the flags list”, 2026-11-27 (`lastEvaluatedAt`, `stale`, `oneDirection` aprobate, D-022).
 - **Confirmed:** 2026-11-27
 
 ## Consumed

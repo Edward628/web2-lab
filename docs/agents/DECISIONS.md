@@ -25,6 +25,7 @@
 - D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
 - D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
 - D-021 · Statistica rezultatelor: controlul e valoarea implicită; p cu SE comun, IC Wald, eșantion minim clasic
+- D-022 · Flag-urile stale și cele 100% într-o direcție: 30 de zile, calculate pe server
 
 ---
 
@@ -295,4 +296,26 @@
   deja `blue` (valoarea implicită) drept control (D-013).
 - **Evidence:** user, plan „Experiment results”, 2026-11-26 (controlul = `default`, fiecare variantă
   față de control, formula clasică cu 294, editarea mai târziu; D-021 aprobat).
+- **Confirmed:** 2026-11-27
+
+## D-022 · Flag-urile stale și cele 100% într-o direcție: 30 de zile, calculate pe server
+- **Status:** approved
+- **Rule:** `GET /admin/flags` (și răspunsul PATCH, C-007) calculează per flag și mediu, cu ceasul
+  bazei de date (`now()`), în snapshot-ul listei:
+  - **Stale** = `last_evaluated_at` e `NULL` (neevaluat niciodată) sau mai vechi de 30 de zile.
+  - **100% într-o direcție** = un flag **boolean** la care toți utilizatorii primesc aceeași valoare:
+    comutatorul oprit (toți primesc `default`, D-004), sau pornit, fără reguli de targetare, cu rollout 0
+    (toți primesc `default`) sau 100 (toți primesc `true`). Data = cel mai nou rând din `audit_log` al
+    flag-ului în acel mediu; se semnalează doar când acel rând e mai vechi de 30 de zile. Fără rând de
+    audit (de exemplu un flag creat de seed) nu există dată, deci nici semnal. Flag-urile multivariate nu
+    se semnalează.
+  - Dashboard-ul (DS-web2-flags) arată badge-urile sub numele flag-ului, stale primul:
+    „⚠ Stale · neevaluat de N zile”, „⚠ Stale · neevaluat niciodată”, „⚠ 100% pornit de N zile · poate fi
+    arhivat” (valoarea primită de toți e `true`) și „⚠ 100% oprit de N zile · poate fi arhivat” (orice altă
+    valoare, chiar dacă comutatorul arată altfel). N = zile întregi (rotunjit în jos), numărate în browser.
+- **Why:** fișa cere semnalarea flag-urilor stale și a celor 100% într-o direcție; pragul stă într-un
+  singur loc (serverul), iar jurnalul de audit dă data ultimei schimbări fără o coloană nouă.
+- **Evidence:** user, plan „Stale and 100%-într-o-direcție badges in the flags list”, 2026-11-27 (30 de
+  zile, data din audit, fără rând → fără badge, „toți primesc o valoare”, neevaluat = stale, cele două
+  presupuneri și textele noi confirmate; D-022 aprobat). Răspunde la Q-024.
 - **Confirmed:** 2026-11-27
