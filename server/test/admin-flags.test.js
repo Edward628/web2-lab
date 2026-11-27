@@ -53,6 +53,9 @@ const newCheckoutDev = {
   ruleCount: 1,
   variants: [{ value: true, from: 0, to: 30 }],
   rollout: 30,
+  lastEvaluatedAt: null,
+  stale: true,
+  oneDirection: null,
 };
 const reserveDev = {
   key: 'reserve-button-color',
@@ -65,6 +68,9 @@ const reserveDev = {
     { value: 'green', from: 50, to: 100 },
   ],
   rollout: null,
+  lastEvaluatedAt: null,
+  stale: true,
+  oneDirection: null,
 };
 
 // --- list -------------------------------------------------------------------------
@@ -88,7 +94,10 @@ test('prod lists only the flags with a row in prod; a boolean flag with no varia
     project: { id: 1, name: 'A' },
     environment: 'prod',
     version: 3,
-    flags: [{ key: 'new-checkout', type: 'boolean', enabled: false, default: false, ruleCount: 0, variants: [], rollout: 0 }],
+    flags: [{
+      key: 'new-checkout', type: 'boolean', enabled: false, default: false, ruleCount: 0, variants: [], rollout: 0,
+      lastEvaluatedAt: null, stale: true, oneDirection: null,
+    }],
   });
 });
 
@@ -115,6 +124,112 @@ test('with no project, or no such environment in the open project, the list gets
   assert.equal((await list('prod')).status, 404);
   await pool.query('TRUNCATE projects RESTART IDENTITY CASCADE');
   assert.equal((await list('dev')).status, 404);
+});
+
+// --- stale and 100% într-o direcție (D-022) ----------------------------------------
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+const daysAgo = (days) => new Date(Date.now() - days * DAY_MS);
+const setFlag = (flagId, environmentId, columns) => {
+  const names = Object.keys(columns);
+  return pool.query(
+    `UPDATE flag_environments SET ${names.map((n, i) => `${n === 'default' ? '"default"' : n} = $${i + 3}`).join(', ')}
+      WHERE flag_id = $1 AND environment_id = $2`,
+    [flagId, environmentId, ...names.map((n) => (n === 'last_evaluated_at' ? columns[n] : JSON.stringify(columns[n])))],
+  );
+};
+const auditAt = (flagId, environmentId, at) =>
+  pool.query(
+    `INSERT INTO audit_log (at, environment_id, flag_id, action, before, after, config_version)
+     VALUES ($1, $2, $3, 'enable', '{"enabled": false}', '{"enabled": true}', 1)`,
+    [at, environmentId, flagId],
+  );
+const listed = async (env, key) => (await (await list(env)).json()).flags.find((f) => f.key === key);
+
+test('stale: never evaluated, or last evaluated more than 30 days ago; lastEvaluatedAt is ISO 8601 or null', async () => {
+  let flag = await listed('dev', 'new-checkout');
+  assert.equal(flag.lastEvaluatedAt, null);
+  assert.equal(flag.stale, true);
+
+  const old = daysAgo(31);
+  await setFlag(1, 1, { last_evaluated_at: old });
+  flag = await listed('dev', 'new-checkout');
+  assert.equal(flag.lastEvaluatedAt, old.toISOString());
+  assert.equal(flag.stale, true);
+
+  const recent = daysAgo(29);
+  await setFlag(1, 1, { last_evaluated_at: recent });
+  flag = await listed('dev', 'new-checkout');
+  assert.equal(flag.lastEvaluatedAt, recent.toISOString());
+  assert.equal(flag.stale, false);
+});
+
+test('oneDirection: switched on, rollout 100, no rules, unchanged for 30 days → everyone gets true', async () => {
+  await setFlag(1, 1, { rules: [], variants: [{ value: true, from: 0, to: 100 }] });
+  const since = daysAgo(31);
+  await auditAt(1, 1, since);
+  assert.deepEqual((await listed('dev', 'new-checkout')).oneDirection, { value: true, since: since.toISOString() });
+});
+
+test('oneDirection needs a newest audit row older than 30 days; with no audit row there is no badge', async () => {
+  await setFlag(1, 1, { rules: [], variants: [{ value: true, from: 0, to: 100 }] });
+  assert.equal((await listed('dev', 'new-checkout')).oneDirection, null);
+  await auditAt(1, 1, daysAgo(40));
+  await auditAt(1, 1, daysAgo(29));
+  assert.equal((await listed('dev', 'new-checkout')).oneDirection, null);
+});
+
+test('oneDirection dates from the newest audit row of that flag in that environment only', async () => {
+  await setFlag(1, 1, { rules: [], variants: [{ value: true, from: 0, to: 100 }] });
+  const since = daysAgo(35);
+  await auditAt(1, 1, since);
+  await auditAt(1, 2, daysAgo(1)); // the same flag in prod
+  await auditAt(2, 1, daysAgo(1)); // another flag in dev
+  assert.deepEqual((await listed('dev', 'new-checkout')).oneDirection, { value: true, since: since.toISOString() });
+});
+
+test('oneDirection: switched off (any rollout or rules), or on with rollout 0 and no rules → everyone gets the default', async () => {
+  const since = daysAgo(31);
+  await auditAt(1, 1, since);
+  await setFlag(1, 1, { enabled: false }); // 1 rule, rollout 30
+  assert.deepEqual((await listed('dev', 'new-checkout')).oneDirection, { value: false, since: since.toISOString() });
+  await setFlag(1, 1, { enabled: false, default: true });
+  assert.deepEqual((await listed('dev', 'new-checkout')).oneDirection, { value: true, since: since.toISOString() });
+  await setFlag(1, 1, { enabled: true, default: false, rules: [], variants: [] });
+  assert.deepEqual((await listed('dev', 'new-checkout')).oneDirection, { value: false, since: since.toISOString() });
+});
+
+test('oneDirection is null when users can get different values, and on multivariate flags', async () => {
+  await auditAt(1, 1, daysAgo(31));
+  await auditAt(2, 1, daysAgo(31));
+  // rollout 100 with a targeting rule
+  await setFlag(1, 1, { variants: [{ value: true, from: 0, to: 100 }] });
+  assert.equal((await listed('dev', 'new-checkout')).oneDirection, null);
+  // rollout 50, no rules
+  await setFlag(1, 1, { rules: [], variants: [{ value: true, from: 0, to: 50 }] });
+  assert.equal((await listed('dev', 'new-checkout')).oneDirection, null);
+  // rollout 0 with a targeting rule
+  await setFlag(1, 1, { rules: [{ attribute: 'country', operator: 'equals', value: 'RO', serve: true }], variants: [] });
+  assert.equal((await listed('dev', 'new-checkout')).oneDirection, null);
+  // a multivariate flag, even switched off
+  await setFlag(2, 1, { enabled: false });
+  assert.equal((await listed('dev', 'reserve-button-color')).oneDirection, null);
+});
+
+test('PATCH returns the same fields; right after a real change oneDirection is null', async () => {
+  const evaluated = daysAgo(2);
+  await setFlag(1, 1, { last_evaluated_at: evaluated, rules: [] });
+  await auditAt(1, 1, daysAgo(31));
+  const res = await patch('new-checkout', 'dev', { rollout: 100 });
+  assert.equal(res.status, 200);
+  const { flag } = await res.json();
+  assert.equal(flag.lastEvaluatedAt, evaluated.toISOString());
+  assert.equal(flag.stale, false);
+  assert.equal(flag.oneDirection, null);
+  assert.deepEqual(await listed('dev', 'new-checkout'), flag);
+  // A no-op writes no audit row, so the newest row is still the one the rollout wrote now.
+  const same = await (await patch('new-checkout', 'dev', { rollout: 100 })).json();
+  assert.equal(same.flag.oneDirection, null);
 });
 
 // --- switch (kill switch) ----------------------------------------------------------

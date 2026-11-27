@@ -11,6 +11,7 @@ import {
   undoOf,
   footerText,
   emptyTitle,
+  badges,
 } from '../src/flags.js';
 
 // The copy and summaries of DS-web2-flags (approved 2026-11-26), as pure functions.
@@ -26,6 +27,9 @@ const flag = (over = {}) => ({
   ruleCount: 0,
   variants: [],
   rollout: 0,
+  lastEvaluatedAt: '2026-11-26T10:00:00.000Z',
+  stale: false,
+  oneDirection: null,
   ...over,
 });
 
@@ -123,4 +127,33 @@ test('footerText and emptyTitle', () => {
   assert.equal(footerText(1, 'dev', 3), '1 flag în dev · configurația v3');
   assert.equal(emptyTitle('prod'), 'Niciun flag în prod');
   assert.equal(emptyTitle('dev'), 'Niciun flag în dev');
+});
+
+// D-022: the server decides stale and oneDirection; the badge only counts whole days.
+const NOW = Date.parse('2026-11-27T12:00:00.000Z');
+const ago = (days, hours = 0) => new Date(NOW - (days * 24 + hours) * 60 * 60 * 1000).toISOString();
+
+test('badges: none when the flag is neither stale nor 100% într-o direcție', () => {
+  assert.deepEqual(badges(flag(), NOW), []);
+});
+
+test('badges: stale, with whole days since the last evaluation, or "niciodată"', () => {
+  assert.deepEqual(badges(flag({ stale: true, lastEvaluatedAt: ago(34, 23) }), NOW), ['⚠ Stale · neevaluat de 34 de zile']);
+  assert.deepEqual(badges(flag({ stale: true, lastEvaluatedAt: null }), NOW), ['⚠ Stale · neevaluat niciodată']);
+});
+
+test('badges: 100% pornit when everyone gets true, 100% oprit otherwise, with the days', () => {
+  assert.deepEqual(badges(flag({ oneDirection: { value: true, since: ago(45) } }), NOW), [
+    '⚠ 100% pornit de 45 de zile · poate fi arhivat',
+  ]);
+  assert.deepEqual(badges(flag({ oneDirection: { value: false, since: ago(31, 5) } }), NOW), [
+    '⚠ 100% oprit de 31 de zile · poate fi arhivat',
+  ]);
+});
+
+test('badges: both, stale first', () => {
+  assert.deepEqual(badges(flag({ stale: true, lastEvaluatedAt: null, oneDirection: { value: false, since: ago(31) } }), NOW), [
+    '⚠ Stale · neevaluat niciodată',
+    '⚠ 100% oprit de 31 de zile · poate fi arhivat',
+  ]);
 });
