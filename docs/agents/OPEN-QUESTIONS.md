@@ -51,7 +51,7 @@
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 - Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
 - Q-042 · Cum se editează rata de bază și MDE ale unui experiment?
-- Q-043 · Cum se împachetează SDK-ul cu `npm pack`?
+- Q-043 · Cum se împachetează SDK-ul cu `npm pack`? · _answered_
 
 ---
 
@@ -561,14 +561,16 @@
 - **Confirmed:** 2026-11-27
 
 ## Q-043 · Cum se împachetează SDK-ul cu `npm pack`?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** D-007 (SDK-ul publicat drept tarball `npm pack`); integrarea în P07 (Q-026)
 - **Who answers:** the user
 - **Proposed answer:**
-- **Answer:**
-- **Recorded as:**
+- **Answer:** 2026-11-27 (user): `sdk/package.json` are `name: web2-lab-sdk`, `version: 0.1.0`,
+  `exports` → `./src/index.js`, `files` → `src` și păstrează `private: true`; `npm pack` în `sdk/`
+  face `web2-lab-sdk-0.1.0.tgz`. Verificat de `sdk/test/pack.test.js` (instalare și import într-un
+  folder gol). Cum îl instalează altă aplicație: `README.md` → „SDK-ul în altă aplicație”.
+- **Recorded as:** D-007
 - **Note:** 2026-11-27: `npm pack` în `sdk/` eșuează (`Invalid package, must have name and
   version`): `sdk/package.json` are doar `private`, `type` și `scripts`. Codul nu respectă D-007;
   P1 și serverul folosesc SDK-ul din sursă (`sdk/src`, D-015). Userul planifică repararea separat.
   `sdk/` e înghețat pentru deploy până la 2026-12-03 08:05 (D-016), dar se poate merge-ui.
-- **Confirmed:** 2026-11-27

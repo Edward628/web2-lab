@@ -1,6 +1,14 @@
 {
+  "name": "web2-lab-sdk",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src"
+  ],
   "scripts": {
     "test": "node --test"
   }
