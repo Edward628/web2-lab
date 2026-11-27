@@ -111,9 +111,12 @@
   `dashboard/`), `dashboard/`, `sdk/`, `p1/`, plus un singur `docker-compose.yml`. Testele stau
   lângă fiecare parte (`server/test`, `sdk/test`). Modelul de date suportă mai multe
   proiecte; dashboard-ul are un proiect deschis, schimbat din „Proiect și medii”, fără selector
-  în header. SDK-ul se publică drept tarball făcut cu `npm pack` în `sdk/`, fără cont npm.
+  în header. SDK-ul se publică drept tarball făcut cu `npm pack` în `sdk/`, fără cont npm:
+  pachetul `web2-lab-sdk`, versiunea `0.1.0`, cu `exports` → `./src/index.js` și `files` → `src`
+  (fără build). `private: true` rămâne, ca să blocheze un `npm publish` din greșeală.
 - **Why:** granițe clare între server, UI, SDK și P1; publicarea pe npm nu e necesară.
-- **Evidence:** user, 2026-11-18; Q-004, Q-022, Q-023.
+- **Evidence:** user, 2026-11-18; Q-004, Q-022, Q-023. Numele, versiunea și `private`: user, plan
+  „Make the SDK packable with npm pack”, 2026-11-27 (Q-043).
 - **Confirmed:** 2026-11-27
 
 ## D-008 · Autentificarea adminului: parolă din variabilă de mediu, cookie de sesiune

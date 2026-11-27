@@ -96,6 +96,7 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 (cd server && npm run -s hash-password)           # prints ADMIN_PASSWORD_HASH for .env (D-019); the password is not echoed
 (cd server && set -a && . ../.env && set +a && npm test)   # server tests; need db up, wipe web2_test
 (cd sdk && npm test)                              # SDK unit tests (node --test)
+(cd sdk && npm pack)                              # sdk/web2-lab-sdk-0.1.0.tgz for another app (D-007; README → „SDK-ul în altă aplicație”)
 (cd p1 && npm test)                               # P1 unit tests (node --test)
 (cd dashboard && npm test)                        # dashboard unit tests (node --test)
 (cd server && set -a && . ../.env && set +a && DATABASE_URL="postgres://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/web2" npm run -s load-test)

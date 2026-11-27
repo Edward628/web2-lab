@@ -10,3 +10,6 @@ node_modules/
 
 # P1: the SDK key and server URL (D-012)
 p1/config.js
+
+# SDK tarballs from npm pack (D-007)
+*.tgz

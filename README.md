@@ -42,6 +42,25 @@ Pune cheia prod în `.env` ca `P1_SDK_KEY`, apoi `docker compose up -d --wait` d
 - P1: http://127.0.0.1:3000/p1/
 - Dashboard: http://127.0.0.1:3000/dashboard/
 
+## SDK-ul în altă aplicație
+SDK-ul se distribuie ca tarball `npm pack`, fără registry npm (D-007). P1 și serverul îl
+folosesc în continuare din sursă (`sdk/src`, D-015).
+```bash
+(cd sdk && npm pack)                                   # face sdk/web2-lab-sdk-0.1.0.tgz
+cd /calea/spre/aplicatia-ta && npm install /calea/spre/web2-lab-sdk-0.1.0.tgz
+```
+În aplicație (modul ES, într-un bundler sau în Node):
+```js
+import { init } from 'web2-lab-sdk';
+
+const client = init({ sdkKey: '<cheia SDK a mediului>', baseUrl: 'https://<serverul>' });
+await client.refresh();
+client.identify('<id anonim al utilizatorului>');
+if (client.isEnabled('flag-ul-meu')) { /* ... */ }
+```
+Pachetul are doar `src/` (fără build și fără dependențe). O aplicație fără npm (de exemplu
+P07, cu Thymeleaf) nu are încă o variantă într-un singur fișier (Q-026).
+
 ## Teste și CI
 Testele folosesc `node --test` (D-002):
 ```bash
@@ -74,8 +93,6 @@ de `127.0.0.1` și `localhost`. Metoda, comanda și rezultatele: `docs/LOAD-TEST
   Singurul flag, `reserve-button-color`, e creat de seed.
 - Ecranele „Detaliul unui flag” și „Proiect și medii” (Q-040).
 - Editarea alocării pe variante (Q-039) și a ratei de bază / MDE ale unui experiment (Q-042).
-- Pachetul SDK: P1 și serverul folosesc SDK-ul din sursă (`sdk/src`); `npm pack` nu merge încă,
-  pentru că `sdk/package.json` nu are `name` și `version` (Q-043).
 
 ## Ce mai rămâne
 - `EXPERIMENT.md`: rezultatul real, după 2026-12-03 08:05 (ora României), apoi deploy-ul
