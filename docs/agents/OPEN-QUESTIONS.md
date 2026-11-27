@@ -51,6 +51,7 @@
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 - Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
 - Q-042 · Cum se editează rata de bază și MDE ale unui experiment?
+- Q-043 · Cum se împachetează SDK-ul cu `npm pack`?
 
 ---
 
@@ -114,7 +115,7 @@
   Neon before it started; deploy freeze until then (D-016).
   Still open: how labs are handed in, and any tag.
 - **Recorded as:** D-014, D-015 (hosting), D-016 (experiment freeze)
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## Q-006 · What are the design tokens (colors, fonts, spacing), and is there a design board?
 - **Status:** open
@@ -140,6 +141,7 @@
   Update 2026-11-25 (user): aplicația colegului nu e gata încă; integrarea în P07 se face
   după ce o termină, iar până atunci studentul își construiește partea lui.
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-026 · Cum include SDK-ul o aplicație fără npm (Thymeleaf, P07)?
 - **Status:** open
@@ -150,7 +152,7 @@
   serverul de flag-uri. Ar schimba D-007, deci ar fi un PROPOSAL.
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-27
 
 ## Q-027 · Ce `user_id` trimite P07 SDK-ului?
 - **Status:** open
@@ -160,6 +162,7 @@
   vizitatori; pentru utilizatorii logați, un id opac (nu email, nu username).
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-008 · Care e data predării finale și a susținerii?
 - **Status:** open
@@ -171,6 +174,7 @@
   încheie experimentul (D-016, 08:05 Europe/Bucharest). Încă deschis: data exactă a predării
   după amânare și data susținerii.
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-009 · Acceptă profesorul scope-ul redus (15–20 h în loc de ~40 h)?
 - **Status:** open
@@ -179,6 +183,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-010 · Poate P1 să fie o aplicație nouă, construită în acest proiect?
 - **Status:** open
@@ -187,7 +192,7 @@
 - **Proposed answer:**
 - **Answer:** partial, 2026-11-18 (user): nu există un P1 real; studentul vrea să construiască o aplicație mică de parcare, pusă online, folosită de colegii de grupă. De confirmat că fișa acceptă asta.
 - **Recorded as:**
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## Q-011 · Ce face butonul „Kill switch” față de comutatorul Pornit / Oprit din listă?
 - **Status:** answered
@@ -281,6 +286,7 @@
   Ledger-ul din `docs/agents/` rămâne pentru agenți; fiecare schimbare în SDK primește și o
   intrare D- care trimite la el.
 - **Recorded as:** README.md → „Partea umană”
+- **Confirmed:** 2026-11-27
 
 ## Q-020 · O conversie se numără o dată per utilizator sau la fiecare click?
 - **Status:** answered
@@ -327,7 +333,7 @@
   0% (oprit) sau o variantă cu intervalul întreg.
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## Q-025 · Cerința de 25 de commit-uri pe 8 zile vine din fișă?
 - **Status:** open
@@ -389,6 +395,7 @@
   Render + Neon, unde nu s-a măsurat.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-032 · Acceptăm deadlock-urile între batch-uri care scriu aceleași chei în ordini diferite?
 - **Status:** open
@@ -404,6 +411,7 @@
   dovedește că deadlock-ul nu apare. Încă nemăsurat.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-033 · Cât timp păstrăm id-urile de eveniment din `ingested_events`?
 - **Status:** open
@@ -418,6 +426,7 @@
   traficul real (zeci de utilizatori) creșterea e neglijabilă.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei?
 - **Status:** answered
@@ -509,7 +518,7 @@
 - **Proposed answer:**
 - **Answer:**
 - **Recorded as:**
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
 - **Status:** open
@@ -519,6 +528,7 @@
   presupunere acceptată de user în planul API-ului de administrare, 2026-11-26.
 - **Answer:**
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
 
 ## Q-041 · Ce serviciu Cloudflare trebuie integrat, și de ce?
 - **Status:** open
@@ -535,6 +545,7 @@
   (Q-038, C-007: o limită în total, nu per IP, dar orice logică pe IP ar vedea IP-urile
   Cloudflare). Până la 2026-12-03 08:05 Europe/Bucharest nu se schimbă nimic în fața P1 live
   (D-016: DNS, proxy, domeniu, Worker).
+- **Confirmed:** 2026-11-27
 
 ## Q-042 · Cum se editează rata de bază și MDE ale unui experiment?
 - **Status:** open
@@ -547,4 +558,17 @@
   (`experiments.baseline_rate`, `experiments.mde`, implicit 0,20 și 0,10) și se afișează; editarea
   vine într-un plan ulterior.
 - **Recorded as:**
+- **Confirmed:** 2026-11-27
+
+## Q-043 · Cum se împachetează SDK-ul cu `npm pack`?
+- **Status:** open
+- **Blocks:** D-007 (SDK-ul publicat drept tarball `npm pack`); integrarea în P07 (Q-026)
+- **Who answers:** the user
+- **Proposed answer:**
+- **Answer:**
+- **Recorded as:**
+- **Note:** 2026-11-27: `npm pack` în `sdk/` eșuează (`Invalid package, must have name and
+  version`): `sdk/package.json` are doar `private`, `type` și `scripts`. Codul nu respectă D-007;
+  P1 și serverul folosesc SDK-ul din sursă (`sdk/src`, D-015). Userul planifică repararea separat.
+  `sdk/` e înghețat pentru deploy până la 2026-12-03 08:05 (D-016), dar se poate merge-ui.
 - **Confirmed:** 2026-11-27
