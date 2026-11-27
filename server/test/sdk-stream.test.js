@@ -144,3 +144,67 @@ test('a database error on a tick skips that tick; the stream stays open', async 
   t.mock.timers.tick(15000);
   assert.equal(await s.next(), version(7));
 });
+
+// The cap (C-006, Q-037): 200 open streams in total, across environments; then 503.
+const MAX_STREAMS = 200;
+
+async function openMany(t, baseUrl, n) {
+  const streams = [];
+  t.after(() => streams.forEach((s) => s.close()));
+  for (let i = 0; i < n; i++) {
+    const s = await openStream(baseUrl, i % 2 === 0 ? 'key-a-dev' : 'key-b-dev');
+    assert.equal(s.res.status, 200, `stream ${i + 1}`);
+    streams.push(s);
+  }
+  return streams;
+}
+
+test('with 200 streams open, the next one → 503 without a body; another closing frees a slot', async (t) => {
+  const app = await start(t);
+  const streams = await openMany(t, app.baseUrl, MAX_STREAMS);
+  const refused = await fetch(`${app.baseUrl}/sdk/stream?key=key-a-dev`);
+  assert.equal(refused.status, 503);
+  assert.equal(refused.headers.get('content-type'), null);
+  assert.equal(await refused.text(), '');
+  streams[0].close();
+  await settle();
+  const s = await openStream(app.baseUrl, 'key-b-dev');
+  t.after(s.close);
+  assert.equal(s.res.status, 200);
+  assert.equal(await s.next(), version(1));
+});
+
+test('400, 404 and 503 answers do not count; at the cap, 400 and 404 still come first', async (t) => {
+  const app = await start(t);
+  const streams = await openMany(t, app.baseUrl, MAX_STREAMS - 1);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream`)).status, 400);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream?key=no-such-key`)).status, 404);
+  streams.push(await openStream(app.baseUrl, 'key-a-dev')); // the 200th
+  assert.equal(streams.at(-1).res.status, 200);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream`)).status, 400);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream?key=no-such-key`)).status, 404);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream?key=key-a-dev`)).status, 503);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream?key=key-a-dev`)).status, 503);
+  streams[0].close();
+  await settle();
+  const s = await openStream(app.baseUrl, 'key-a-dev'); // the two 503s took no slot
+  t.after(s.close);
+  assert.equal(s.res.status, 200);
+  assert.equal((await fetch(`${app.baseUrl}/sdk/stream?key=key-a-dev`)).status, 503);
+});
+
+// What the SDK relies on (D-018): Node's EventSource turns a 503 into "error" and does
+// not reconnect by itself, so the SDK's own reconnect and failure count apply.
+test('at the cap, an EventSource gets "error" and stays closed', { timeout: 20000 }, async (t) => {
+  assert.equal(typeof EventSource, 'function', 'run with --experimental-eventsource');
+  const app = await start(t);
+  await openMany(t, app.baseUrl, MAX_STREAMS);
+  const es = new EventSource(`${app.baseUrl}/sdk/stream?key=key-a-dev`);
+  t.after(() => es.close());
+  let opened = false;
+  es.addEventListener('open', () => (opened = true));
+  await new Promise((resolve) => es.addEventListener('error', resolve, { once: true }));
+  await settle();
+  assert.equal(opened, false);
+  assert.equal(es.readyState, EventSource.CLOSED);
+});
