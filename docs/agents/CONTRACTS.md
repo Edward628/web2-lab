@@ -113,7 +113,7 @@
 - **Evidence:** user, plan „Event ingest, SDK exposures, track and batching, ParkingLot seed”,
   2026-11-25 (ordinea de ingestie, A3, A4); user, review-ul PR-ului de ingestie, 2026-11-25
   (limita de 256 de caractere, 400 pentru text nestocabil și pentru erorile parserului).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ### C-006 · Stream-ul de versiuni pentru SDK (SSE)
 - **Status:** approved

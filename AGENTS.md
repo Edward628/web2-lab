@@ -98,6 +98,8 @@ docker compose exec server npm run seed           # ParkingLot project + keys (i
 (cd sdk && npm test)                              # SDK unit tests (node --test)
 (cd p1 && npm test)                               # P1 unit tests (node --test)
 (cd dashboard && npm test)                        # dashboard unit tests (node --test)
+(cd server && set -a && . ../.env && set +a && DATABASE_URL="postgres://postgres:${POSTGRES_PASSWORD}@127.0.0.1:5432/web2" npm run -s load-test)
+#   ↑ ingest load test, 1,000 events/s for 60 s (--duration 5 for a smoke run); local stack only; docs/LOAD-TEST.md
 #   start page: http://127.0.0.1:3000/ (DS-web2-home; links P1 and the dashboard)
 #   dashboard: http://127.0.0.1:3000/dashboard/ (served by the server; set ADMIN_PASSWORD_HASH in .env)
 #   experiment results: http://127.0.0.1:3000/dashboard/experiment.html (DS-web2-experiment)

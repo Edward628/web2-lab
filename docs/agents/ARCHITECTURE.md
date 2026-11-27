@@ -41,6 +41,7 @@ server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
 server/scripts/seed.js  `npm run seed`: migrate + seedParkingLot on DATABASE_URL, prints the keys
 server/src/db.js     createPool(url), migrate(pool) runs server/db/schema.sql; readSnapshot / transaction(pool, fn)
 server/scripts/hash-password.js  `npm run hash-password`: reads the password, prints ADMIN_PASSWORD_HASH (scrypt:<salt>:<hash>)
+server/scripts/load-test.js  `npm run load-test`: 1,000 events/s to POST /sdk/events for 60 s, local only (refuses non-loopback hosts); helpers in load-test-lib.js; docs/LOAD-TEST.md
 
 p1/index.html        DS-web2-parking (states loading, list, invalid, success); p1/styles.css
 p1/src/app.js        import ../config.js → getUserId → init + identify → firstVariant → body[data-variant]
