@@ -53,6 +53,13 @@ export function createApi({ fetch = globalThis.fetch.bind(globalThis), onUnautho
     },
     listFlags: (env) => data('GET', `/admin/flags?env=${encodeURIComponent(env)}`),
     listExperiments: (env) => data('GET', `/admin/experiments?env=${encodeURIComponent(env)}`),
+    // flag and before (the cursor from nextBefore) only when given (C-007).
+    listAudit(env, { flag = null, before = null } = {}) {
+      let url = `/admin/audit?env=${encodeURIComponent(env)}`;
+      if (flag !== null) url += `&flag=${encodeURIComponent(flag)}`;
+      if (before !== null) url += `&before=${encodeURIComponent(before)}`;
+      return data('GET', url);
+    },
     setEnabled: (key, env, enabled) =>
       data('PATCH', `/admin/flags/${encodeURIComponent(key)}?env=${encodeURIComponent(env)}`, { enabled }),
   };

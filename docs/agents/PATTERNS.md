@@ -15,6 +15,7 @@
 - PATTERN-007 · Testele SSE: `EventSource` fals în SDK, stream citit cu `fetch` pe server · candidate
 - PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML · candidate
 - PATTERN-009 · Un fișier nou servit de server intră în trei locuri: ruta, testul static și `server/Dockerfile` · candidate
+- PATTERN-010 · O listă paginată din API-ul de administrare: cursor pe `id`, `LIMIT n + 1`, `nextBefore` · candidate
 
 ---
 
@@ -111,3 +112,14 @@
   intră automat (folderul e copiat întreg).
 - **Example:** `server/Dockerfile` (`dashboard/experiment.html`, PR-ul DS-web2-experiment)
 - **Confirmed:** 2026-11-27
+
+## PATTERN-010 · O listă paginată din API-ul de administrare: cursor pe `id`, `LIMIT n + 1`, `nextBefore`
+- **Status:** candidate
+- **How:** O listă care crește (de exemplu jurnalul de audit) se paginează cu un cursor, nu cu offset:
+  `ORDER BY id DESC`, `WHERE id < $before`, `LIMIT n + 1`. Dacă rândul n + 1 există, `nextBefore` = id-ul
+  ultimului rând întors, altfel `null`. Rândurile noi nu mută paginile mai vechi. `before` se validează ca
+  întreg 1…2147483647 (serial), un parametru repetat (Express îl dă ca array) → `400`. Filtrele merg în SQL,
+  ca paginile să rămână corecte. Testele: 51 de rânduri (două pagini), exact 50 (fără pagină următoare),
+  rânduri noi între pagini. În pagină, „Mai vechi” adaugă rândurile; o schimbare de mediu sau de filtru
+  pornește lista de la capăt, iar un răspuns întârziat la lista veche se ignoră (un contor `view`).
+- **Example:** `server/src/audit.js`, `server/test/admin-audit.test.js`, `dashboard/src/audit.js`
