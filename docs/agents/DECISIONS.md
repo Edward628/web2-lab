@@ -167,7 +167,7 @@
   și job-urile one-off sunt plătite, deci seed-ul rulează local.
 - **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26 (auto-deploy oprit,
   regiunea, health check-ul, seed-ul rulat de user); C-004, C-005.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
 - **Status:** approved
@@ -200,7 +200,7 @@
 - **Evidence:** user, 2026-11-26: primul deploy făcut, experimentul pornit la 08:05, evenimentele de
   test șterse în Neon înainte de start; user, 2026-11-26: fără ștergeri sau modificări în
   `exposures`, `conversions`, `ingested_events` până la final, `SELECT` permis.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
 - **Status:** approved
@@ -212,7 +212,7 @@
 - **Why:** testele rulează la fiecare PR, nu doar local; deploy-ul rămâne manual, cu acordul
   userului (D-014), iar în timpul experimentului e oprit (D-016).
 - **Evidence:** user, plan „CI with GitHub Actions”, 2026-11-26 (trigger-ele: push pe `main` și PR).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
 - **Status:** approved
@@ -239,7 +239,7 @@
 - **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
   state)”, 2026-11-26 (versiunea citită la 15 s, `connect`/`close`/`status`, fără întoarcere la
   SSE, P1 neschimbat, cele cinci presupuneri). Înlocuiește D-011.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
 - **Status:** approved

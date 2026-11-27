@@ -34,7 +34,7 @@ server/src/admin.js  hashPassword, parseHash; adminRoutes(app, …): login / log
                      GET /admin/experiments?env=: results per experiment from one snapshot
 server/src/experiments.js experimentResults(db, environmentId): exposed / converted per variant, each variant vs the control (the default, D-021)
 server/src/stats.js  normalCdf, minSample, compare (z-test pooled SE, Wald CI), verdict (D-001, D-021); no dependency
-server/src/stream.js streamTarget(pool, key), createStreams(pool).add: "version N" on connect and every 15 s, one timer per environment with open streams
+server/src/stream.js streamTarget(pool, key), createStreams(pool).add/full: "version N" on connect and every 15 s, one timer per environment with open streams; at most 200 open in total, then 503 (C-006)
 server/src/events.js validateBatch(body), environmentOf(pool, key), ingestBatch(pool, envId, events): one transaction
 server/src/seed.js   seedParkingLot(pool) → { dev, prod } SDK keys; idempotent
 server/scripts/seed.js  `npm run seed`: migrate + seedParkingLot on DATABASE_URL, prints the keys

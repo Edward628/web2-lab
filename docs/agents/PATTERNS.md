@@ -55,7 +55,7 @@
   fixe. Fișierele rulează unul câte unul (`--test-concurrency=1`). Aplicația primește pool-ul
   prin `createApp({ pool })` și ascultă pe un port aleator.
 - **Example:** `server/test/helpers.js`, `server/test/sdk-config.test.js`
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## PATTERN-005 · Testele SDK-ului cu timp și rețea: `fetch` înlocuit și timere simulate
 - **Status:** candidate
@@ -88,6 +88,7 @@
   `listen().close()` închide întâi conexiunile deschise. Testul cap la cap folosește
   `EventSource` din Node (`--experimental-eventsource` în `npm test`).
 - **Example:** `sdk/test/live.test.js`, `server/test/sdk-stream.test.js`
+- **Confirmed:** 2026-11-27
 
 ## PATTERN-008 · Textele și rezumatele UI în module pure testate; DOM-ul se construiește din noduri, nu din HTML
 - **Status:** candidate

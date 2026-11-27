@@ -45,7 +45,7 @@
 - Q-034 · Ce se întâmplă cu o conversie care ajunge înaintea batch-ului cu expunerea ei? · _answered_
 - Q-035 · Ce face starea de eroare „Locul tocmai a fost ocupat” într-un P1 fără backend? · _answered_
 - Q-036 · Ce sugestii din review-ul PR-ului #15 (P1) construim mai târziu?
-- Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
+- Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)? · _answered_
 - Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită? · _answered_
 - Q-039 · Editează API-ul de administrare și alocarea pe variante a unui flag multivariat?
 - Q-040 · Ce proiect deschide dashboard-ul până există ecranul „Proiect și medii”?
@@ -455,7 +455,7 @@
 - **Confirmed:** 2026-11-26
 
 ## Q-037 · Câte stream-uri deschise acceptă serverul înainte de `503` (C-006)?
-- **Status:** open
+- **Status:** answered
 - **Blocks:** primul deploy după experiment (D-016) și orice `connect()` în producție
 - **Who answers:** the user
 - **Proposed answer:** review-ul PR-ului #19 (constatarea 1): `GET /sdk/stream`
@@ -467,8 +467,10 @@
 - **Answer:** partial, 2026-11-26 (user): o limită pe totalul stream-urilor deschise, cu `503`
   peste o valoare fixă, se construiește înainte de primul deploy după experiment, adică înainte
   ca ceva să apeleze `connect()` în producție. Schimbă C-006 (PROPOSAL în planul ei). Încă
-  deschis: valoarea fixă.
-- **Recorded as:**
+  deschis: valoarea fixă. 2026-11-27 (user): 200 de stream-uri deschise în total; peste ele
+  `503` fără corp; numărul scade când un stream se închide; SDK-ul tratează `503` ca orice
+  conexiune eșuată (D-018). Construit înainte de primul deploy după experiment (D-016).
+- **Recorded as:** C-006
 
 ## Q-038 · Câte încercări de login acceptă serverul, și ce face peste limită?
 - **Status:** answered

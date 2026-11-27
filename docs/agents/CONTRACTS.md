@@ -76,7 +76,7 @@
 - **Evidence:** user, plan „SDK: configurația de la server cu ETag și validare”, 2026-11-25;
   user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25 (400/404/500,
   CORS, forma ETag-ului).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ### C-003 · Endpoint-ul de evenimente pentru SDK
 - **Status:** approved
@@ -119,18 +119,23 @@
 - **Status:** approved
 - **Interface:** `GET {baseUrl}/sdk/stream?key=<cheia SDK, URL-encoded>`. Fără `key` (sau gol) →
   `400`; o cheie necunoscută (inclusiv una cu NUL) → `404`; o eroare de bază de date înainte de
-  pornirea stream-ului → `500`; toate fără corp. Altfel `200`, `Content-Type: text/event-stream`,
+  pornirea stream-ului → `500`; cu 200 de stream-uri deschise în total (toate mediile, pe instanță)
+  → `503`, verificat după căutarea cheii, chiar înainte de pornirea stream-ului (deci `400`, `404`
+  și `500` vin întâi); toate fără corp, fără `Retry-After`. SDK-ul tratează `503` ca orice conexiune
+  eșuată (D-018). Altfel `200`, `Content-Type: text/event-stream`,
   `Cache-Control: no-cache`, `X-Accel-Buffering: no`, `Access-Control-Allow-Origin: *`.
   Mesajele: `event: version\ndata: <config_version>\n\n` (D-010), trimis la conectare și apoi
   la 15 s cât timp e deschis un stream al acelui mediu; o citire eșuată sare peste acel tick (scrisă
   în log), stream-ul rămâne deschis. Alte evenimente nu există; fără câmpul `id:`. Mesajul la
   15 s ține loc și de confirmare (D-018, `stale` după 60 s).
 - **Provider:** `server/src/app.js`, `server/src/stream.js` (un timer per mediu, oprit odată cu
-  ultimul stream, deci nicio interogare când nu e nimeni conectat).
+  ultimul stream, deci nicio interogare când nu e nimeni conectat; un contor al stream-urilor
+  deschise, scăzut la închiderea fiecăruia, `MAX_STREAMS = 200`).
 - **Consumers:** `sdk/src/live.js`, pornit din `sdk/src/index.js` (`connect()`, D-018).
 - **Evidence:** user, plan „Live configuration updates (SSE, polling fallback, local cache, stale
-  state)”, 2026-11-26 (versiunea citită la 15 s, nu LISTEN/NOTIFY).
-- **Confirmed:** 2026-11-26
+  state)”, 2026-11-26 (versiunea citită la 15 s, nu LISTEN/NOTIFY); user, plan „Q-037: a cap on
+  open SSE streams”, 2026-11-27 (200 în total, `503` fără corp, ordinea 400 → 404/500 → 503).
+- **Confirmed:** 2026-11-27
 
 ### C-007 · API-ul de administrare (sesiune, lista flag-urilor, comutator, rollout, rezultatele experimentelor)
 - **Status:** approved

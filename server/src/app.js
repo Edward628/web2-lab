@@ -114,6 +114,7 @@ export function createApp({ pool, p1SdkKey, adminPasswordHash }) {
       return res.status(500).end();
     }
     if (target === null) return res.status(404).end();
+    if (streams.full()) return res.status(503).end(); // Q-037: 200 open in total
     res.set({ 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'X-Accel-Buffering': 'no' });
     res.flushHeaders();
     streams.add(target.id, target.version, res);
