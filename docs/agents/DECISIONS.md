@@ -20,7 +20,7 @@
 - D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
 - D-015 · P1: SDK-ul din sursă; cheia din `p1/config.js` local sau din `P1_SDK_KEY` pe server; track doar la rezervare validă
 - D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
-- D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
+- D-017 · CI: GitHub Actions rulează testele SDK, P1, dashboard și server; fără deploy
 - D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
 - D-019 · Sesiunea adminului: hash scrypt din `ADMIN_PASSWORD_HASH`, token în memorie 8 h
 - D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
@@ -40,7 +40,7 @@
   ~30 de colegi eșantionul minim (~290 per variantă) nu va fi atins; rezultatul real arată
   „nu e semnificativ încă”, iar statistica e dovedită prin teste pe date cunoscute.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18; README.md → „Variabilele mele”; Q-015.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-002 · Stack: Node.js (JavaScript), Express, PostgreSQL, Docker Compose
 - **Status:** approved
@@ -51,7 +51,7 @@
 - **Why:** studentul știe JavaScript; SDK-ul trebuie să fie în JavaScript (fișa); serverele
   rulează în Docker (Lab Setup); bugetul de 15–20 h nu lasă loc pentru framework-uri noi.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18; răspunde la Q-001.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-003 · Configurația SDK: JSON versionat, SSE cu fallback la polling, cache local
 - **Status:** approved
@@ -64,7 +64,7 @@
 - **Why:** variabilă din fișa proiectului (formatul configurației și strategia de fallback);
   acoperă cerința „fără a amesteca două versiuni într-o evaluare”.
 - **Evidence:** interviu și aprobare de la user, 2026-11-18.
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-27
 
 ## D-004 · Evaluarea: reguli, apoi intervale pe un singur bucket (MurmurHash3); comutatorul e kill switch-ul
 - **Status:** approved
@@ -80,7 +80,7 @@
 - **Why:** un singur control și un singur bucket sunt cel mai puțin de construit și de testat;
   hash-ul trebuie să ruleze sincron și identic în browser și în Node.
 - **Evidence:** user, 2026-11-18; Q-011, Q-013, Q-014, Q-021. Formula și bucket-ul întreg: plan „bucketing determinist”, aprobat 2026-11-18.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-27
 
 ## D-005 · Evenimente: un batch cu expuneri, conversii și numărul de evaluări
 - **Status:** approved
@@ -93,7 +93,7 @@
 - **Why:** evaluarea e locală (D-003), deci serverul află de evaluări doar din SDK; testul z
   pe două proporții (D-001) cere conversii unice per utilizator.
 - **Evidence:** user, 2026-11-18; Q-012, Q-020.
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-27
 
 ## D-006 · P1: o pagină cu locuri simulate, utilizator anonim
 - **Status:** approved
@@ -103,7 +103,7 @@
   creat la prima vizită și ținut în `localStorage`; P1 nu cere și nu păstrează date personale.
 - **Why:** minimul necesar pentru experiment în bugetul de 15–20 h, fără date personale.
 - **Evidence:** user, 2026-11-18; Q-016, Q-017.
-- **Confirmed:** 2026-11-18
+- **Confirmed:** 2026-11-27
 
 ## D-007 · Structura repo-ului, proiectele și publicarea SDK-ului
 - **Status:** approved
@@ -124,7 +124,7 @@
 - **Why:** un singur rol (README → „Simplificat față de fișă”); cel mai puțin de construit
   pentru un dashboard pus online.
 - **Evidence:** user, 2026-11-18; Q-018.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-010 · Versiunea configurației: un întreg per mediu
 - **Status:** approved
@@ -135,7 +135,7 @@
 - **Why:** D-003 cere `ETag = version`; o coloană pe mediu e cel mai puțin de construit și
   de testat, fără istoric al configurației (README → „Simplificat față de fișă”).
 - **Evidence:** user, plan „Server: docker-compose, schema și GET /sdk/config”, 2026-11-25.
-- **Confirmed:** 2026-11-25
+- **Confirmed:** 2026-11-27
 
 ## D-013 · P1 așteaptă configurația cel mult 5 s; cererea configurației din SDK expiră la 10 s
 - **Status:** approved
@@ -149,7 +149,7 @@
   oricât (review-ul de performanță al PR-ului #15); o expunere fără ca utilizatorul să fi văzut
   varianta ar strica experimentul (D-005).
 - **Evidence:** user, review-ul PR-ului #15, 2026-11-25; nota din Q-005 (2026-11-25).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-014 · Hosting: serverul pe Render, baza pe Neon, P1 pe aceeași origine
 - **Status:** approved
@@ -182,7 +182,7 @@
 - **Why:** un host construit din git nu are `p1/config.js`; cheia e publică (C-002), dar e
   creată de seed per bază de date, deci nu se scrie în repo. Restul, ca în D-012.
 - **Evidence:** user, plan „Host the server and P1 (Render + Neon)”, 2026-11-26; înlocuiește D-012.
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-016 · Experimentul `reserve-button-color` rulează 7 zile; până la final, fără deploy pe `p1/` sau `sdk/` și fără schimbări la flag
 - **Status:** approved
@@ -202,16 +202,18 @@
   `exposures`, `conversions`, `ingested_events` până la final, `SELECT` permis.
 - **Confirmed:** 2026-11-27
 
-## D-017 · CI: GitHub Actions rulează testele SDK, P1 și server; fără deploy
+## D-017 · CI: GitHub Actions rulează testele SDK, P1, dashboard și server; fără deploy
 - **Status:** approved
-- **Rule:** `.github/workflows/test.yml` rulează testele din `sdk/`, `p1/` și `server/` la fiecare
-  push pe `main` și la fiecare pull request, pe Node 24 (ca `server/Dockerfile`). Testele
+- **Rule:** `.github/workflows/test.yml` rulează testele din `sdk/`, `p1/`, `dashboard/` și `server/`
+  la fiecare push pe `main` și la fiecare pull request, pe Node 24 (ca `server/Dockerfile`). Testele
   serverului folosesc un container de serviciu `postgres:17-alpine` cu baza `web2_test`
   (PATTERN-004), cu autentificare `trust`, deci fără parolă în fișier. CI-ul nu are secrete și
   nu face niciodată deploy.
 - **Why:** testele rulează la fiecare PR, nu doar local; deploy-ul rămâne manual, cu acordul
   userului (D-014), iar în timpul experimentului e oprit (D-016).
-- **Evidence:** user, plan „CI with GitHub Actions”, 2026-11-26 (trigger-ele: push pe `main` și PR).
+- **Evidence:** user, plan „CI with GitHub Actions”, 2026-11-26 (trigger-ele: push pe `main` și PR);
+  user, plan „README.md describes the finished project”, 2026-11-27 (testele dashboard-ului, deja în
+  `test.yml`, intră în regulă).
 - **Confirmed:** 2026-11-27
 
 ## D-018 · API-ul SDK-ului: D-011 plus actualizări live (SSE, polling), cache local și starea `stale`
@@ -258,7 +260,7 @@
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (în memorie,
   8 h; D-019 aprobat); user, review-ul de securitate al PR-ului #20, 2026-11-26 (parola de cel puțin
   12 caractere).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-020 · Scrierile configurației: o tranzacție cu versiunea și auditul; citirile `REPEATABLE READ`
 - **Status:** approved
@@ -272,7 +274,7 @@
   (D-003, C-002); jurnalul de audit e cerut de D-004 și de README.
 - **Evidence:** user, plan „Admin API, dashboard login and the flags screen”, 2026-11-26 (Q-028
   confirmat explicit, D-020 aprobat).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
 
 ## D-021 · Statistica rezultatelor: controlul e valoarea implicită; p cu SE comun, IC Wald, eșantion minim clasic
 - **Status:** approved
@@ -290,4 +292,4 @@
   deja `blue` (valoarea implicită) drept control (D-013).
 - **Evidence:** user, plan „Experiment results”, 2026-11-26 (controlul = `default`, fiecare variantă
   față de control, formula clasică cu 294, editarea mai târziu; D-021 aprobat).
-- **Confirmed:** 2026-11-26
+- **Confirmed:** 2026-11-27
