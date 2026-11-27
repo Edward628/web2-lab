@@ -253,7 +253,10 @@ test('turning a flag on in prod is the same change, recorded as enable', async (
   const res = await patch('new-checkout', 'prod', { enabled: true });
   assert.equal(res.status, 200);
   assert.deepEqual(await res.json(), {
-    flag: { key: 'new-checkout', type: 'boolean', enabled: true, default: false, ruleCount: 0, variants: [], rollout: 0 },
+    flag: {
+      key: 'new-checkout', type: 'boolean', enabled: true, default: false, ruleCount: 0, variants: [], rollout: 0,
+      lastEvaluatedAt: null, stale: true, oneDirection: null,
+    },
     version: 4,
   });
   assert.equal(await version(1), 7, 'dev untouched');
