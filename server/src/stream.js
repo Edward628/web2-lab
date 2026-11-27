@@ -2,8 +2,11 @@
 // every 15 s while at least one stream of that environment is open. One timer per
 // environment, cleared with its last stream, so no query runs (and Neon may suspend)
 // when nobody is connected. A failed read skips that tick; the stream stays open.
+// At most MAX_STREAMS open in total, across environments (Q-037); full() is checked by
+// the route right before add(), with no await between them, so the cap is exact.
 
 const INTERVAL_MS = 15000;
+export const MAX_STREAMS = 200;
 
 // → { id, version } of the key's environment, or null when the key is unknown. A key
 // with a NUL cannot be stored, so it is unknown without a query (as buildConfig).
@@ -21,6 +24,7 @@ export async function streamTarget(pool, sdkKey) {
 
 export function createStreams(pool) {
   const environments = new Map(); // environment id → { clients: Set<res>, timer }
+  let open = 0; // streams open, all environments
 
   const send = (res, version) => res.write(`event: version\ndata: ${version}\n\n`);
 
@@ -46,9 +50,11 @@ export function createStreams(pool) {
       environments.set(environmentId, env);
     }
     env.clients.add(res);
+    open += 1;
     send(res, version);
     res.on('close', () => {
       env.clients.delete(res);
+      open -= 1;
       if (env.clients.size === 0) {
         clearInterval(env.timer);
         environments.delete(environmentId);
@@ -56,5 +62,7 @@ export function createStreams(pool) {
     });
   }
 
-  return { add };
+  const full = () => open >= MAX_STREAMS;
+
+  return { add, full };
 }
